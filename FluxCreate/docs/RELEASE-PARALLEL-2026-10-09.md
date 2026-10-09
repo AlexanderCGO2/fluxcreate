@@ -1,6 +1,6 @@
 # Parallel gap continuation — 2026-10-09
 
-Baseline: published suite `d30692b`. Status: all source slices reviewed and release assembly verified locally; production verification is appended only after deployment. The previous deployment remains documented in [the prior release record](RELEASE-2026-10-09.md).
+Baseline: published suite `d30692b`. Status: committed, pushed, deployed and verified in protected Flux AI production. The previous deployment remains documented in [the prior release record](RELEASE-2026-10-09.md).
 
 ## Delivered source slices
 
@@ -45,4 +45,12 @@ All nine browser applications and the packaged MCP/server build pass. The assemb
 
 The assembled suite passed 36 hosted browser checks and 6 packaged MCP checks, including editable text/image handoffs, navigation and resources. Git diff whitespace checks pass. No paid generation was performed. Fluxini standalone source was committed and pushed as `0918629`.
 
-Protected production deployment verification follows.
+## Protected production verification
+
+Suite commit `2f0d045` is pushed to main. Deployment `dpl_7LApUnFoNgPSpboPDV3nPmDg45et` is READY under `flux-ai-inc`: [production](https://fluxcreate.vercel.app), [immutable deployment](https://fluxcreate-f6jkbcrkc-flux-ai-inc.vercel.app).
+
+All 67 live checks passed on 2026-10-09: 32 exact-bundle/MCP/protection checks, 20 published app/configuration/catalog checks, and 15 settings/workflow checks. All nine deployed browser bundles match the locally tested release hashes. Five editor/Lab MCP discovery and UI resources respond correctly. All deployments remain protected; anonymous access to all eight app paths and their API paths is denied. Shared settings connection validation and hosted workflow validation/simulation pass. Hosted live workflow execution remains disabled. No paid model requests were made.
+
+The deployment's broad developer-file trace still reports the previously known diagnostics in paint-check.ts and gpu-particle-check.ts. The actual application type checks and all nine builds pass; those developer-only diagnostics remain technical debt.
+
+The next parallel batch is in progress in source folders; it is not included in this release. The larger feature-gap backlog remains open.
