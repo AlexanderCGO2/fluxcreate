@@ -1,0 +1,30 @@
+import { CATALOG, defaults } from './catalog.ts';
+import { createProject, edge, isLocked, type Command, type Project, type SceneNode } from './project.ts';
+export type EffectKind=string;
+export function effectCommands(project:Project,kind:EffectKind,prefix:string):Command[]{
+  const template=createProject(project.id,kind);
+  const allowed=kind==='title'?['text','textAnimate']:kind==='particles'?['emitter','motion']:null;
+  const nodes=template.graph.nodes.filter(n=>n.type!=='output'&&(!allowed||allowed.includes(n.type))),ids=new Map(nodes.map(n=>[n.id,prefix+'_'+n.id]));
+  const out=project.graph.nodes.find(n=>n.type==='output')!,offset=Math.max(-180,...project.graph.nodes.map(n=>n.position.y))+200,commands:Command[]=[];
+  for(const n of nodes){const id=ids.get(n.id)!;commands.push({op:'add',id,type:n.type,label:n.label,x:n.position.x,y:n.position.y+offset});const initial=defaults(n.type);for(const [param,value] of Object.entries(n.params))if(value!==initial[param])commands.push({op:'set',nodeId:id,param,value});}
+  for(const e of template.graph.edges)if(ids.has(e.source)&&(ids.has(e.target)||e.target==='output'))commands.push({op:'connect',edge:edge(ids.get(e.source)!,e.target==='output'?out.id:ids.get(e.target)!,e.input)});
+  for(const track of template.animations)if(ids.has(track.nodeId))commands.push({op:'animate',track:{...track,nodeId:ids.get(track.nodeId)!,keys:track.keys.map(k=>({...k,time:k.time/template.timeline.duration*project.timeline.duration}))}});
+  return commands;
+}
+export type QuickAction={label:string;summary:string;commands:Command[]};
+export function creativeActions(project:Project,node:SceneNode):QuickAction[]{
+  let target=node;
+  if(node.type==='text'||node.type==='emitter'){const type=node.type==='text'?'textAnimate':'motion';const link=project.graph.edges.find(e=>e.source===node.id&&project.graph.nodes.some(n=>n.id===e.target&&n.type===type));if(link)target=project.graph.nodes.find(n=>n.id===link.target)!;}
+  const build=(label:string,values:Record<string,number>,summary=label):QuickAction|null=>{const commands:Command[]=[];for(const [param,value] of Object.entries(values)){const d=CATALOG[target.type].params[param];if(!d||isLocked(project,target.id,param))return null;const v=Math.max(d.min!,Math.min(d.max!,Math.round(value*1000)/1000));if(v!==target.params[param])commands.push({op:'set',nodeId:target.id,param,value:v});}return commands.length?{label,summary,commands}:null;};
+  let actions:(QuickAction|null)[]=[];const p=target.params;
+  if(target.type==='water')actions=[build('Calmer water',{impulse:Number(p.impulse)*.6,viscosity:Number(p.viscosity)+.15}),build('Stronger splash',{impulse:Number(p.impulse)+.6})];
+  if(target.type==='cloud')actions=[build('Gentler drift',{wind:Number(p.wind)*.6,turbulence:Number(p.turbulence)*.7}),build('Fuller cloud',{density:Number(p.density)+.3})];
+  if(target.type==='textAnimate')actions=[build('More motion',{amplitude:Number(p.amplitude)+.4}),build('Slower rhythm',{frequency:Number(p.frequency)*.75})];
+  if(target.type==='emitter')actions=[build('More particles',{count:Number(p.count)+500})];
+  if(target.type==='motion')actions=[build('More motion',{amplitude:Number(p.amplitude)+.5}),build('Gentler flow',{turbulence:Number(p.turbulence)*.6})];
+  if(target.type==='height')actions=[build('Taller hills',{height:Number(p.height)+1.5}),build('Smoother relief',{roughness:Number(p.roughness)*.8})];
+  if(node.type==='emitter'&&target!==node&&!isLocked(project,node.id,'count')){const count=Math.min(5000,Number(node.params.count)+500);if(count!==node.params.count)actions.unshift({label:'More particles',summary:'A denser particle field',commands:[{op:'set',nodeId:node.id,param:'count',value:count}]});}
+  return actions.filter((a):a is QuickAction=>!!a);
+}
+export const PRIMARY_PARAMS:Record<string,string[]>={primitive:['geometry','size','color','scale'],material:['color','roughness','metalness','transmission','clearcoat','opacity'],light:['kind','color','intensity','shadows'],camera:['fov','targetX','targetY','targetZ'],paint:['liquidDepth','forceDuration','foldDepth','grainAmount','fillBasin','showInlets','waveMachine','waveHeight','waveFrequency','waveSpeed','waveDamping','waveDirection','wavePattern','surfaceFinish','colorA','colorB','colorC','flow','viscosity','swirl','drift','mixing','showFlow'],shape:['shape','radius','width','height','depth','color','opacity'],particleSim:['rate','speed','lifetime','size','color','opacity'],cloth:['setup','wind','stiffness','color'],fx:['preset','amplitude','speed','scale','color'],water:['setup','count','impulse','viscosity','obstacle','color'],cloud:['count','wind','turbulence','spread','density','color'],text:['text','font','size','tracking','depth','color','opacity'],textAnimate:['mode','amplitude','frequency','stagger','duration'],emitter:['count','radius','speed','lifetime','size','color'],motion:['mode','amplitude','frequency','gravity','turbulence'],height:['height','roughness'],grid:['size','resolution'],curve:['amplitude','frequency'],mask:['width'],scatter:['density','kind'],prototype:['kind','scale','color'],transform:['rotateY','scale']};
+export const CREATIVE_DESCRIPTION:Record<string,string>={paint:'Paint follows gravity, stirring and waves inside a closed basin. Use Paint or Water for a liquid surface. Sculptural adds artistic folds.',particleSim:'Create sparks, fire, smoke or dust. Choose where particles begin, how they move and how each one changes over its life.',cloth:'Make fabric respond to wind and gravity. Choose a flag, drape or curtain, then tune its stiffness.',fx:'Choose a procedural effect and shape its amount, speed and scale.',water:'Shape a fluid splash inside a basin. Adjust the push, flow and obstacle.',cloud:'Shape a drifting cloud with wind, texture and density.',text:'Set the type, spacing and depth of your title.',textAnimate:'Create a rhythm across your characters.',emitter:'Control the density, scale and movement of a particle field.',motion:'Shape the path and rhythm of your particles.',height:'Shape the silhouette and detail of the landscape.'};

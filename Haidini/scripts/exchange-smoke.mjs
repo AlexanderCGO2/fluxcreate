@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import {mkdir,mkdtemp,readFile,writeFile} from 'node:fs/promises';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+import os from 'node:os';
+import {createWorkbench} from '../server/index.mjs';
+import {decodeExchange,encodeExchange,toFluxiffects} from '@flux-studio/exchange';
+const require=createRequire(process.env.FLUXINI_PLAYWRIGHT_PACKAGE||path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/package.json'));
+const {chromium}=require('playwright');
+await mkdir('artifacts/exchange',{recursive:true});await mkdir('.test-data',{recursive:true});
+const dir=await mkdtemp(path.resolve('.test-data/exchange-ui-')),app=await createWorkbench({dataDir:dir,webDir:path.resolve(process.argv.includes('--staging')?'.staging-dist':'dist'),port:0});
+let browser;const errors=[];
+try{
+  browser=await chromium.launch({executablePath:process.env.FLUXINI_BROWSER||'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+  const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});page.on('pageerror',error=>errors.push(error.message));
+  const button=name=>page.getByRole('button',{name,exact:true}),current=()=>app.projects.get(new URL(page.url()).searchParams.get('project')).project;
+  await page.goto(app.origin);await button('Export').waitFor();await button('Export').click();await button('Exchange').click();
+  await page.getByLabel('Exchange creative brief').fill('A modern opening ident.');await page.getByLabel('Exchange handoff notes').fill('Keep title editable. Native particles stay in Fluxini.');
+  await page.screenshot({path:'artifacts/exchange/export.png'});
+  const pending=page.waitForEvent('download');await button('Save .flux.md').click();const download=await pending;assert.ok(download.suggestedFilename().endsWith('.flux.md'));
+  const file=path.join(dir,'out.flux.md');await download.saveAs(file);const envelope=decodeExchange(await readFile(file,'utf8'));assert.equal(envelope.brief,'A modern opening ident.');
+  const original=current(),fx=toFluxiffects(envelope).project;fx.compositions[0].layers.find(layer=>layer.type==='text').text='LATEST FROM 2D';
+  const returnFile=path.join(dir,'return.flux.md');await writeFile(returnFile,encodeExchange({app:'fluxiffects',project:fx,previous:envelope}));
+  await page.locator('input[type=file][accept*=".fluxini"]').setInputFiles(returnFile);await page.getByRole('dialog',{name:'Review Flux exchange'}).waitFor();
+  assert.equal(app.projects.list().length,1);await page.getByText('Convert latest Fluxiffects scene',{exact:true}).waitFor();await page.getByText('Restore saved native Fluxini source',{exact:true}).waitFor();
+  await page.getByText('Restore saved native Fluxini source',{exact:true}).click();await button('Restore as new scene').waitFor();assert.equal(app.projects.list().length,1);
+  await page.getByText('Convert latest Fluxiffects scene',{exact:true}).click();await button('Import as new scene').waitFor();await page.screenshot({path:'artifacts/exchange/import-review.png'});
+  await button('Import as new scene').click();await page.getByRole('dialog',{name:'Scene imported'}).waitFor();assert.equal(current().graph.nodes.find(node=>node.type==='text').params.text,'LATEST FROM 2D');assert.notEqual(current().id,original.id);
+  await button('Close report').click();await page.reload();await button('Export').click();await button('Exchange').click();assert.equal(await page.getByLabel('Exchange handoff notes').inputValue(),envelope.notes);
+  await button('Close dialog').click();assert.deepEqual(errors,[]);
+  const report={checks:['Markdown export with brief and notes','Conversion review before creating a scene','Explicit native-source restore choice','Import newest scene as editable objects','Metadata preserved after reload'],errors};
+  await writeFile('artifacts/exchange/smoke.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+}finally{await browser?.close();await app.close();}

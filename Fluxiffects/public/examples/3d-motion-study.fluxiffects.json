@@ -1,0 +1,601 @@
+{
+  "format": "fluxiffects",
+  "version": 1,
+  "id": "fluxiffects-3d-motion-study",
+  "name": "Motion study / 01",
+  "activeCompId": "soft-perspective-composition",
+  "compositions": [
+    {
+      "id": "soft-perspective-composition",
+      "name": "A softer perspective",
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "duration": 6,
+      "background": "#f7f6f2",
+      "layers": [
+        {
+          "id": "wordmark",
+          "name": "FluxCreate / wordmark",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 76,
+          "y": 62,
+          "width": 520,
+          "height": 35,
+          "anchorX": 0,
+          "anchorY": 0,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#292823",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "FluxCreate",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 21,
+          "fontWeight": 600,
+          "textAlign": "left",
+          "letterSpacing": -0.6,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {},
+          "parentId": null,
+          "type": "text"
+        },
+        {
+          "id": "studio-label",
+          "name": "Studio label",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 972,
+          "y": 67,
+          "width": 232,
+          "height": 24,
+          "anchorX": 0,
+          "anchorY": 0,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#89857d",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "FLUXIFFECTS",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 10,
+          "fontWeight": 600,
+          "textAlign": "right",
+          "letterSpacing": 3,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {},
+          "parentId": null,
+          "type": "text"
+        },
+        {
+          "id": "eyebrow",
+          "name": "Study number",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 76,
+          "y": 191,
+          "width": 470,
+          "height": 26,
+          "anchorX": 0,
+          "anchorY": 0,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#958576",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "MOTION STUDY / 01",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 11,
+          "fontWeight": 600,
+          "textAlign": "left",
+          "letterSpacing": 2.4,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {
+            "opacity": [
+              {
+                "id": "eyebrow-opacity-0",
+                "time": 0,
+                "value": 0,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "eyebrow-opacity-1",
+                "time": 0.6,
+                "value": 1,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "eyebrow-opacity-2",
+                "time": 5.6,
+                "value": 1,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "eyebrow-opacity-3",
+                "time": 6,
+                "value": 0,
+                "easing": "ease-in-out"
+              }
+            ]
+          },
+          "parentId": null,
+          "type": "text"
+        },
+        {
+          "id": "headline",
+          "name": "Title / edit this",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 76,
+          "y": 239,
+          "width": 530,
+          "height": 180,
+          "anchorX": 0,
+          "anchorY": 0,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#292823",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "A softer\nperspective.",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 74,
+          "fontWeight": 600,
+          "textAlign": "left",
+          "letterSpacing": -3.8,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {
+            "y": [
+              {
+                "id": "headline-y-0",
+                "time": 0,
+                "value": 263,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "headline-y-1",
+                "time": 1.15,
+                "value": 239,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "headline-y-2",
+                "time": 5.6,
+                "value": 239,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "headline-y-3",
+                "time": 6,
+                "value": 229,
+                "easing": "ease-in-out"
+              }
+            ],
+            "opacity": [
+              {
+                "id": "headline-opacity-4",
+                "time": 0,
+                "value": 0,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "headline-opacity-5",
+                "time": 0.95,
+                "value": 1,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "headline-opacity-6",
+                "time": 5.6,
+                "value": 1,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "headline-opacity-7",
+                "time": 6,
+                "value": 0,
+                "easing": "ease-in-out"
+              }
+            ]
+          },
+          "parentId": null,
+          "type": "text"
+        },
+        {
+          "id": "description",
+          "name": "Description / editable type",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 76,
+          "y": 438,
+          "width": 460,
+          "height": 74,
+          "anchorX": 0,
+          "anchorY": 0,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#858077",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "Simple forms. Quiet motion.\nA scene with room to breathe.",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 20,
+          "fontWeight": 400,
+          "textAlign": "left",
+          "letterSpacing": -0.2,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {
+            "opacity": [
+              {
+                "id": "description-opacity-0",
+                "time": 0,
+                "value": 0,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "description-opacity-1",
+                "time": 0.35,
+                "value": 0,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "description-opacity-2",
+                "time": 1.4,
+                "value": 1,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "description-opacity-3",
+                "time": 5.45,
+                "value": 1,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "description-opacity-4",
+                "time": 6,
+                "value": 0,
+                "easing": "ease-in-out"
+              }
+            ],
+            "y": [
+              {
+                "id": "description-y-5",
+                "time": 0,
+                "value": 450,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "description-y-6",
+                "time": 1.4,
+                "value": 438,
+                "easing": "ease-in-out"
+              }
+            ]
+          },
+          "parentId": null,
+          "type": "text"
+        },
+        {
+          "id": "footer-left",
+          "name": "Study details",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 76,
+          "y": 640,
+          "width": 450,
+          "height": 25,
+          "anchorX": 0,
+          "anchorY": 0,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#928b80",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "06 SECONDS / 30 FPS",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 10,
+          "fontWeight": 600,
+          "textAlign": "left",
+          "letterSpacing": 1.8,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {},
+          "parentId": null,
+          "type": "text"
+        },
+        {
+          "id": "footer-right",
+          "name": "Closing note",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 742,
+          "y": 640,
+          "width": 462,
+          "height": 25,
+          "anchorX": 0,
+          "anchorY": 0,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#928b80",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "FORM, LIGHT & A LITTLE MOVEMENT",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 10,
+          "fontWeight": 500,
+          "textAlign": "right",
+          "letterSpacing": 1.2,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {},
+          "parentId": null,
+          "type": "text"
+        },
+        {
+          "id": "footer-rule",
+          "name": "Quiet divider",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 76,
+          "y": 612,
+          "width": 1128,
+          "height": 1,
+          "anchorX": 0,
+          "anchorY": 0,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#ded9d0",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 0,
+          "text": "",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 100,
+          "fontWeight": 600,
+          "textAlign": "left",
+          "letterSpacing": -2,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {},
+          "parentId": null,
+          "type": "rectangle"
+        },
+        {
+          "id": "soft-forms",
+          "name": "Soft forms / animate in 3D",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 932,
+          "y": 300,
+          "width": 850,
+          "height": 680,
+          "anchorX": 425,
+          "anchorY": 340,
+          "scaleX": 0.88,
+          "scaleY": 0.88,
+          "rotation": 0,
+          "opacity": 1,
+          "fill": "#8c82fc",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 100,
+          "fontWeight": 600,
+          "textAlign": "left",
+          "letterSpacing": -2,
+          "assetId": "soft-perspective-scene",
+          "blendMode": "normal",
+          "effects": [],
+          "keyframes": {
+            "modelRotationY": [
+              {
+                "id": "soft-forms-modelRotationY-0",
+                "time": 0,
+                "value": -8,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "soft-forms-modelRotationY-1",
+                "time": 3,
+                "value": 18,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "soft-forms-modelRotationY-2",
+                "time": 6,
+                "value": -8,
+                "easing": "ease-in-out"
+              }
+            ],
+            "cameraYaw": [
+              {
+                "id": "soft-forms-cameraYaw-3",
+                "time": 0,
+                "value": -10,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "soft-forms-cameraYaw-4",
+                "time": 3,
+                "value": 8,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "soft-forms-cameraYaw-5",
+                "time": 6,
+                "value": -10,
+                "easing": "ease-in-out"
+              }
+            ],
+            "cameraPitch": [
+              {
+                "id": "soft-forms-cameraPitch-6",
+                "time": 0,
+                "value": 0,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "soft-forms-cameraPitch-7",
+                "time": 3,
+                "value": 3,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "soft-forms-cameraPitch-8",
+                "time": 6,
+                "value": 0,
+                "easing": "ease-in-out"
+              }
+            ],
+            "cameraZoom": [
+              {
+                "id": "soft-forms-cameraZoom-9",
+                "time": 0,
+                "value": 0.88,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "soft-forms-cameraZoom-10",
+                "time": 3,
+                "value": 0.94,
+                "easing": "ease-in-out"
+              },
+              {
+                "id": "soft-forms-cameraZoom-11",
+                "time": 6,
+                "value": 0.88,
+                "easing": "ease-in-out"
+              }
+            ]
+          },
+          "parentId": null,
+          "modelX": 0,
+          "modelY": 0,
+          "modelZ": 0,
+          "modelRotationX": 0,
+          "modelRotationY": -8,
+          "modelRotationZ": 0,
+          "modelScale": 1,
+          "cameraYaw": -10,
+          "cameraPitch": 0,
+          "cameraZoom": 0.88,
+          "modelClip": 0,
+          "modelLoop": true,
+          "type": "scene3d"
+        },
+        {
+          "id": "ground-glow",
+          "name": "Soft ground reflection",
+          "visible": true,
+          "locked": false,
+          "start": 0,
+          "end": 6,
+          "x": 946,
+          "y": 532,
+          "width": 470,
+          "height": 42,
+          "anchorX": 235,
+          "anchorY": 21,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "opacity": 0.14,
+          "fill": "#cbc1b2",
+          "stroke": "#ffffff",
+          "strokeWidth": 0,
+          "cornerRadius": 40,
+          "text": "",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+          "fontSize": 100,
+          "fontWeight": 600,
+          "textAlign": "left",
+          "letterSpacing": -2,
+          "assetId": null,
+          "blendMode": "normal",
+          "effects": [
+            {
+              "id": "ground-blur",
+              "type": "blur",
+              "enabled": true,
+              "amount": 25
+            }
+          ],
+          "keyframes": {},
+          "parentId": null,
+          "type": "ellipse"
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "id": "soft-perspective-scene",
+      "name": "Soft forms · Flux3D source",
+      "type": "model3d",
+      "modelFormat": "flux3d",
+      "clips": [],
+      "src": "data:application/vnd.flux3d+json;base64,eyJmb3JtYXQiOiJmbHV4M2QtcHJvamVjdCIsInZlcnNpb24iOjEsImlkIjoic29mdC1wZXJzcGVjdGl2ZS1zb3VyY2UiLCJuYW1lIjoiQSBzb2Z0ZXIgcGVyc3BlY3RpdmUgLyBzb3VyY2UiLCJiYWNrZ3JvdW5kIjoiI2Y3ZjZmMiIsImNhbWVyYSI6eyJwb3NpdGlvbiI6WzcsNC44LDhdLCJ0YXJnZXQiOlswLDEuMzUsMF0sImZvdiI6MzZ9LCJvYmplY3RzIjpbeyJpZCI6Im9yYml0IiwibmFtZSI6IkNvcmFsIG9yYml0IiwicG9zaXRpb24iOlswLjI1LDIuNCwwLjJdLCJyb3RhdGlvbiI6WzIwLDIwLC0yMF0sInNjYWxlIjpbMS40NSwxLjQ1LDEuNDVdLCJjb2xvciI6IiNjODlmOTEiLCJtZXRhbG5lc3MiOjAuMDgsInJvdWdobmVzcyI6MC40NCwib3BhY2l0eSI6MSwidmlzaWJsZSI6dHJ1ZSwibG9ja2VkIjpmYWxzZSwiZ2VvbWV0cnkiOm51bGwsInR5cGUiOiJ0b3J1cyJ9LHsiaWQiOiJwZWFybCIsIm5hbWUiOiJQb3JjZWxhaW4gcGVhcmwiLCJwb3NpdGlvbiI6WzIsMC44OCwwLjY1XSwicm90YXRpb24iOlswLDAsMF0sInNjYWxlIjpbMC44OCwwLjg4LDAuODhdLCJjb2xvciI6IiNlOGU0ZGEiLCJtZXRhbG5lc3MiOjAuMDgsInJvdWdobmVzcyI6MC4yNCwib3BhY2l0eSI6MSwidmlzaWJsZSI6dHJ1ZSwibG9ja2VkIjpmYWxzZSwiZ2VvbWV0cnkiOm51bGwsInR5cGUiOiJzcGhlcmUifSx7ImlkIjoiY29sdW1uIiwibmFtZSI6IkxhdmVuZGVyIGNvbHVtbiIsInBvc2l0aW9uIjpbLTEuMywxLjUsLTAuNTVdLCJyb3RhdGlvbiI6WzAsMCwwXSwic2NhbGUiOlsxLjEsMywxLjFdLCJjb2xvciI6IiNhOWE2YzAiLCJtZXRhbG5lc3MiOjAuMDgsInJvdWdobmVzcyI6MC40NCwib3BhY2l0eSI6MSwidmlzaWJsZSI6dHJ1ZSwibG9ja2VkIjpmYWxzZSwiZ2VvbWV0cnkiOm51bGwsInR5cGUiOiJjeWxpbmRlciJ9LHsiaWQiOiJzdW4iLCJuYW1lIjoiQXByaWNvdCBzcGhlcmUiLCJwb3NpdGlvbiI6Wy0xLjcsMS4wMywxLjZdLCJyb3RhdGlvbiI6WzAsMCwwXSwic2NhbGUiOlsxLjAzLDEuMDMsMS4wM10sImNvbG9yIjoiI2RlYzNhMiIsIm1ldGFsbmVzcyI6MC4wOCwicm91Z2huZXNzIjowLjQ0LCJvcGFjaXR5IjoxLCJ2aXNpYmxlIjp0cnVlLCJsb2NrZWQiOmZhbHNlLCJnZW9tZXRyeSI6bnVsbCwidHlwZSI6InNwaGVyZSJ9LHsiaWQiOiJwbGludGgiLCJuYW1lIjoiR2FsbGVyeSBwbGludGgiLCJwb3NpdGlvbiI6WzAsLTAuMTYsMF0sInJvdGF0aW9uIjpbMCwwLDBdLCJzY2FsZSI6WzYsMC4zLDUuMl0sImNvbG9yIjoiI2U1ZTBkNyIsIm1ldGFsbmVzcyI6MC4wOCwicm91Z2huZXNzIjowLjQ0LCJvcGFjaXR5IjoxLCJ2aXNpYmxlIjp0cnVlLCJsb2NrZWQiOnRydWUsImdlb21ldHJ5IjpudWxsLCJ0eXBlIjoiYm94In1dfQ==",
+      "width": 850,
+      "height": 680,
+      "duration": 0
+    }
+  ],
+  "brief": "A quiet editorial study of simple three-dimensional forms. Warm ivory, muted clay and soft lavender. Keep the title legible, preserve generous space, and use slow camera and scene movement. The original editable Flux3D objects are embedded in the scene asset."
+}

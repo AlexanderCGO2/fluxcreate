@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createProject} from '../src/engine/project.ts';
+import {planChange} from '../server/planner.mjs';
+test('planner combines user cancellation with its provider deadline',async()=>{const project=createProject(crypto.randomUUID(),'blank'),memory={assemble:()=>({tokenEstimate:0})},controller=new AbortController();let seen,started;const began=new Promise(r=>started=r);const generate=async args=>{seen=args.abortSignal;started();return new Promise((_,reject)=>seen.addEventListener('abort',()=>reject(Object.assign(Error('Aborted'),{name:'AbortError'})),{once:true}));};const pending=planChange(project,'Add a title',memory,generate,[],controller.signal);await began;assert.ok(seen instanceof AbortSignal);controller.abort();await assert.rejects(pending,e=>e.status===499&&/cancelled/.test(e.message));assert.equal(seen.aborted,true);});
+test('pre-cancelled planner does not call the provider',async()=>{const controller=new AbortController();controller.abort();let called=false;await assert.rejects(planChange(createProject(crypto.randomUUID(),'blank'),'Add a title',{assemble:()=>({tokenEstimate:0})},async()=>{called=true;},[],controller.signal),e=>e.status===499);assert.equal(called,false);});

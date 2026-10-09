@@ -1,0 +1,13 @@
+import type { Params } from './evaluator.ts';
+import { animatedValue, type AnimationTrack } from './animation.ts';
+export type ColliderSpec={nodeId:string;params:Params};
+export type Collider={shape:string;x:number;y:number;z:number;radius:number;half:[number,number,number]};
+export type EmissionSource={nodeId:string;params:Params;shape?:'sphere'|'box';points?:Float32Array;normals?:Float32Array;origins?:Float32Array;glyphs?:Uint16Array;animations?:Params[]};
+export type SimulationConfig={gpuCloudVolume?:boolean;colliders?:ColliderSpec[];source?:EmissionSource;tracks?:AnimationTrack[];origin?:{nodeId:string;params:Params}};
+export function resolveColliders(config:SimulationConfig,time:number):Collider[]{const tracks=config.tracks||[],origin=config.origin,offset=(axis:string)=>origin?Number(animatedValue(tracks,origin.nodeId,axis,time,Number(origin.params[axis]||0))):0;return (config.colliders||[]).map(c=>{const value=(key:string)=>Number(animatedValue(tracks,c.nodeId,key,time,Number(c.params[key]))),scale=value('scale');return {shape:String(c.params.shape),x:value('x')-offset('x'),y:value('y')-offset('y'),z:value('z')-offset('z'),radius:value('radius')*scale,half:[value('width')*scale/2,value('height')*scale/2,value('depth')*scale/2]};});}
+export function collideShapes(p:Float32Array,k:number,radius:number,colliders:Collider[],velocity?:Float32Array,bounce=0,friction=0){
+ for(const c of colliders){const dx=p[k]-c.x,dy=p[k+1]-c.y,dz=p[k+2]-c.z;let nx=0,ny=0,nz=0,depth=0;
+  if(c.shape==='sphere'){const length=Math.hypot(dx,dy,dz),r=c.radius+radius;if(length>=r)continue;if(length<1e-8){ny=1;depth=r;}else{nx=dx/length;ny=dy/length;nz=dz/length;depth=r-length;}}
+  else{const coords=[dx,dy,dz],closest=coords.map((v,i)=>Math.max(-c.half[i],Math.min(c.half[i],v))),delta=coords.map((v,i)=>v-closest[i]),length=Math.hypot(...delta);if(length>=radius)continue;if(length>1e-8){[nx,ny,nz]=delta.map(v=>v/length);depth=radius-length;}else{let axis=0;for(let a=1;a<3;a++)if(c.half[a]-Math.abs(coords[a])<c.half[axis]-Math.abs(coords[axis]))axis=a;const normal=[0,0,0];normal[axis]=coords[axis]>=0?1:-1;[nx,ny,nz]=normal;depth=c.half[axis]-Math.abs(coords[axis])+radius;}}
+  p[k]+=nx*depth;p[k+1]+=ny*depth;p[k+2]+=nz*depth;if(velocity){const dot=velocity[k]*nx+velocity[k+1]*ny+velocity[k+2]*nz;if(dot<0){velocity[k]-=(1+bounce)*dot*nx;velocity[k+1]-=(1+bounce)*dot*ny;velocity[k+2]-=(1+bounce)*dot*nz;const outward=velocity[k]*nx+velocity[k+1]*ny+velocity[k+2]*nz;velocity[k]-=(velocity[k]-outward*nx)*friction;velocity[k+1]-=(velocity[k+1]-outward*ny)*friction;velocity[k+2]-=(velocity[k+2]-outward*nz)*friction;}}}
+}

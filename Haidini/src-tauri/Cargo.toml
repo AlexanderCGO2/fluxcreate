@@ -1,0 +1,15 @@
+[package]
+name = "fluxini"
+version = "0.4.0"
+edition = "2021"
+description = "Procedural motion, particles and 3D text with Flux memory"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Fluxini",
+  "version": "0.4.0",
+  "identifier": "studio.fluxini.workbench",
+  "build": {
+    "beforeDevCommand": "node scripts/prepare-desktop.mjs",
+    "beforeBuildCommand": "node scripts/prepare-desktop.mjs",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [],
+    "security": { "capabilities": [] }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "resources": {
+      "../dist/": "web/",
+      "../server-dist/": "service/",
+      "../.runtime/": "runtime/"
+    }
+  }
+}

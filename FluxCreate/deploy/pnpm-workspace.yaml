@@ -1,0 +1,12 @@
+packages:
+  - Haidini
+  - FluxCreate
+  - FluxExchange
+  - Fluxoto
+  - Fluxidesign
+  - Fluximiere
+  - Flux3D
+  - Fluxiffects
+  - FluxLab
+allowBuilds:
+  esbuild: true

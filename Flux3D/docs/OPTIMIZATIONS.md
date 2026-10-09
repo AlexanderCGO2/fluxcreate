@@ -1,0 +1,23 @@
+# Flux3D optimization audit
+
+Reviewed the scene editor, native validation, model codecs, WebGL viewport, history, local persistence, AI context and Fluxiffects scene bridge. This list separates verified changes from work still to do.
+
+| Priority | Observed issue or improvement | Status and verification |
+| --- | --- | --- |
+| P0 | A failed or invalid IndexedDB restore used to fall through to autosaving the demo over the saved scene | Done: a persistent recovery notice pauses autosave through ordinary edits. Only an explicit new scene or successful file import resumes saving. Real IndexedDB tests prove the original record remains unchanged after invalid data and storage access failures. |
+| P0 | A delayed model import could append into a scene opened or created while the file was being read | Done: scene identity, generation and import sequence are checked after each asynchronous boundary. New scene, reopen and undo/redo invalidate old targets. A browser test holds a model read, creates a new scene, then verifies no objects were inserted. |
+| P0 | The UI allocated a model ArrayBuffer before the codec enforced its 64 MB limit | Done: file metadata is checked before reading model bytes; native projects have their own 180 MB limit. Node and browser tests verify the oversized file's read method is never called. |
+| P1 | Object duplication deep-copied every mesh coordinate | Done: duplicates share immutable geometry and copy transform vectors. Trusted local validation retains the shared buffers; imported/untrusted data still undergoes full validation. Reference tests and independent browser transforms verify both parts. |
+| P1 | Stale autosave completion could display a misleading saved status after a later edit | Done: save effects ignore stale completion callbacks. Current errors retain the save-to-file fallback. |
+| P1 | Particle imports can expand small instanced files into huge scene data | Done: preflight expanded object/vertex/index budgets before accessor decode and geometry construction. Actual Three.js instanced GLB fixtures cover bounds, hierarchy and colors. |
+| P1 | Rebuilding geometry on every transform or orbit wastes CPU/GPU memory | Done earlier: immutable geometry references survive scalar edits and camera navigation, and the viewport rebuilds only when geometry changes. Duplication now follows that path too. |
+| P1 | Rendering continues while the scene is idle, including AI previews | Next: render on invalidation, with temporary animation during damping/transform gestures; suspend hidden tabs. The current requestAnimationFrame loop draws continuously. Measure GPU frame time before and after. |
+| P1 | Native save, export and AI context validation can copy/stringify large geometry | Next: use trusted validated snapshots for local-only operations and produce geometry-free AI context without constructing geometry copies. Keep full validation at file and network boundaries. |
+| P1 | Synchronous geometry parsing can briefly block the editor | Next: move bounded OBJ/STL/glTF decode to a worker with progress and cancellation. Current asynchronous file reads are guarded; CPU parsing itself is synchronous. |
+| P1 | Current history keeps 30 scene states and autosave writes the full scene | Next: measure large mesh projects, deduplicate immutable geometry records and save revisions. Shared geometry already reduces local undo/duplicate costs. |
+| P2 | Several imports are atomic per file rather than across an entire file batch | Next: stage and validate the entire batch with a review summary before one commit, or expose per-file progress and partial completion explicitly. |
+| P2 | The editable-mesh path simplifies textures, animation, skinning and morph targets | Next: add supported material/animation editing only with real fixtures. The separate Fluxiffects live-scene bridge already retains these in original GLB/glTF source with explicit import notices. |
+| P2 | Object limits and failed primitive additions need clearer feedback | Next: disable add/duplicate controls at the scene limit and retain selection on rejected additions. Validation already prevents oversized scenes. |
+| P2 | Camera exports and scene units need a fuller handoff workflow | Next: expose reusable camera presets, unit metadata and intentional geometry-vs-render choices. Existing GLB, PNG and native exports are real, independently verified formats. |
+
+Verification: 33 Node tests, 26 existing editor browser checks and 6 document reliability browser workflows. Reliability screenshots and reports are under `artifacts/reliability`; the browser tests use isolated local origins and synthetic scene files, never the user's live project.

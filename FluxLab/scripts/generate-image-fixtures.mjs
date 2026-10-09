@@ -1,0 +1,4 @@
+import {chromium} from '@playwright/test';
+import {writeFile} from 'node:fs/promises';
+const browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+try{const page=await browser.newPage();const images=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=16;canvas.height=12;const ctx=canvas.getContext('2d');ctx.fillStyle='#367ad1';ctx.fillRect(0,0,16,12);ctx.fillStyle='#eea030';ctx.fillRect(5,3,7,6);return Object.fromEntries(['png','jpeg','webp'].map(type=>[type,canvas.toDataURL('image/'+type).split(',')[1]]));});await writeFile(new URL('../tests/image-fixtures.json',import.meta.url),JSON.stringify(images,null,2)+'\n');console.log('Wrote real browser-encoded 16×12 PNG/JPEG/WebP fixtures.');}finally{await browser.close();}

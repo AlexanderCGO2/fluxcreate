@@ -1,0 +1,49 @@
+{
+  "format": "fluxiffects-ae",
+  "version": 1,
+  "name": "AE bridge · kinetic title",
+  "compositions": [{
+    "id": "ae-item-1", "name": "Kinetic title", "width": 1920, "height": 1080,
+    "fps": 30, "duration": 6, "background": "#101320",
+    "layers": [
+      {
+        "id": "ae-item-1-layer-1", "name": "Make something move", "type": "text",
+        "visible": true, "locked": false, "start": 0, "end": 6,
+        "x": 960, "y": 520, "width": 1460, "height": 160,
+        "anchorX": 730, "anchorY": 80, "scaleX": 1, "scaleY": 1, "rotation": 0, "opacity": 1,
+        "fill": "#f3f5ff", "stroke": "transparent", "strokeWidth": 0, "cornerRadius": 0,
+        "text": "Make something move.", "fontFamily": "Arial", "fontSize": 116,
+        "fontWeight": 700, "textAlign": "center", "letterSpacing": -4,
+        "assetId": null, "parentId": null, "blendMode": "normal", "effects": [],
+        "keyframes": {
+          "y": [{ "id": "title-y-1", "time": 0, "value": 650, "easing": "ease-out" }, { "id": "title-y-2", "time": 1.2, "value": 520, "easing": "linear" }],
+          "opacity": [{ "id": "title-o-1", "time": 0, "value": 0, "easing": "linear" }, { "id": "title-o-2", "time": 0.7, "value": 1, "easing": "linear" }]
+        },
+        "aeMetadata": { "index": 1, "compositionName": "Kinetic title", "startTime": 0, "stretch": 100 }
+      },
+      {
+        "id": "ae-item-1-layer-2", "name": "Accent line", "type": "solid",
+        "visible": true, "locked": false, "start": 0, "end": 6,
+        "x": 960, "y": 672, "width": 260, "height": 8,
+        "anchorX": 130, "anchorY": 4, "scaleX": 1, "scaleY": 1, "rotation": 0, "opacity": 1,
+        "fill": "#a79bff", "stroke": "transparent", "strokeWidth": 0, "cornerRadius": 0,
+        "assetId": null, "parentId": null, "blendMode": "normal", "effects": [],
+        "keyframes": { "scaleX": [{ "id": "line-s-1", "time": 0.5, "value": 0, "easing": "ease-in-out" }, { "id": "line-s-2", "time": 1.6, "value": 1, "easing": "linear" }] },
+        "aeMetadata": { "index": 2, "compositionName": "Kinetic title", "startTime": 0, "stretch": 100 }
+      },
+      {
+        "id": "ae-item-1-layer-3", "name": "Deep background", "type": "solid",
+        "visible": true, "locked": true, "start": 0, "end": 6,
+        "x": 960, "y": 540, "width": 1920, "height": 1080,
+        "anchorX": 960, "anchorY": 540, "scaleX": 1, "scaleY": 1, "rotation": 0, "opacity": 1,
+        "fill": "#101320", "stroke": "transparent", "strokeWidth": 0, "cornerRadius": 0,
+        "assetId": null, "parentId": null, "blendMode": "normal", "effects": [], "keyframes": {},
+        "aeMetadata": { "index": 3, "compositionName": "Kinetic title", "startTime": 0, "stretch": 100 }
+      }
+    ],
+    "aeMetadata": { "pixelAspect": 1, "displayStartTime": 0, "workAreaStart": 0, "workAreaDuration": 6 }
+  }],
+  "assets": [],
+  "warnings": ["This is a hand-authored interchange sample, not a captured After Effects export. Bezier timing is approximated by named easing presets."],
+  "aeMetadata": { "application": "Fluxiffects schema fixture", "notes": "Layer order is topmost first. All time values are seconds." }
+}

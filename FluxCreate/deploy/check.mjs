@@ -1,0 +1,3 @@
+import{spawnSync}from'node:child_process';import path from'node:path';import{fileURLToPath}from'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');let failed=false;
+for(const app of ['Haidini','FluxExchange','FluxCreate','Fluxoto','Fluxidesign','Fluximiere','Flux3D','Fluxiffects','FluxLab']){const run=spawnSync(process.execPath,app==='Haidini'?['scripts/test.mjs']:['--test','tests/*.test.mjs'],{cwd:path.join(root,app),encoding:'utf8',windowsHide:true,maxBuffer:8*1024*1024});console.log(app+': '+(run.status===0?'PASS':'FAIL'));console.log(run.status===0?(run.stdout||'').split('\n').slice(-9).join('\n'):(run.stdout||'')+(run.stderr||''));if(run.status!==0)failed=true;}if(failed)process.exitCode=1;

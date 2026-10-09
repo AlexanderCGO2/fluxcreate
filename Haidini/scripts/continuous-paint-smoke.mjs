@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import {mkdir,mkdtemp,writeFile,readFile} from 'node:fs/promises';
+import path from 'node:path';import os from 'node:os';import {createRequire} from 'node:module';
+import {createWorkbench} from '../server/index.mjs';
+import {PAINT_PALETTES} from '../src/engine/paintPalette.ts';
+const {chromium}=createRequire(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/package.json'))('playwright');
+const app=await createWorkbench({dataDir:await mkdtemp(path.resolve('.test-data/continuous-paint-')),webDir:path.resolve('.staging-dist'),port:0});
+const dir='artifacts/continuous-paint';await mkdir(dir,{recursive:true});let browser;const checks=[],errors=[];
+try{
+ let state=app.projects.create(undefined,'paint-basin'),id=state.project.id;
+ state=app.projects.patch(id,{baseRevision:0,summary:'Short clip with animated pigment',commands:[{op:'timeline',duration:2,fps:30},{op:'animate',track:{nodeId:'paint',param:'colorD',keys:[{time:0,value:'#000000',easing:'linear'},{time:2,value:'#ffffff',easing:'linear'}]}}]});
+ browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+ const page=await browser.newPage({viewport:{width:1600,height:1000},acceptDownloads:true});
+ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('404'))errors.push(m.text());});
+ await page.addInitScript(()=>{window.allocatedTextures=0;const original=WebGL2RenderingContext.prototype.createTexture;WebGL2RenderingContext.prototype.createTexture=function(){window.allocatedTextures++;return original.call(this);};window.encodedFrames=[];const encode=VideoEncoder.prototype.encode;VideoEncoder.prototype.encode=function(frame,options){window.encodedFrames.push({timestamp:frame.timestamp,duration:frame.duration});return encode.call(this,frame,options);};});
+ const button=name=>page.getByRole('button',{name,exact:true}),saved=()=>page.waitForFunction(()=>document.querySelector('.status-bar')?.textContent.includes('All changes saved locally'));
+ const ready=t=>page.waitForFunction(t=>document.querySelector('.simulation-status')?.textContent==='Simulation ready · '+t.toFixed(2)+' s',t,{timeout:60000});
+ await page.goto(app.origin+'/?project='+id);await ready(2);
+ assert.equal(await page.locator('.paint-palette input').count(),12);assert(await page.getByLabel('Keep colors separate',{exact:true}).isChecked());
+ const timeline=page.getByRole('slider',{name:'Timeline position'});
+ await timeline.fill('1');await ready(1);assert.equal(await page.getByLabel('Paint color 4',{exact:true}).inputValue(),'#bcbcbc');
+ checks.push('Twelve editable swatches sample the animated color at the playhead');
+ await button('Play').click();await page.waitForFunction(()=>Number(document.querySelector('input[aria-label="Timeline position"]').value)>4.1);await button('Pause').click();await timeline.fill('5');await ready(5);
+ assert.equal(await page.getByRole('spinbutton',{name:'Timeline duration'}).inputValue(),'2');
+ assert(Number(await timeline.getAttribute('max'))>=5);checks.push('Playback advances beyond multiple clip lengths without resetting');
+ const before=structuredClone(app.projects.status(id)),textures=await page.evaluate(()=>window.allocatedTextures);
+ await button('Gallery').click();await saved();await ready(5);
+ const after=app.projects.status(id);assert.equal(after.project.revision,before.project.revision+1);assert.equal(after.undoDepth,before.undoDepth+1);
+ assert.equal(after.project.graph.nodes[0].params.colorL,PAINT_PALETTES.Gallery[11]);assert.equal(await page.getByLabel('Paint color 4',{exact:true}).inputValue(),PAINT_PALETTES.Gallery[3]);
+ assert.equal(await page.evaluate(()=>window.allocatedTextures),textures,'Recoloring must not recreate the GPU simulation');
+ await button('Undo').click();await saved();await ready(5);assert.deepEqual(app.projects.get(id).project.graph,before.project.graph);assert.deepEqual(app.projects.get(id).project.animations,before.project.animations);
+ checks.push('Palette preset is one undoable edit; recoloring preserves the calculated GPU state');
+ await button('Export').click();await button('Video').click();assert.equal(Number(await page.getByLabel('Render start',{exact:true}).inputValue()),5);assert.equal(Number(await page.getByLabel('Render end',{exact:true}).inputValue()),7);
+ await page.getByLabel('Render end',{exact:true}).fill('6');const downloadPending=page.waitForEvent('download',{timeout:120000});await button('Render video').click();const download=await downloadPending;await download.saveAs(dir+'/late-clip.webm');
+ const frames=await page.evaluate(()=>window.encodedFrames);assert.equal(frames.length,30);assert.equal(frames[0].timestamp,0);assert.equal(frames.at(-1).timestamp+frames.at(-1).duration,1000000);
+ const bytes=await readFile(dir+'/late-clip.webm'),playback=await browser.newPage();const metadata=await playback.evaluate(async base64=>{const v=document.createElement('video');v.src=URL.createObjectURL(new Blob([Uint8Array.from(atob(base64),c=>c.charCodeAt(0))],{type:'video/webm'}));try{await new Promise((resolve,reject)=>{v.onloadedmetadata=resolve;v.onerror=()=>reject(Error('Cannot decode video'));});await new Promise(resolve=>{v.onseeked=resolve;v.currentTime=.5;});return {duration:v.duration,decoded:v.readyState>=2};}finally{URL.revokeObjectURL(v.src);}},bytes.toString('base64'));
+ assert(metadata.decoded);assert(Math.abs(metadata.duration-1)<1/30);await playback.close();checks.push('A late simulation range exports as a decoded one-second, 30-frame video');await ready(5);
+ await page.screenshot({path:dir+'/editor.png'});
+ await page.getByRole('checkbox',{name:'Continuous preview',exact:true}).click();await saved();await ready(2);assert(!(await page.getByRole('checkbox',{name:'Continuous preview',exact:true}).isChecked()));assert.equal(Number(await timeline.inputValue()),2);assert.equal(await timeline.getAttribute('max'),'2');
+ await button('Undo').click();await saved();assert.equal(app.projects.get(id).project.graph.nodes[0].params.endlessMotion,true);
+ await page.reload();await ready(2);assert(await page.getByRole('checkbox',{name:'Continuous preview',exact:true}).isChecked());
+ checks.push('Continuous mode can be switched off, undone and reopened without losing the scene');
+ assert.equal(errors.length,0,errors.join('\n'));console.log(JSON.stringify({checks,errors}));
+}catch(e){await browser?.contexts()[0]?.pages()[0]?.screenshot({path:dir+'/failure.png'});throw e;}
+finally{await writeFile(dir+'/checks.json',JSON.stringify({checks,errors},null,2));await browser?.close();await app.close();}

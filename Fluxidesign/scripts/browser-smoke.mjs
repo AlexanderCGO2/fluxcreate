@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import {mkdir, readFile, writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {chromium} from '@playwright/test';
+import {PDFDocument} from 'pdf-lib';
+import {serve} from './serve.mjs';
+
+const root = fileURLToPath(new URL('../', import.meta.url)), artifacts = path.join(root, 'artifacts/browser');
+await mkdir(artifacts, {recursive: true});
+const requests = [];
+const server = await serve(0, {dataDir: path.join(artifacts, 'isolated-data'), planner: async request => {
+  requests.push(request); const target = request.context.scene.page.objects.find(o => o.type === 'text' && !o.locked);
+  return request.mode === 'explain' ? {summary: 'A thoughtful editorial composition', commands: [], explanation: 'A large serif headline creates the primary hierarchy.'} : {summary: 'A calmer headline', commands: [{type: 'updateObject', objectId: target.id, properties: {text: 'A considered perspective.', fill: '#345c43'}}], explanation: 'Keep this title editable.'};
+}});
+const browser = await chromium.launch({headless: true, executablePath: 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'});
+const context = await browser.newContext({viewport: {width: 1600, height: 1000}, acceptDownloads: true});
+const page = await context.newPage(), errors = [], checks = [];
+page.on('pageerror', error => errors.push(error.message));
+const ok = name => {checks.push(name); console.log('PASS', name);};
+try {
+  await page.goto(`http://127.0.0.1:${server.address().port}`); await page.locator('.studio[aria-busy="false"]').waitFor();
+  await page.getByRole('button', {name: 'Page 1: Cover', exact: true}).waitFor(); await page.screenshot({path: path.join(artifacts, 'studio-light.png')}); ok('Editorial demo renders with three pages');
+  await page.getByRole('button', {name: 'Add text frame', exact: true}).click(); await page.getByLabel('Text content', {exact: true}).fill('An editable publication');
+  await page.getByLabel('Size', {exact: true}).fill('35'); await page.getByLabel('X', {exact: true}).fill('66');
+  assert.equal(await page.locator('.paper text').last().textContent(), 'An editable publication'); ok('Text content, type size and geometry are editable');
+  const handle = page.getByTestId('resize-handle'); const box = await handle.boundingBox(); await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.mouse.move(box.x + 55, box.y + 35); await page.mouse.up(); assert.ok(Number(await page.getByLabel('Width', {exact: true}).inputValue()) > 360); ok('Pointer resize changes the frame geometry');
+  await page.getByRole('button', {name: 'Lock selected frame', exact: true}).click(); assert.ok(await page.getByLabel('Text content', {exact: true}).isDisabled()); await page.getByRole('button', {name: 'Unlock selected frame', exact: true}).click(); ok('Locked frame prevents direct editing');
+  await page.getByRole('button', {name: 'Duplicate frame', exact: true}).click(); await page.getByRole('button', {name: 'Delete frame', exact: true}).click(); await page.getByRole('button', {name: 'Undo', exact: true}).click(); await page.getByRole('button', {name: 'Redo', exact: true}).click(); ok('Frame duplication, deletion, undo and redo');
+  await page.getByRole('button', {name: 'Pages', exact: true}).click(); await page.getByRole('button', {name: 'Add page', exact: true}).click(); assert.equal(await page.locator('.page-card').count(), 4);
+  await page.getByRole('button', {name: 'Duplicate page', exact: true}).first().click(); assert.equal(await page.locator('.page-card').count(), 5);
+  await page.getByRole('button', {name: 'Move page earlier', exact: true}).click(); await page.getByRole('button', {name: 'Delete page', exact: true}).click(); assert.equal(await page.locator('.page-card').count(), 4); ok('Add, duplicate, reorder and delete pages');
+  await page.getByLabel('Page format', {exact: true}).selectOption('Letter'); assert.equal(await page.getByLabel('Page width', {exact: true}).inputValue(), '612'); await page.getByRole('button', {name: 'Guides', exact: true}).click(); assert.equal(await page.locator('.page-guides').count(), 1); ok('Page presets and layout guides');
+  await page.getByRole('button', {name: 'Page 1: Cover', exact: true}).click();
+  const capture = async (trigger, name) => {const result = page.waitForEvent('download'); await trigger(); const download = await result; const file = path.join(artifacts, name); await download.saveAs(file); return file;};
+  const native = await capture(() => page.getByRole('button', {name: 'Save project', exact: true}).click(), 'publication.fluxidesign'); const data = JSON.parse(await readFile(native, 'utf8')); assert.equal(data.app, 'fluxidesign'); assert.equal(data.project.pages.length, 4); assert.equal(data.motion.compositions.length, 4); ok('Native save includes complete publication and portable scene');
+  await page.getByRole('button', {name: 'Export', exact: true}).click(); const svg = await capture(() => page.getByRole('button', {name: /Editable page artwork/}).click(), 'cover.svg'); const source = await readFile(svg, 'utf8'); assert.ok(source.startsWith('<svg')); assert.ok(source.includes('An editable publication')); ok('SVG exports actual editable text and shapes');
+  await page.getByRole('button', {name: 'Export', exact: true}).click(); const pdfFile = await capture(() => page.getByRole('button', {name: /Entire publication/}).click(), 'publication.pdf'); const pdf = await PDFDocument.load(await readFile(pdfFile)); assert.equal(pdf.getPageCount(), 4); assert.equal(pdf.getPage(0).getWidth(), data.project.pages[0].width); ok('Actual PDF exports all pages at document dimensions');
+  await page.getByRole('button', {name: 'Export', exact: true}).click(); const png = await capture(() => page.getByRole('button', {name: /A beautiful still/}).click(), 'cover.png'); const pngBytes = await readFile(png); assert.equal(pngBytes.readUInt32BE(16), data.project.pages[0].width * 2); assert.equal(pngBytes.readUInt32BE(20), data.project.pages[0].height * 2); ok('PNG export uses 2× page resolution');
+  await page.getByRole('button', {name: 'Export', exact: true}).click(); const exchange = await capture(() => page.getByRole('button', {name: /Flux Exchange/}).click(), 'publication.flux.md'); assert.ok((await readFile(exchange, 'utf8')).includes('```flux-exchange')); ok('Shared Markdown exchange exports all editable pages');
+  await page.locator('input[type=file]').nth(1).setInputFiles(png); await page.getByLabel('Frame fitting', {exact: true}).waitFor(); await page.getByLabel('Frame fitting', {exact: true}).selectOption('contain'); assert.equal(await page.getByLabel('Frame fitting', {exact: true}).inputValue(), 'contain'); await page.getByRole('button', {name: 'Undo', exact: true}).click(); await page.getByRole('button', {name: 'Undo', exact: true}).click(); ok('Image import, frame fitting and atomic undo');
+  await page.locator('input[type=file]').first().setInputFiles(exchange); await page.getByRole('dialog', {name: 'Review imported publication', exact: true}).waitFor(); await page.getByRole('button', {name: 'Open publication', exact: true}).click(); assert.equal(await page.locator('.page-card').count(), 4); await page.getByRole('button', {name: 'Undo', exact: true}).click(); ok('Markdown import reports conversion before applying and supports undo');
+  await page.waitForTimeout(600); await page.reload(); await page.locator('.studio[aria-busy="false"]').waitFor(); assert.equal(await page.locator('.page-card').count(), 4); ok('IndexedDB restores publication after reload');
+  await page.locator('input[type=file]').first().setInputFiles(native); await page.getByText('Your editable publication is open.', {exact: true}).waitFor(); assert.equal(await page.locator('.page-card').count(), 4); ok('Native project reopens losslessly');
+  await page.getByRole('button', {name: 'Ask Flux', exact: true}).click(); await page.getByLabel('AI request', {exact: true}).fill('Refine the headline'); await page.getByRole('button', {name: 'Prepare editable idea', exact: true}).click(); await page.getByRole('button', {name: 'Apply idea', exact: true}).waitFor(); await page.screenshot({path: path.join(artifacts, 'ai-review.png')});
+  assert.ok(!JSON.stringify(requests[0]).includes('data:image')); assert.equal(requests[0].context.scene.page.id, data.project.pages[0].id); assert.ok(!JSON.stringify(requests[0]).includes(data.project.pages[1].id));
+  await page.getByRole('button', {name: 'Apply idea', exact: true}).click(); assert.ok((await page.locator('.paper').textContent()).includes('A considered perspective.')); await page.getByRole('button', {name: 'Undo', exact: true}).click(); assert.ok(!(await page.locator('.paper').textContent()).includes('A considered perspective.')); ok('AI uses only current-page scene, previews editable result and applies in one undo');
+  await page.getByRole('button', {name: 'Close AI Studio', exact: true}).click(); await page.getByRole('button', {name: 'Switch to dark appearance', exact: true}).click(); await page.screenshot({path: path.join(artifacts, 'studio-dark.png')}); assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark'); ok('Dark appearance renders');
+  assert.deepEqual(errors, []); ok('No browser runtime errors');
+  await writeFile(path.join(artifacts, 'smoke.json'), JSON.stringify({passed: checks.length, checks, errors}, null, 2));
+} finally {await browser.close(); await new Promise(resolve => server.close(resolve));}

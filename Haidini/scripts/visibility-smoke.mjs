@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import {mkdir,mkdtemp,readFile,writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import {createRequire} from 'node:module';
+import {createWorkbench} from '../server/index.mjs';
+const {chromium}=createRequire(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/package.json'))('playwright');
+await mkdir('artifacts/visibility',{recursive:true});
+const dir=await mkdtemp(path.resolve('.test-data/visibility-ui-')),app=await createWorkbench({dataDir:dir,webDir:path.resolve(process.argv.includes('--staging')?'.staging-dist':'dist'),port:0});
+const scene=app.projects.create(undefined,'text-sparks').project;
+let browser;const report={checks:[],errors:[]};
+function glb(data){const length=data.readUInt32LE(12);return {json:JSON.parse(data.subarray(20,20+length).toString()),bin:data.subarray(28+length)};}
+function particlePositions(data){const {json,bin}=glb(data);return json.nodes.filter(n=>n.name?.startsWith('Simulated_particles_')&&n.extensions?.EXT_mesh_gpu_instancing).map(n=>{const a=json.accessors[n.extensions.EXT_mesh_gpu_instancing.attributes.TRANSLATION],v=json.bufferViews[a.bufferView],start=(v.byteOffset||0)+(a.byteOffset||0),values=[];for(let i=0;i<a.count*3;i++)values.push(bin.readFloatLE(start+i*4));return {name:n.name,values};}).sort((a,b)=>a.name.localeCompare(b.name));}
+try{
+ browser=await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+ const page=await browser.newPage({viewport:{width:1280,height:720},acceptDownloads:true});
+ page.on('pageerror',e=>report.errors.push(e.message));
+ await page.addInitScript(()=>{const Original=window.Worker;window.workerCreations=0;window.Worker=class extends Original{constructor(...args){super(...args);window.workerCreations++;}};});
+ const button=name=>page.getByRole('button',{name,exact:true}),state=()=>app.projects.get(new URL(page.url()).searchParams.get('project')).project;
+ const frames=()=>page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
+ const settled=async()=>{await page.waitForFunction(()=>document.querySelector('.status-bar')?.textContent?.includes('All changes saved locally'));await frames();};
+ const ready=async t=>page.waitForFunction(t=>document.querySelector('.simulation-status')?.textContent==='Simulation ready · '+t.toFixed(2)+' s',t,{timeout:30000});
+ const download=async(kind,action,file)=>{await button('Export').click();await button(kind).click();const wait=page.waitForEvent('download',{timeout:45000});await button(action).click();const d=await wait;await d.saveAs('artifacts/visibility/'+file);await settled();return readFile('artifacts/visibility/'+file);};
+ await page.goto(app.origin+'/?project='+scene.id);await ready(1.6);await page.getByRole('slider',{name:'Timeline position'}).fill('2');await ready(2);
+ const workers=await page.evaluate(()=>window.workerCreations),before=await download('3D scene','Export GLB','visible.glb');
+ assert(glb(before).json.nodes.some(n=>n.name==='Shape_floor'));assert(particlePositions(before).length>0);
+ const canvas=page.locator('.viewport-canvas canvas'),visibleImage=await canvas.screenshot({path:'artifacts/visibility/visible.png'});
+ const selection=await page.locator('.scene-node.active').textContent();await button('Hide Collision floor').click();await settled();assert.equal(await page.locator('.scene-node.active').textContent(),selection);
+ assert.equal(state().graph.nodes.find(n=>n.id==='floor').visible,false);assert(state().graph.edges.some(e=>e.source==='floor'&&e.input==='colliders'));
+ await button('Hide 3D text').focus();await page.keyboard.press('Space');await settled();assert.equal(state().graph.nodes.find(n=>n.id==='title').visible,false);assert.equal(await button('Pause').count(),0);
+ assert.equal(await page.evaluate(()=>window.workerCreations),workers);
+ const hiddenImage=await canvas.screenshot({path:'artifacts/visibility/hidden-sources.png'});assert.notDeepEqual(visibleImage,hiddenImage);
+ const hidden=await download('3D scene','Export GLB','hidden-sources.glb'),hiddenJSON=glb(hidden).json;assert(!hiddenJSON.nodes.some(n=>n.name==='Shape_floor'||n.name?.startsWith('Glyph_')));assert.deepEqual(particlePositions(hidden),particlePositions(before),'Hidden sources/colliders must preserve calculated particle positions');
+ await page.screenshot({path:'artifacts/visibility/controls-1280.png'});
+ report.checks.push('List eye controls hide the viewport and GLB geometry; hidden sources and colliders preserve particle positions and reuse the worker');
+ await button('Undo').click();await settled();assert.notEqual(state().graph.nodes.find(n=>n.id==='title').visible,false);await button('Redo').click();await settled();assert.equal(state().graph.nodes.find(n=>n.id==='title').visible,false);
+ await page.reload();await ready(1.6);assert.equal(await button('Show Collision floor').getAttribute('aria-pressed'),'false');assert.equal(await button('Show 3D text').getAttribute('aria-pressed'),'false');
+ await button('Show selected object').click();await settled();assert.equal(state().graph.nodes.find(n=>n.id==='title').visible,true);await button('Hide selected object').click();await settled();
+ await button('Hide Particle simulation').click();await settled();const empty=glb(await download('3D scene','Export GLB','all-hidden.glb')).json;assert.equal(empty.meshes?.length||0,0);
+ await button('Show Particle simulation').click();await settled();await button('Export').click();const wait=page.waitForEvent('download');await button('Save a copy').click();const d=await wait;await d.saveAs('artifacts/visibility/hidden-project.json');const pack=JSON.parse(await readFile('artifacts/visibility/hidden-project.json','utf8'));assert.equal(pack.project.graph.nodes.find(n=>n.id==='floor').visible,false);await button('Cancel').click();
+ report.checks.push('Visibility supports keyboard control, inspector toggles, undo/redo, reload and editable project export; hiding every object exports no meshes');
+ const title=app.projects.create(undefined,'title').project;await page.goto(app.origin+'/?project='+title.id);await page.waitForFunction(()=>document.querySelector('.status-bar')?.textContent.includes('7 characters')&&!document.querySelector('.font-loading-note'));await frames();
+ const point=await canvas.evaluate(canvas=>{const image=document.createElement('canvas');image.width=canvas.width;image.height=canvas.height;const c=image.getContext('2d');c.drawImage(canvas,0,0);const d=c.getImageData(0,0,image.width,image.height).data,r=canvas.getBoundingClientRect();for(let y=Math.floor(image.height*.2);y<image.height*.8;y++)for(let x=Math.floor(image.width*.2);x<image.width*.8;x++){const k=(y*image.width+x)*4;if(d[k]>180&&d[k+1]>180&&d[k+2]>140)return {x:r.x+(x+.5)/image.width*r.width,y:r.y+(y+.5)/image.height*r.height};}throw Error('No visible text pixels');});
+ await page.locator('.scene-node').filter({hasText:'Scene output'}).click();await page.mouse.click(point.x,point.y);await page.waitForFunction(()=>document.querySelector('.scene-node.active')?.textContent==='Animate text');
+ await button('Hide 3D text').click();await settled();await page.locator('.scene-node').filter({hasText:'Scene output'}).click();await page.mouse.click(point.x,point.y);await frames();assert.equal(await page.locator('.scene-node.active').textContent(),'Scene output');
+ const textHidden=glb(await download('3D scene','Export GLB','hidden-animated-text.glb')).json;assert.equal(textHidden.meshes?.length||0,0);
+ report.checks.push('Hiding source text hides processed lettering and removes it from picking and exports');
+ const cloud=app.projects.create(undefined,'cloud').project;await page.goto(app.origin+'/?project='+cloud.id);await ready(1.6);await button('Hide Cloud simulation').click();await settled();const cloudHidden=glb(await download('3D scene','Export GLB','hidden-cloud.glb')).json;assert.equal(cloudHidden.meshes?.length||0,0);
+ report.checks.push('Hidden cloud volumes remain hidden when GLB substitutes parcel geometry');
+ assert.deepEqual(report.errors,[]);await writeFile('artifacts/visibility/report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
+}catch(e){console.error(e);console.error(JSON.stringify(report));await browser?.contexts()[0]?.pages()[0]?.screenshot({path:'artifacts/visibility/failure.png'});process.exitCode=1;}finally{await browser?.close();await app.close();}

@@ -1,0 +1,16 @@
+{
+  "provider": "Flux / AI Gateway",
+  "model": "anthropic/claude-sonnet-5",
+  "available": true,
+  "synthetic": true,
+  "scenario": "create",
+  "timestamp": "2026-09-30T19:29:47.281Z",
+  "ok": true,
+  "commandCount": 4,
+  "originalPreserved": true,
+  "newComposition": true,
+  "editableText": true,
+  "editableShapes": true,
+  "editableOpacityKeys": 2,
+  "layerCount": 2
+}

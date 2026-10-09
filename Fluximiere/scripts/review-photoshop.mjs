@@ -1,0 +1,12 @@
+import {createRequire} from 'node:module';
+import {importPhotoshop} from '../../Fluxoto/src/photoshop.mjs';
+import {newLayer,validateProject} from '../../Fluxoto/src/model.mjs';
+const require=createRequire(new URL('../../Fluxoto/package.json',import.meta.url)),{writePsd,initializeCanvas}=require('ag-psd');
+const pixels=(w,h,color)=>({width:w,height:h,data:new Uint8ClampedArray(Array.from({length:w*h},()=>color).flat())});
+const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==';
+initializeCanvas(()=>{throw Error('Canvas allocation not needed');},(w,h)=>pixels(w,h,[0,0,0,0]));
+const encoded=[];const psd=writePsd({width:4,height:4,children:[{name:'Density zero',left:0,top:0,imageData:pixels(2,2,[255,0,0,255]),mask:{left:0,top:0,defaultColor:0,userMaskDensity:0,imageData:pixels(1,1,[0,0,0,255])}},{name:'Fill zero',fillOpacity:0,left:0,top:0,imageData:pixels(1,1,[0,255,0,255])}]},{noBackground:true});
+const result=await importPhotoshop(psd,'review.psd',{encodePixels:async p=>{encoded.push(p);return png;}});
+console.log(JSON.stringify({densityZeroAlpha:[...encoded[1].data].filter((v,i)=>i%4===3),fillZeroConvertedOpacity:result.project.layers.find(l=>l.name==='Fill zero').opacity,fillWarning:result.warnings.filter(w=>/fill opacity/i.test(w))}));
+const p=validateProject({format:'fluxoto-project',version:1,width:100,height:100,background:'transparent',layers:[newLayer('image',{width:16384,height:16384,src:png,mask:{width:1,height:1,src:'',enabled:true,defaultAlpha:255,strokes:[]}})]});
+console.log(JSON.stringify({portableExportCanvasWidth:p.layers[0].width,portableExportCanvasHeight:p.layers[0].height,unboundedPortablePixels:p.layers[0].width*p.layers[0].height}));

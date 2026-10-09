@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.staging-dist/
+server-dist/
+.data/
+.runtime/
+.runtime-tools/
+.test-data/
+artifacts/
+src-tauri/target/
+src-tauri/gen/
+.env
+.env.*
+!.env.example
+*.log

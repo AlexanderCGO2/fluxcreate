@@ -1,0 +1,14 @@
+import { MAX_SCENE_DURATION } from './timing.ts';
+import { z } from 'zod';
+import { CATALOG } from './catalog.ts';
+export const EASINGS=['linear','ease in','ease out','ease in out','hold'] as const;
+export type Easing=typeof EASINGS[number];
+export const KeyframeSchema=z.object({time:z.number().min(0).max(MAX_SCENE_DURATION),value:z.union([z.number().finite(),z.string().regex(/^#[0-9a-fA-F]{6}$/)]),easing:z.enum(EASINGS)}).strict();
+export const TrackSchema=z.object({nodeId:z.string().regex(/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/),param:z.string().min(1).max(40),keys:z.array(KeyframeSchema).min(1).max(24)}).strict();
+export type Keyframe=z.infer<typeof KeyframeSchema>;export type AnimationTrack=z.infer<typeof TrackSchema>;
+const animatable:Record<string,string[]>={camera:['fov','targetX','targetY','targetZ','x','y','z'],light:['intensity','color','targetX','targetY','targetZ','x','y','z'],material:['color','roughness','metalness','transmission','ior','thickness','clearcoat','emissive','emission','opacity'],primitive:['color','opacity','scale','rotateX','rotateY','rotateZ','x','y','z'],paint:['colorA','colorB','colorC','colorD','colorE','colorF','colorG','colorH','colorI','colorJ','colorK','colorL','opacity'],text:['color','opacity','scale','x','y','z'],emitter:['color','opacity','size','x','y','z'],particleSim:['color','opacity','size','rate','glow'],water:['color','opacity'],cloud:['color','opacity'],cloth:['color','opacity'],fx:['color','opacity','scale','x','y','z'],shape:['color','opacity','scale','x','y','z'],transform:['scale','rotateX','rotateZ','rotateY','x','y','z']};
+export function animatedParams(type:string){return (animatable[type]||[]).filter(p=>CATALOG[type]?.params[p]);}
+export function ease(t:number,mode:Easing){t=Math.max(0,Math.min(1,t));return mode==='hold'?0:mode==='ease in'?t*t*t:mode==='ease out'?1-(1-t)**3:mode==='ease in out'?(t<.5?4*t*t*t:1-(-2*t+2)**3/2):t;}
+export function mixColor(a:string,b:string,t:number){const channel=(v:number)=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4,encode=(v:number)=>Math.round(255*(v<=.0031308?v*12.92:1.055*v**(1/2.4)-.055));return '#'+[1,3,5].map(i=>{const x=channel(parseInt(a.slice(i,i+2),16)/255),y=channel(parseInt(b.slice(i,i+2),16)/255);return encode(x+(y-x)*Math.max(0,Math.min(1,t))).toString(16).padStart(2,'0');}).join('');}
+export function sampleKeys(keys:Keyframe[],time:number):number|string{if(time<=keys[0].time)return keys[0].value;for(let i=1;i<keys.length;i++)if(time<keys[i].time){const a=keys[i-1],b=keys[i],t=ease((time-a.time)/(b.time-a.time),a.easing);return typeof a.value==='number'&&typeof b.value==='number'?a.value+(b.value-a.value)*t:mixColor(String(a.value),String(b.value),t);}return keys[keys.length-1].value;}
+export function animatedValue(tracks:AnimationTrack[],nodeId:string,param:string,time:number,fallback:number|string){const track=tracks.find(t=>t.nodeId===nodeId&&t.param===param);return track?sampleKeys(track.keys,time):fallback;}

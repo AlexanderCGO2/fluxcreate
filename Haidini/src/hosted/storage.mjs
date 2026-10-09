@@ -1,0 +1,7 @@
+const DB_NAME='fluxini-hosted-workspace-v1';
+export function browserDatabase(name=DB_NAME){let pending;
+ const open=()=>pending??=(new Promise((resolve,reject)=>{const request=indexedDB.open(name,1);request.onupgradeneeded=()=>{for(const store of['projects','catalog','fonts'])if(!request.result.objectStoreNames.contains(store))request.result.createObjectStore(store,{keyPath:'id'});};request.onsuccess=()=>{const db=request.result;db.onversionchange=()=>{db.close();pending=null;};resolve(db);};request.onerror=()=>reject(request.error);request.onblocked=()=>reject(Error('Close older Fluxini tabs so browser storage can be upgraded.'));})).catch(error=>{pending=null;throw error;});
+ const get=request=>new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
+ async function transaction(names,mode,operation){const db=await open(),tx=db.transaction(names,mode),done=new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error||Error('Browser storage transaction was cancelled.'));tx.onerror=()=>{};});const stores=Object.fromEntries(names.map(name=>[name,tx.objectStore(name)]));try{const result=await operation(stores,get);await done;return result;}catch(error){try{tx.abort();}catch{}await done.catch(()=>{});if(error?.name==='QuotaExceededError')throw Error('Browser storage is full. Save project copies and free browser space before trying again.');throw error;}}
+ return{transaction,async close(){const db=await pending;db?.close();pending=null;}};
+}

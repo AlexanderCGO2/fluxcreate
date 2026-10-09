@@ -1,0 +1,11 @@
+# FluxLab studio
+
+FluxLab opens with an empty creative workspace. Its decorative artwork is CSS; no example is presented as a generated result. Text and image results come from the live Flux AI Gateway through the generation service. The model picker uses the service's capability catalog, filtering independently for text and image support. Model-default image dimensions avoid forcing unsupported sizes. Provider failures are shown without replacing the previous result.
+
+The interface includes prompt starters, model selection, output size or text length, cancellation, result downloads, text copying, prompt reuse, light and dark appearance, and a responsive library. A result can be sent to Fluxfoto, FluxDesign, Fluximiére, or Fluxiffects through the shared validated handoff. The destination editor previews it before adding editable content to the current project.
+
+Results are saved in IndexedDB (`fluxlab-library-v1`) on the current origin. A small metadata catalog supports library browsing and search without loading image bytes. Full results are read on demand. Result and metadata records are added in one transaction; duplicate identifiers never replace existing work. Storage failures keep the unsaved result visible and downloadable. Starting another creation or opening an old one requires saving or explicitly discarding that unsaved result. Removing a saved result requires confirmation. Download copies to retain work independently of browser storage.
+
+Cancellation aborts the active request and rejects late responses. Closing the app aborts an in-flight request. Model availability does not block access to previously saved results. The frontend never stores API credentials: local generation uses a short-lived session token, while hosted requests use the suite API routes.
+
+Verification: `node scripts/browser-smoke.mjs` uses an isolated browser and a deterministic injected service. It covers capability filtering, actual text and PNG downloads, clipboard, durable library recovery and search, cancellation propagation, service errors, duplicate IDs, explicit removal, the handoff handshake, offline library access, and dark/mobile layouts. Its screenshots and results are test fixtures under `artifacts/browser`, not claims of live model output.

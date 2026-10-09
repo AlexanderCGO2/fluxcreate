@@ -1,0 +1,22 @@
+{
+  "name": "fluxcreate-suite",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "build": "node FluxCreate/deploy/build.mjs",
+    "test": "node FluxCreate/deploy/check.mjs"
+  },
+  "dependencies": {
+    "ai": "5.0.216",
+    "@ai-sdk/gateway": "1.0.41",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  },
+  "packageManager": "pnpm@12.3.4"
+}

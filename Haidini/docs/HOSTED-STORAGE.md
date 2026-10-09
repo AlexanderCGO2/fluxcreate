@@ -1,0 +1,13 @@
+# Hosted Fluxini storage
+
+Fluxini uses the existing local server when opened on its local port. At the hosted `/fluxini/` path, `src/api.ts` selects a browser adapter with the same project API. No desktop database is uploaded or overwritten.
+
+The hosted workspace is stored in IndexedDB (`fluxini-hosted-workspace-v1`) on the current site and browser profile. It contains projects, graph snapshots, a complete revision archive, Trash, project-scoped preferences, exchange source snapshots, and imported outline fonts. A separate lightweight catalog lists projects without reading every archived scene. Exported `.fluxini.json` and `.flux.md` files remain portable backups. Browser storage can be cleared by the user or browser; a downloaded copy is the durable way to transfer work to another device.
+
+Each mutation validates the current revision and commits project state, undo history, and catalog metadata in one transaction. Concurrent tabs serialize their writes; a stale revision fails rather than replacing a newer edit. Undo and redo retain monotonically increasing revisions. A new edit after undo replaces the active redo branch while preserving its previous revisions in the archive. Restoring an archived revision is a new undoable edit. Imports commit their fonts and project together, so a failed import leaves no partial project behind. Quota failures retain the previous committed state and display an actionable message.
+
+The adapter reuses Fluxini's pure graph validators, command engine, built-in fonts, scene-context builder, and Flux exchange codec. Native packages and exchange files have a 16 MB limit; font imports retain the existing outline validation and 100 imported-style limit. Exchange conversion preserves earlier source snapshots and supports restoring an earlier Fluxini source when one exists.
+
+Hosted AI is optional. Session setup asks `/api/fluxini/status` with a short timeout; editing still opens offline. `/api/fluxini/plan` receives the validated current project, intent, selection, context, and approved project preferences. Returned commands are validated again against the latest stored revision and locks. AI plans remain previews until the user applies them.
+
+Validation: `node scripts/hosted-storage-smoke.mjs` runs isolated real-Edge checks for offline boot, atomic patches, locks, cross-tab revision conflicts, undo/redo branches, archive restoration, fonts, source-preserving exchange, preferences, stale AI plans, Trash, reload recovery, and the actual hosted editor's edit/export workflow. Test browser storage is isolated from normal profiles; artifacts are under `artifacts/hosted-storage`.

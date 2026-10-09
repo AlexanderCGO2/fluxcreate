@@ -1,0 +1,16 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+**/hosted-bundle.mjs
+.data/
+**/.data/
+artifacts/
+**/artifacts/
+.env*
+.vercel/
+**/.runtime*/
+**/.test-data/
+**/.staging-dist/
+**/server-dist/
+**/target/

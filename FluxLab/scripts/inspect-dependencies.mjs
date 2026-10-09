@@ -1,0 +1,1 @@
+const results=await Promise.all(['@modelcontextprotocol/core','@modelcontextprotocol/server','@modelcontextprotocol/client'].map(async name=>{const r=await fetch('https://registry.npmjs.org/'+name+'/latest');const p=await r.json();return{name,version:p.version,peerDependencies:p.peerDependencies,exports:p.exports};}));console.log(JSON.stringify(results,null,2));

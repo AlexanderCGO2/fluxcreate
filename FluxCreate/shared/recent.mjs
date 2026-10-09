@@ -1,0 +1,3 @@
+const apps=/^(fluxoto|fluxidesign|fluximiere|flux3d|fluxiffects|fluxini|fluxlab)$/;
+export function readRecentProjects(){try{const data=JSON.parse(localStorage.getItem('fluxcreate-recent-v1')||'{}');return Object.fromEntries(Object.entries(data).filter(([id,value])=>apps.test(id)&&value&&typeof value.name==='string'&&typeof value.updatedAt==='string'));}catch{return {};}}
+export function noteRecentProject(appId,name){if(!apps.test(appId))return;try{const recent=readRecentProjects();recent[appId]={name:String(name||'Untitled').slice(0,160),updatedAt:new Date().toISOString()};localStorage.setItem('fluxcreate-recent-v1',JSON.stringify(recent));globalThis.dispatchEvent?.(new Event('fluxcreate-recent'));}catch{}}

@@ -1,0 +1,27 @@
+{
+  "name": "fluxcreate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node scripts/browser-checks.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "lucide-react": "0.468.0",
+    "@flux-studio/exchange": "file:../FluxExchange",
+    "ai": "5.0.216",
+    "@ai-sdk/gateway": "1.0.41",
+    "zod": "4.4.3",
+    "three": "0.180.0",
+    "pdf-lib": "1.17.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "@playwright/test": "1.63.0"
+  }
+}

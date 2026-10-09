@@ -1,0 +1,40 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "node FluxCreate/deploy/build.mjs",
+  "installCommand": "npx --yes pnpm@12.3.4 install --frozen-lockfile",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/dispatch.mjs": {
+      "maxDuration": 120
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:app/:path*",
+      "destination": "/api/dispatch?app=:app&path=:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/:app(fluxoto|fluxidesign|fluximiere|flux3d|fluxiffects|fluxini|fluxlab)",
+      "destination": "/:app/",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "same-origin"
+        }
+      ]
+    }
+  ]
+}

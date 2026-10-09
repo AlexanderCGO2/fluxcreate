@@ -1,0 +1,38 @@
+{
+  "name": "fluxini",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "node server/index.mjs",
+    "test": "node scripts/test.mjs",
+    "typecheck": "tsc --noEmit",
+    "desktop": "tauri dev",
+    "desktop:build": "tauri build"
+  },
+  "dependencies": {
+    "@flux-studio/exchange": "file:../FluxExchange",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "three": "^0.180.0",
+    "@xyflow/react": "12.11.2",
+    "ai": "5.0.216",
+    "@ai-sdk/gateway": "1.0.41",
+    "zod": "4.4.3",
+    "lucide-react": "^0.468.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "typescript": "5.9.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/three": "^0.180.0",
+    "@tauri-apps/cli": "^2.10.0"
+  }
+}

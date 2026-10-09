@@ -1,0 +1,12 @@
+import { chromium } from '@playwright/test';
+import fs from 'node:fs/promises';
+await fs.mkdir('artifacts', {recursive:true});
+const browser = await chromium.launch({executablePath:'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless:true});
+const page = await browser.newPage({viewport:{width:1600,height:1000},deviceScaleFactor:1});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://localhost:4320');
+await page.locator('canvas').waitFor();
+await page.waitForTimeout(1600);
+await page.screenshot({path:'artifacts/fluxiffects-first-look.png'});
+console.log(JSON.stringify({title:await page.title(),errors,canvas:await page.locator('canvas').boundingBox()},null,2));
+await browser.close();
