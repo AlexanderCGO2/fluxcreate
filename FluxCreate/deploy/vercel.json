@@ -17,7 +17,7 @@
   ],
   "redirects": [
     {
-      "source": "/:app(fluxoto|fluxidesign|fluximiere|flux3d|fluxiffects|fluxini|fluxlab)",
+      "source": "/:app(fluxoto|fluxidesign|fluximiere|flux3d|fluxiffects|fluxini|fluxlab|fluxagents)",
       "destination": "/:app/",
       "permanent": true
     }

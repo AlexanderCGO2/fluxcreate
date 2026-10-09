@@ -10,7 +10,7 @@ export function videoModelOptions(model){
  const durations=[...new Set((Array.isArray(raw.supported_durations_seconds)?raw.supported_durations_seconds:[]).filter(n=>Number.isFinite(n)&&n>=1&&n<=60))].slice(0,60).sort((a,b)=>a-b),aspectRatios=[...new Set((Array.isArray(raw.supported_aspect_ratios)?raw.supported_aspect_ratios:[]).filter(s=>typeof s==='string'&&/^\d{1,2}:\d{1,2}$/.test(s)&&s.split(':').every(n=>Number(n)>0)))].slice(0,30),limit=raw.input_limits?.text?.max_chars;
  return {durations,aspectRatios,maxPromptChars:Number.isInteger(limit)&&limit>0?Math.min(limit,12000):12000};
 }
-export function createVideoService({fetchImpl,credential,models,controlled,boundedJSON,providerFailure,fail,now,fetchMedia=fetchPublicVideo}){
+export function createVideoService({fetchImpl,credential,snapshotConnection,models,controlled,boundedJSON,providerFailure,fail,now,fetchMedia=fetchPublicVideo}){
  const requests=new Map();
  function validate(body){
   if(!plain(body)||Object.keys(body).some(k=>!['kind','model','prompt','requestId','duration','aspectRatio'].includes(k)))fail('Include only the video model, prompt, request ID, duration and aspect ratio.');
@@ -21,7 +21,7 @@ export function createVideoService({fetchImpl,credential,models,controlled,bound
   if(body.aspectRatio!==undefined&&(typeof body.aspectRatio!=='string'||!/^\d{1,2}:\d{1,2}$/.test(body.aspectRatio)||!body.aspectRatio.split(':').every(n=>Number(n)>0)))fail('Choose a supported video aspect ratio.');
   return {kind:'video',model:body.model,prompt:body.prompt.trim(),requestId:body.requestId.toLowerCase(),...(body.duration===undefined?{}:{duration:body.duration}),...(body.aspectRatio===undefined?{}:{aspectRatio:body.aspectRatio})};
  }
- async function keyFor(){let key;try{key=await credential();}catch{fail('The existing Flux connection is unavailable. Check its settings in Fluxini.',503);}if(!key)fail('Connect Fluxini to AI Gateway before generating.',503);return key;}
+ async function keyFor(connection){let key;try{key=await credential(connection);}catch{fail('The existing Flux connection is unavailable. Check its settings in Fluxini.',503);}if(!key)fail('Connect Fluxini to AI Gateway before generating.',503);return key;}
  const signature=(key,value)=>createHmac('sha256',createHmac('sha256',key).update('fluxlab-video-ticket-v1').digest()).update(value).digest();
  function sign(key,value){const body=Buffer.from(JSON.stringify(value)).toString('base64url');return body+'.'+signature(key,body).toString('base64url');}
  function verify(key,ticket,kind){
@@ -46,8 +46,8 @@ export function createVideoService({fetchImpl,credential,models,controlled,bound
   }fail('The provider video is missing, invalid or larger than 64 MiB.',502);
  }
  return {
-  async startVideo(body,{signal}={}){const request=validate(body);return controlled(async signal=>{
-   const key=await keyFor(),catalog=await models({signal}),model=catalog.models.find(m=>m.id===request.model);if(!model?.capabilities.includes('video')||!model.video)fail('Choose a catalog model that supports text-to-video.');
+  async startVideo(body,{signal,connection}={}){connection=snapshotConnection(connection);const request=validate(body);return controlled(async signal=>{
+   const key=await keyFor(connection),catalog=await models({signal}),model=catalog.models.find(m=>m.id===request.model);if(!model?.capabilities.includes('video')||!model.video)fail('Choose a catalog model that supports text-to-video.');
    if(request.prompt.length>model.video.maxPromptChars)fail(`This model accepts video prompts up to ${model.video.maxPromptChars.toLocaleString('en-US')} characters.`);
    if(request.duration!==undefined&&model.video.durations.length&&!model.video.durations.includes(request.duration))fail('Choose a duration supported by this video model.');
    if(request.aspectRatio!==undefined&&model.video.aspectRatios.length&&!model.video.aspectRatios.includes(request.aspectRatio))fail('Choose an aspect ratio supported by this video model.');
@@ -58,8 +58,8 @@ export function createVideoService({fetchImpl,credential,models,controlled,bound
    const createdAt=new Date(now()).toISOString(),ticket=sign(key,{v:1,kind:'job',job,model:request.model,prompt:request.prompt,requestId:request.requestId,createdAt,expires:now()+TTL});
    const result={status:'pending',ticket,requestId:request.requestId,createdAt,warnings:[...(catalog.stale?[catalog.warning]:[]),...safeWarnings(raw.warnings)]};requests.set(requestKey,{hash,result});return result;
   },{signal,timeout:45000});},
-  async videoStatus(body,{signal}={}){const ticket=ticketBody(body);return controlled(async signal=>{
-   const key=await keyFor(),job=verify(key,ticket,'job'),raw=await call('status',{operation:{gatewayJobId:job.job}},key,job.model,signal);
+  async videoStatus(body,{signal,connection}={}){connection=snapshotConnection(connection);const ticket=ticketBody(body);return controlled(async signal=>{
+   const key=await keyFor(connection),job=verify(key,ticket,'job'),raw=await call('status',{operation:{gatewayJobId:job.job}},key,job.model,signal);
    if(raw.status==='pending')return {status:'pending',ticket,warnings:safeWarnings(raw.warnings)};
    if(raw.status==='error'||raw.status==='cancelled')return {status:'error',error:raw.status==='cancelled'?'The provider cancelled this video job.':'The provider could not finish this video. Try another prompt or model.'};
    if(raw.status!=='completed')fail('The provider returned an unreadable video status.',502);const video=firstVideo(raw),warnings=safeWarnings(raw.warnings);
@@ -67,8 +67,8 @@ export function createVideoService({fetchImpl,credential,models,controlled,bound
    const contentTicket=sign(key,{v:1,kind:'content',job:job.job,model:job.model,requestId:job.requestId,expires:job.expires});
    return {status:'completed',result:{id:job.requestId,kind:'video',model:job.model,prompt:job.prompt,createdAt:job.createdAt,text:'',images:[],videos:[{id:job.requestId+'-video',mimeType:video.mimeType,...(video.url?{url:video.url}:{}),contentTicket}],warnings}};
   },{signal,timeout:60000});},
-  async videoContent(body,{signal:requestSignal}={}){const ticket=ticketBody(body);return controlled(async signal=>{
-   const key=await keyFor(),job=verify(key,ticket,'content'),raw=await call('status',{operation:{gatewayJobId:job.job}},key,job.model,signal);if(raw.status!=='completed')fail('This video is not ready or is no longer available.',409);const video=firstVideo(raw);
+  async videoContent(body,{signal:requestSignal,connection}={}){connection=snapshotConnection(connection);const ticket=ticketBody(body);return controlled(async signal=>{
+   const key=await keyFor(connection),job=verify(key,ticket,'content'),raw=await call('status',{operation:{gatewayJobId:job.job}},key,job.model,signal);if(raw.status!=='completed')fail('This video is not ready or is no longer available.',409);const video=firstVideo(raw);
    if(video.bytes)return {body:video.bytes,mimeType:video.mimeType,length:video.bytes.length};
    try{return await fetchMedia(video.url,{signal:requestSignal?AbortSignal.any([signal,requestSignal]):signal,mimeType:video.mimeType,maxBytes:MAX_VIDEO_BYTES});}catch(error){if(signal.aborted)throw error;fail('The video could not be downloaded, has expired, or exceeds 64 MiB. Try checking the job again.',502);}
   },{signal:requestSignal,timeout:60000});}

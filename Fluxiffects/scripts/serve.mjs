@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createAIService } from '../server/ai-service.mjs';
 import { AIEditError } from '../src/ai-commands.mjs';
+import {handleSettings,resolveRequestConnection} from '../../FluxCreate/server/settings.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.jsx': 'text/plain; charset=utf-8', '.png': 'image/png' };
 function json(res,status,body){if(res.destroyed)return;const encoded=JSON.stringify(body);res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(encoded);}
@@ -40,11 +41,13 @@ export function serve(port = Number(process.env.PORT || 4320), {aiService = crea
       if(pathname.startsWith('/api/')){
         const allowedOrigins=new Set([...hosts].map(host=>`http://${host}`));
         if((req.headers.origin&&!allowedOrigins.has(req.headers.origin))||req.headers['sec-fetch-site']==='cross-site'){json(res,403,{error:'This action must originate from your local Fluxiffects workspace.'});return;}
+        if(await handleSettings(req,res,pathname.slice(4)))return;
+        const connection=await resolveRequestConnection(req);
         if(req.method==='GET'&&pathname==='/api/health'){json(res,200,{app:'fluxiffects',version:'0.3.0'});return;}
-        if(req.method==='GET'&&pathname==='/api/ai/status'){json(res,200,await aiService.status());return;}
+        if(req.method==='GET'&&pathname==='/api/ai/status'){json(res,200,await aiService.status(connection));return;}
         if(req.method==='POST'&&pathname==='/api/ai/plan'){
           const controller=new AbortController();req.once('aborted',()=>controller.abort());res.once('close',()=>{if(!res.writableEnded)controller.abort();});
-          const body=await readJSON(req);if(controller.signal.aborted)throw new RequestError('AI request cancelled.',499);const result=await aiService.plan(body,{signal:controller.signal});json(res,200,result);return;
+          const body=await readJSON(req);if(controller.signal.aborted)throw new RequestError('AI request cancelled.',499);const result=await aiService.plan(body,{signal:controller.signal,connection});json(res,200,result);return;
         }
         json(res,404,{error:'Unknown local service endpoint.'});return;
       }
@@ -60,7 +63,8 @@ export function serve(port = Number(process.env.PORT || 4320), {aiService = crea
       if(error.code==='ENOENT'){res.writeHead(404,{'Content-Type':'text/plain'});res.end('Not found');return;}
       const known=error instanceof RequestError||error instanceof AIEditError;
       const status=known&&Number.isInteger(error.status)&&error.status>=400&&error.status<=599?error.status:500;
-      if(status===413||status===415)res.setHeader('Connection','close');
+      // The reader drains rejected uploads without buffering them. Closing the
+      // connection early can reset an active upload before its JSON error arrives.
       json(res,status,{error:known?error.message:'The local operation could not be completed.'});
     }
   });

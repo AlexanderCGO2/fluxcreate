@@ -8,5 +8,6 @@ packages:
   - Flux3D
   - Fluxiffects
   - FluxLab
+  - FluxAgents
 allowBuilds:
   esbuild: true

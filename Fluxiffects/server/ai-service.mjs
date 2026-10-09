@@ -1,4 +1,5 @@
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {AIEditError, applyProposal, fingerprintProject, projectForAI, PROPERTY_RULES} from '../src/ai-commands.mjs';
 import {getComp, parseProject} from '../src/core.mjs';
@@ -13,7 +14,10 @@ const shortText = (value, label, max, optional = false) => {
 };
 
 /** Reuse the user-authorized Fluxini connection read-only. Never expose credentials or local paths. */
-async function connectionStatus() {
+const snapshotConnection=value=>value===undefined?undefined:Object.freeze({apiKey:typeof value?.apiKey==='string'&&value.apiKey.length<=4096&&!/\s/.test(value.apiKey)?value.apiKey:'',model:typeof value?.model==='string'&&value.model.length<=200&&value.model?value.model:'anthropic/claude-sonnet-5',scopeId:typeof value?.scopeId==='string'?value.scopeId.slice(0,200):'',available:value?.available!==false});
+const connectionScope=value=>value===undefined?'suite':createHash('sha256').update(value.apiKey+'\0'+value.scopeId).digest('hex');
+export async function connectionStatus(connection) {
+  if(connection!==undefined){const value=snapshotConnection(connection);return {available:!!value.apiKey&&value.available,provider:'Flux / AI Gateway',model:value.model,...(!value.apiKey||!value.available?{reason:'Connect your AI Gateway account in Settings to enable AI.'}:{})};}
   let reason;
   try {
     if (!process.env.AI_GATEWAY_API_KEY) {
@@ -76,17 +80,21 @@ function validateAnswer(answer, request, baseFingerprint, {multiple = false} = {
 }
 
 export function createAIService({planner} = {}) {
-  let inFlight = false;
+  const inFlight = new Set();
   return {
-    async status() {
-      if (planner) return {available: true, provider: 'Injected test planner', model: 'test-only', busy: inFlight, testOnly: true};
-      return {...await connectionStatus(), busy: inFlight};
+    async status(connection) {
+      connection=snapshotConnection(connection);const busy=inFlight.has(connectionScope(connection));
+      if (planner&&connection===undefined) return {available: true, provider: 'Injected test planner', model: 'test-only', busy, testOnly: true};
+      return {...await connectionStatus(connection), busy};
     },
-    async plan(body, {signal} = {}) {
+    async plan(body, {signal,connection} = {}) {
+      connection=snapshotConnection(connection);const scope=connectionScope(connection);
       const request = buildAIContext(body);
-      if (inFlight) fail('Another AI request is already running. Cancel it or wait for it to finish.', 409);
+      if(connection!==undefined&&(!connection.apiKey||!connection.available))fail('Connect your AI Gateway account in Settings to enable AI.',503);
+      if (inFlight.has(scope)) fail('Another AI request is already running. Cancel it or wait for it to finish.', 409);
       if (signal?.aborted) fail('AI request cancelled.', 499);
-      inFlight = true;
+      if(inFlight.size>=64)fail('The AI service is busy. Try again shortly.',429);
+      inFlight.add(scope);
       const controller = new AbortController(), onAbort = () => controller.abort(new DOMException('Cancelled', 'AbortError'));
       signal?.addEventListener('abort', onAbort, {once: true});
       const timeout = setTimeout(() => controller.abort(new DOMException('Timed out', 'TimeoutError')), 45000);
@@ -95,9 +103,9 @@ export function createAIService({planner} = {}) {
         const abort = new Promise((resolve, reject) => {abortListener = () => reject(new AIEditError(signal?.aborted ? 'AI request cancelled.' : 'The AI request exceeded 45 seconds. Try a smaller request.', signal?.aborted ? 499 : 504)); controller.signal.addEventListener('abort', abortListener, {once: true});});
         const run = async () => {
           if (planner) return await planner({intent: request.intent, context: request.context, mode: request.mode, scope: request.scope, selection: request.selection, variations: request.variations, signal: controller.signal});
-          const status = await connectionStatus(); if (!status.available) fail(status.reason, 503);
+          const status = await connectionStatus(connection); if (!status.available) fail(status.reason, 503);
           const {planWithGateway} = await import('./ai-provider.mjs');
-          return await planWithGateway({intent: request.intent, context: request.context, variations: request.variations, model: status.model, signal: controller.signal});
+          return await planWithGateway({intent: request.intent, context: request.context, variations: request.variations, model: status.model, apiKey:connection===undefined?process.env.AI_GATEWAY_API_KEY:connection.apiKey, signal: controller.signal});
         };
         let answer;
         try {answer = await Promise.race([run(), abort]);}
@@ -126,7 +134,7 @@ export function createAIService({planner} = {}) {
       } finally {
         clearTimeout(timeout); signal?.removeEventListener('abort', onAbort);
         if (abortListener) controller.signal.removeEventListener('abort', abortListener);
-        inFlight = false;
+        inFlight.delete(scope);
       }
     },
   };

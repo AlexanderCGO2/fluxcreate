@@ -4,6 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createAIService,connectionStatus,ServiceError} from './ai.mjs';
 import {APPS} from '../shared/registry.mjs';
+import {handleSettings,resolveRequestConnection} from './settings.mjs';
 const suite=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'};
 function json(res,status,body){if(res.destroyed)return;res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(body));}
@@ -13,13 +14,16 @@ export async function serveApp({appId,root,port,planner,aiService=createAIServic
  const dist=path.join(root instanceof URL?fileURLToPath(root):root,'dist');let writing=Promise.resolve();
  const server=http.createServer(async(req,res)=>{try{const p=server.address()?.port,hosts=new Set([`localhost:${p}`,`127.0.0.1:${p}`]);if(!hosts.has(req.headers.host))throw new ServiceError('Use the local FluxCreate address.',403);let pathname;try{pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);}catch{throw new ServiceError('Invalid address.');}
  if(pathname.startsWith('/api/')){if((req.headers.origin&&![...hosts].map(h=>'http://'+h).includes(req.headers.origin))||req.headers['sec-fetch-site']==='cross-site')throw new ServiceError('Open this action from your local FluxCreate workspace.',403);
+ if(await handleSettings(req,res,pathname.slice(4)))return;
+ const connection=await resolveRequestConnection(req);
  if(req.method==='GET'&&pathname==='/api/health')return json(res,200,{app:appId,version:'0.1.0'});
- if(req.method==='GET'&&pathname==='/api/ai/status')return json(res,200,appId==='fluxcreate'?await connectionStatus():await aiService.status());
+ if(req.method==='GET'&&pathname==='/api/ai/status')return json(res,200,appId==='fluxcreate'?await connectionStatus(connection):await aiService.status(connection));
  if(req.method==='GET'&&pathname==='/api/suite'&&appId==='fluxcreate')return json(res,200,{apps:await suiteStatus()});
  if(req.method==='POST'&&pathname==='/api/launch'&&appId==='fluxcreate'){const {app}=await readJSON(req),selected=APPS.find(a=>a.id===app);if(!selected)throw new ServiceError('Choose an app from the suite.');try{const {launchApp}=await import('../scripts/launch.mjs');return json(res,200,await launchApp(app));}catch{throw new ServiceError(`${selected.name} could not start. Build its project, then check its local artifacts/studio-server.log and whether port ${selected.port} is already in use.`,503);}}
  if(req.method==='POST'&&pathname==='/api/recent'){const {name}=await readJSON(req);if(typeof name!=='string'||!name.trim()||name.length>300)throw new ServiceError('Enter a project name of at most 300 characters.');const file=path.join(dataDir,`recent-${appId}.json`);writing=writing.catch(()=>{}).then(async()=>{await mkdir(dataDir,{recursive:true});await writeFile(file+'.tmp',JSON.stringify({name,updatedAt:new Date().toISOString()}));await rename(file+'.tmp',file);});await writing;return json(res,200,{saved:true});}
- if(req.method==='POST'&&pathname==='/api/ai/plan'&&appId!=='fluxcreate'){const controller=new AbortController();req.once('aborted',()=>controller.abort());res.once('close',()=>{if(!res.writableEnded)controller.abort();});return json(res,200,await aiService.plan(await readJSON(req),{signal:controller.signal}));}return json(res,404,{error:'Unknown local service endpoint.'});}
+ if(req.method==='POST'&&pathname==='/api/ai/plan'&&appId!=='fluxcreate'){const controller=new AbortController();req.once('aborted',()=>controller.abort());res.once('close',()=>{if(!res.writableEnded)controller.abort();});return json(res,200,await aiService.plan(await readJSON(req),{signal:controller.signal,connection}));}return json(res,404,{error:'Unknown local service endpoint.'});}
  if(!['GET','HEAD'].includes(req.method))throw new ServiceError('Method not allowed.',405);const file=path.resolve(dist,'.'+(pathname==='/'?'/index.html':pathname));if(!file.startsWith(dist+path.sep))throw new ServiceError('This file is outside the workspace.',403);const info=await stat(file);if(!info.isFile())throw Object.assign(Error(),{code:'ENOENT'});res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'});res.end(req.method==='HEAD'?undefined:await readFile(file));
- }catch(e){if(e.code==='ENOENT')return json(res,404,{error:'File not found.'});if(e.status===413||e.status===415)res.setHeader('Connection','close');json(res,e instanceof ServiceError?e.status:500,{error:e instanceof ServiceError?e.message:'The local operation could not be completed.'});}});
+ // readJSON drains rejected uploads without retaining them; an early close can reset the socket before the error response reaches the client.
+ }catch(e){if(e.code==='ENOENT')return json(res,404,{error:'File not found.'});json(res,e instanceof ServiceError?e.status:500,{error:e instanceof ServiceError?e.message:'The local operation could not be completed.'});}});
  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});console.log(`${appId} is ready at http://localhost:${server.address().port}`);return server;
 }

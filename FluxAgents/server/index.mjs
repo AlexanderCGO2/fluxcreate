@@ -1,0 +1,2 @@
+import{serve}from'../scripts/serve.mjs';import{fileURLToPath}from'node:url';import path from'node:path';export{serve};
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){const server=await serve(Number(process.env.PORT)||4327);console.log(`FluxAgents ready at http://localhost:${server.address().port}`);for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>server.close(()=>process.exit(0)));}

@@ -75,10 +75,10 @@ const SINGLE_OUTPUT = `The response has exactly summary, commandsJson, and expla
 const VARIATIONS_OUTPUT = `Return exactly one field: alternativesJson. It is a STRING containing a valid JSON array of exactly THREE distinct creative directions, without Markdown fences. Each direction is an object with label, summary, commands, and optionally explanation. label is a short, unique name (at most 80 characters); summary describes this direction (at most 1200 characters); explanation is at most 6000 characters. commands is a real JSON array INSIDE the alternativesJson string, with 1–16 typed commands per direction. Every direction is a separate complete option applied to the SAME original supplied scene; never depend on edits, layers or ids created by another direction. Give visibly different, deliberate options that all fulfill the current request and chosen preferences. Each option must respect the same mode, selection, scope and locks. In create mode each option starts with createComposition and builds a complete editable scene. Do not return empty command arrays, chained directions, or fields outside this format. If the requested edit is unsupported, describe the limitation accurately; never invent a supported operation or relax these limits.`;
 
 /** Called only by the explicit Generate/Ask action; status() never invokes the model. */
-export async function planWithGateway({intent, context, variations = 1, model, signal}) {
+export async function planWithGateway({intent, context, variations = 1, model, signal, apiKey = process.env.AI_GATEWAY_API_KEY}) {
   if (![1, 3].includes(variations)) throw new Error('Unsupported AI direction count.');
   const multiple = variations === 3;
-  const gateway = createGateway({apiKey: process.env.AI_GATEWAY_API_KEY});
+  const gateway = createGateway({apiKey});
   const result = await generateObject({model: gateway(model), schema: multiple ? ProviderVariationsSchema : ProviderAnswerSchema, maxRetries: 0, maxOutputTokens: multiple ? 11000 : 6500, abortSignal: signal,
     providerOptions: {anthropic: {structuredOutputMode: 'outputFormat', effort: 'low'}}, system: `${SYSTEM}\n${multiple ? VARIATIONS_OUTPUT : SINGLE_OUTPUT}`,
     prompt: JSON.stringify({request: intent, context, commandReference: COMMAND_REFERENCE, layerPropertyRules: PROPERTY_RULES, compositionPropertyRules: COMPOSITION_RULES, layerTypes: LAYER_TYPES, effects: EFFECT_TYPES, animatableProperties: ANIMATABLE_PROPERTIES})});

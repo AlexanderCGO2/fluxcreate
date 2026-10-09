@@ -22,14 +22,15 @@ export function audioHeader(bytes){
  while(at+4<=bytes.length){if(bytes.length-at===128&&bytes.toString('ascii',at,at+3)==='TAG'){at=bytes.length;break;}const a=bytes[at],b=bytes[at+1],c=bytes[at+2],d=bytes[at+3],version=(b>>3)&3,layer=(b>>1)&3,rate=c>>4,sample=(c>>2)&3;if(a!==255||(b&224)!==224||version===1||layer!==1||rate===0||rate===15||sample===3)invalid();const hz=[44100,48000,32000][sample]/(version===3?1:version===2?2:4),kbps=(version===3?[0,32,40,48,56,64,80,96,112,128,160,192,224,256,320]:[0,8,16,24,32,40,48,56,64,80,96,112,128,144,160])[rate],length=Math.floor((version===3?144:72)*kbps*1000/hz)+((c>>1)&1);if(at+length>bytes.length||length<24||sampleRate&&sampleRate!==hz)invalid();sampleRate=hz;channels=(d>>6)===3?1:2;duration+=(version===3?1152:576)/hz;frames++;if(duration>180)throw Error('The generated speech is too long. Use a shorter script.');at+=length;}
  if(at!==bytes.length||frames<2)invalid();return {mimeType:'audio/mpeg',duration,channels,sampleRate};
 }
-export function createAudioService({fetchImpl,credential,models,controlled,boundedJSON,providerFailure,fail,now}){
- let busy=false;return {async generateAudio(body,{signal}={}){
+export function createAudioService({fetchImpl,credential,snapshotConnection,connectionScope,models,controlled,boundedJSON,providerFailure,fail,now}){
+ const inFlight=new Set();return {async generateAudio(body,{signal,connection}={}){
+  connection=snapshotConnection(connection);const scope=connectionScope(connection);
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>!['kind','model','prompt','voice','outputFormat'].includes(k))||body.kind!=='audio')fail('Include only the speech model, script, voice and audio format.');
   if(typeof body.model!=='string'||typeof body.prompt!=='string'||!body.prompt.trim()||body.prompt.length>1500)fail('Write a speech script in 1–1,500 characters and select a model.');
   if(body.voice!==undefined&&(typeof body.voice!=='string'||!body.voice||body.voice.length>100))fail('Choose a supported voice.');if(body.outputFormat!==undefined&&!['mp3','wav'].includes(body.outputFormat))fail('Choose MP3 or WAV audio.');
-  if(busy)fail('Another speech generation is running. Wait for it to finish.',409);busy=true;
+  if(inFlight.has(scope))fail('Another speech generation is running. Wait for it to finish.',409);if(inFlight.size>=64)fail('The speech service is busy. Try again shortly.',429);inFlight.add(scope);
   try{return await controlled(async signal=>{
-   let key;try{key=await credential();}catch{fail('The existing Flux connection is unavailable. Check its settings in Fluxini.',503);}if(!key)fail('Connect Fluxini to AI Gateway before generating.',503);
+   let key;try{key=await credential(connection);}catch{fail('The existing Flux connection is unavailable. Check its settings in Fluxini.',503);}if(!key)fail('Connect Fluxini to AI Gateway before generating.',503);
    const catalog=await models({signal}),model=catalog.models.find(m=>m.id===body.model);if(!model?.capabilities.includes('audio')||!model.audio)fail('Choose an available text-to-speech model from the live catalog.');
    if(body.voice!==undefined&&!model.audio.voices.includes(body.voice))fail('Choose a voice supported by this speech model.');if(body.outputFormat!==undefined&&!model.audio.outputFormats.includes(body.outputFormat))fail('Choose an audio format supported by this speech model.');
    const format=body.outputFormat||model.audio.outputFormats[0],limit=Math.min(model.audio.maxPromptChars,format==='wav'?400:1500);if(body.prompt.length>limit)fail(`This ${format.toUpperCase()} speech output accepts up to ${limit.toLocaleString('en-US')} characters. Use a shorter script${format==='wav'&&model.audio.outputFormats.includes('mp3')?' or select MP3':''}.`);const payload={text:body.prompt.trim(),outputFormat:format,...(body.voice?{voice:body.voice}:{})};
@@ -39,6 +40,6 @@ export function createAudioService({fetchImpl,credential,models,controlled,bound
    let header;try{header=audioHeader(Buffer.from(encoded,'base64'));}catch(error){fail(error.message,502);}if(header.mimeType!==(format==='wav'?'audio/wav':'audio/mpeg'))fail('The provider returned a different audio format. Choose another format or model.',502);
    const warnings=[...(catalog.stale?[catalog.warning]:[]),...(Array.isArray(raw.warnings)&&raw.warnings.length?['The provider adjusted or ignored one or more optional speech settings.']:[])],result={id:randomUUID(),kind:'audio',model:body.model,prompt:payload.text,createdAt:new Date(now()).toISOString(),text:'',images:[],audios:[{id:randomUUID(),...header,src:`data:${header.mimeType};base64,${encoded}`}],warnings};
    if(Buffer.byteLength(JSON.stringify(result))>4*1024*1024)fail('The audio result is too large. Use a shorter script or MP3 output.',502);return result;
-  },{signal});}finally{busy=false;}
+  },{signal});}finally{inFlight.delete(scope);}
  }};
 }

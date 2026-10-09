@@ -1,4 +1,5 @@
 import {apiURL} from '../../FluxCreate/shared/hosting.mjs';
+import {subscribeConnectionChanges} from '../../FluxCreate/shared/connection-events.mjs';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Sparkles, X, ArrowUp, Square, ChevronDown, Layers, WandSparkles, MessageCircle, Plus, RefreshCw, Play, Pause, Check, AlertCircle, FileText, CheckCheck } from 'lucide-react';
 import { getComp } from './core.mjs';
@@ -20,10 +21,10 @@ export function StudioAI({ project, selectedId, time, onClose, onBrief, onReview
   const [intent, setIntent] = useState(''), [brief, setBrief] = useState(project.brief ?? project.exchange?.brief ?? '');
   const [status, setStatus] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [messages, setMessages] = useState([]), [lastProposal, setLastProposal] = useState(null);
-  const abort = useRef(null), mounted = useRef(true), endRef = useRef(null);
+  const abort = useRef(null), mounted = useRef(true), endRef = useRef(null), statusRequest = useRef(null);
   const comp = getComp(project), selection = comp.layers.find(layer => layer.id === selectedId);
-  const checkStatus = async () => { try { const res = await fetch(apiURL('fluxiffects','/ai/status')); if (!res.ok) throw new Error('The local AI service is not available. Restart Fluxiffects with its launcher.'); setStatus(await res.json()); } catch (e) { setStatus({ available:false,reason:e.message }); } };
-  useEffect(() => { mounted.current=true; checkStatus(); return () => { mounted.current=false; abort.current?.abort(); }; }, []);
+  const checkStatus = async () => { statusRequest.current?.abort(); const controller=new AbortController();statusRequest.current=controller;try { const res = await fetch(apiURL('fluxiffects','/ai/status'),{credentials:'same-origin',cache:'no-store',signal:controller.signal}); if (!res.ok) throw new Error('The AI service is unavailable. Check General settings.');const next=await res.json();if(mounted.current&&statusRequest.current===controller&&!controller.signal.aborted)setStatus(next); } catch (e) { if(mounted.current&&statusRequest.current===controller&&!controller.signal.aborted)setStatus({ available:false,reason:e.message }); } };
+  useEffect(() => { mounted.current=true; checkStatus();const unsubscribe=subscribeConnectionChanges(checkStatus); return () => { mounted.current=false; abort.current?.abort();statusRequest.current?.abort();unsubscribe(); }; }, []);
   useEffect(() => { setBrief(project.brief ?? project.exchange?.brief ?? ''); }, [project.brief, project.exchange?.brief]);
   useEffect(() => { setMessages([]); setLastProposal(null); setPreferenceIds([]); setError(''); abort.current?.abort(); }, [project.id]);
   useEffect(() => { if(messages.length||busy||error)endRef.current?.scrollIntoView({block:'nearest',behavior:'smooth'}); }, [messages,busy,error]);
@@ -55,12 +56,12 @@ export function StudioAI({ project, selectedId, time, onClose, onBrief, onReview
       {messages.map((message,i)=><div className={`ai-message ${message.role}`} key={i}>{message.role==='assistant'&&<span className="message-avatar"><Sparkles size={13}/></span>}<div><p>{message.text}</p>{message.context&&<small className="ai-message-context">{message.context}</small>}{message.review&&lastProposal&&i===messages.length-1&&<button className="ai-review-link" onClick={()=>onReview(lastProposal)}><Play size={12}/>Review proposed changes</button>}</div></div>)}
       {busy&&<div className="ai-thinking"><span/><span/><span/><p>{mode!=='explain'&&directions===3?'Exploring three directions…':mode==='create'?'Composing your idea…':'Working with your composition…'}</p></div>}
       {error&&<div className="ai-error" role="alert"><AlertCircle size={15}/><p>{error}</p></div>}
-      {status && !status.available && <div className="ai-connection-note"><AlertCircle size={15}/><p>{status.reason || 'The shared Fluxini AI connection is not configured. Local editing is available.'}</p><button aria-label="Recheck AI connection" onClick={checkStatus}><RefreshCw size={14}/></button></div>}
+      {status && !status.available && <div className="ai-connection-note"><AlertCircle size={15}/><p>{status.reason || 'Set up your AI connection in General settings. Local editing is available.'}</p><button aria-label="Recheck AI connection" onClick={checkStatus}><RefreshCw size={14}/></button></div>}
       <div ref={endRef}/>
     </div>
     <form className="ai-composer" onSubmit={submit}>{mode!=='explain'&&<div className="ai-generation-options"><label><Layers size={12}/>Explore<select aria-label="AI directions" value={directions} onChange={e=>setDirections(Number(e.target.value))} disabled={busy}><option value={1}>One direction</option><option value={3}>Three directions</option></select></label>{directions===3&&<span>One request</span>}</div>}<textarea aria-label="Ask Flux" maxLength={2000} value={intent} onChange={e=>setIntent(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();submit();}}} placeholder={mode==='create'?'Describe the composition you imagine…':mode==='explain'?'What would you like to understand?':'What would you like to change?'} disabled={busy}/><div><span>{mode==='explain'?'Explanation only':'Editable results · review first'}</span>{busy?<button type="button" className="ai-send" aria-label="Cancel AI request" onClick={()=>abort.current?.abort()}><Square size={13}/></button>:<button type="submit" className="ai-send" aria-label={mode==='explain'?'Ask about composition':'Generate editable proposal'} disabled={!intent.trim()||!status?.available}><ArrowUp size={17}/></button>}</div></form>
-    <p className="ai-data-note">Sends your prompt, brief, selected rules, and chosen scene data to your Fluxini AI provider. Media stays local.</p>
-    <div className="ai-footer"><span className={status?.available?'connection-ready':''}/>{status?.available?'Using your Fluxini AI connection':status?'Shared connection unavailable':'Checking shared connection'}</div>
+    <p className="ai-data-note">Sends your prompt, brief, selected rules, and chosen scene data through your active AI connection. Media stays local.</p>
+    <div className="ai-footer"><span className={status?.available?'connection-ready':''}/>{status?.available?'Your AI connection is ready':status?'AI connection unavailable':'Checking AI connection'}</div>
   </aside>;
 }
 

@@ -1,0 +1,2 @@
+import{realpath,rm}from'node:fs/promises';import path from'node:path';import os from'node:os';
+export async function removeTestDirectory(directory){const target=await realpath(directory),temp=await realpath(os.tmpdir());if(path.dirname(target).toLowerCase()!==temp.toLowerCase()||!path.basename(target).startsWith('fluxagents-'))throw Error('Refusing to remove a directory outside the FluxAgents test workspace.');await rm(target,{recursive:true,force:true});}

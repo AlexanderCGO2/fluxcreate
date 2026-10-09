@@ -13,6 +13,7 @@ Updated 2026-10-09. **Building** identifies the first implementation round; **Ne
 | P0 | Hosted routing: direct app URLs, app switching, APIs, workers, fonts and downloads work on one Vercel origin | Verified |
 | P0 | Durable Fluxini cloud storage: replace dependence on a local SQLite file; never present temporary function storage as persistence | Verified |
 | P0 | Protected cloud AI: authenticate access before using the shared Gateway key; keep credentials server-side | Verified |
+| P0 | General settings: private browser-scoped Gateway credentials, free connection checks, request isolation and shared studio access | Implemented · isolation tests and nine-workspace browser checks pass |
 | P1 | AI preview performance: typing a prompt does not rehash large media or rebuild unchanged previews; stale proposals still reject | Verified |
 | P1 | Progress/cancellation: lengthy imports and renders report progress and cannot commit partially after cancellation | Building in importers |
 | P1 | Recovery quarantine: Fluxfoto, FluxDesign, Fluximiére and Fluxiffects preserve invalid/unreadable autosaves and resume saving only after explicit New or successful project opening | Verified |
@@ -131,17 +132,29 @@ The [live Gateway catalog](https://ai-gateway.vercel.sh/v1/models) has no standa
 
 The proposed FluxLab Music mode would provide instrumental/vocals and duration controls, preview, durable library storage, downloads and audio handoff. It is not implemented. Background recovery must not be claimed unless a documented provider job/status mechanism supports it. Research used no paid generation requests. Detailed notes are in `FluxLab/docs/OPTIMIZATIONS.md`.
 
-## FluxAgents — proposed workflow studio
+## FluxAgents — workflow studio
 
-Comprehensive technology research is complete in [FLUXAGENTS_RESEARCH.md](FLUXAGENTS_RESEARCH.md), checked 2026-10-09. This is a planned separate app, not an implemented studio. The first candidate is a custom React Flow designer, portable graph format and AI SDK/Workflow execution, evaluating Eve for richer agent steps; Mastra/Inngest is the main alternative. Selection depends on the documented recovery, cost and usability evaluation.
+Comprehensive technology research is complete in [FLUXAGENTS_RESEARCH.md](FLUXAGENTS_RESEARCH.md), checked 2026-10-09. The first implementation is a separate `FluxAgents` app: editable steps, templates, portable JSON/Markdown, no-charge simulations, and local persistent runs with approvals, delays and model-call limits. Its local runner stores immutable graphs, step results and an operation ledger in SQLite. Interrupted model requests require explicit review before another attempt. The hosted app supports design and simulation; it does not claim unattended cloud execution.
+
+The managed Workflow runtime, authenticated accounts, revocable background credentials, durable cloud records, schedules and hosted artifact storage remain the next production phase. The initial implementation does not include Eve, arbitrary code nodes, third-party connectors or an unrestricted agent loop. Model dollar limits are conservative estimates, not an all-inclusive billing guarantee.
 
 | Priority | Work and acceptance condition | State |
 |---|---|---|
 | P0 | Research agent frameworks, durable runtimes, visual platforms, licensing, integration and total cost | Research complete |
-| P0 | Prove crash recovery, duplicate-effect prevention, approval waits, deployment safety and spending reservations | Next |
-| P0 | Versioned workflow schema, durable run records and server-owned artifact storage | Next |
-| P1 | Guided visual designer, sample testing, run timeline and useful creative templates | Next |
-| P1 | FluxLab/editor integration, schedules, authenticated connectors and portable workflow files | Next |
+| P0 | Prove crash recovery, duplicate-effect prevention, approval waits, deployment safety and spending reservations | Local recovery and operation ledger implemented; hosted execution remains next |
+| P0 | Versioned workflow schema, durable run records and server-owned artifact storage | Version 1 JSON/Markdown and local SQLite records implemented; cloud storage next |
+| P1 | Guided visual designer, sample testing, run timeline and useful creative templates | Initial editable step designer, three templates, simulation and local history implemented |
+| P1 | FluxLab/editor integration, schedules, authenticated connectors and portable workflow files | Shared settings/shell and portable workflow files implemented; schedules/connectors next |
+
+Personal connection behavior and deployment configuration are documented in [CONNECTION_SETTINGS.md](CONNECTION_SETTINGS.md). Background FluxAgents runs explicitly use the suite connection; the browser's personal credential is not copied into saved workflow records.
+
+### Settings and FluxAgents verification — 2026-10-09
+
+- All ten package suites pass: 394 tests passed, with one optional external Premiere fixture skipped. The complete nine-workspace release builds and Fluxini's TypeScript check passes.
+- All 36 hosted browser checks pass, including direct FluxAgents navigation and existing cross-editor media/text handoffs. General settings passes 19 real-browser groups across all nine workspaces.
+- FluxAgents passes 15 schema, HTTP and local-run tests plus 11 browser groups for editing, billing choice, simulation, approvals, reload/recovery, cancellation, import safety, blocked storage and editable text handoff.
+- Local servers are available on 4318 and 4320–4327. FluxAgents opens at `http://localhost:4327/`.
+- Verification invokes no paid generation. Provider responses for workflow execution are injected fixtures; live model quality and latency are not claimed tested. Cloud unattended workflows, account-linked credential storage and music generation remain outstanding.
 
 ## Release checks
 

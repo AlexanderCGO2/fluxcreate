@@ -10,7 +10,7 @@ export async function launchApp(id){
  if(pending.has(id))return pending.get(id);const app=[home,...APPS].find(a=>a.id===id);if(!app)throw Error('Unknown FluxCreate app.');
  const operation=(async()=>{
   if(await ready(app))return {ready:true,url:appURL(app)};
-  const root=path.join(base,app.folder),entry=['fluxini','fluxlab'].includes(app.id)?'server/index.mjs':'scripts/serve.mjs';
+  const root=path.join(base,app.folder),entry=['fluxini','fluxlab','fluxagents'].includes(app.id)?'server/index.mjs':'scripts/serve.mjs';
   await access(path.join(root,'dist/index.html'));await access(path.join(root,entry));
   const fallback=path.join(process.env.USERPROFILE||'','.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe');
   const runtime=Number(process.versions.node.split('.')[0])>=24?process.execPath:fallback;await access(runtime);

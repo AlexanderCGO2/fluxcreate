@@ -1,4 +1,4 @@
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {loadConnection} from '../../Haidini/server/connection.mjs';
 import {fileURLToPath} from 'node:url';
 import {imageHeader} from './image-header.mjs';
@@ -41,8 +41,11 @@ function normalizeModels(body){
  }
  if(!models.length)fail('No supported models were found in the live catalog.',502);return models;
 }
+const snapshotConnection=value=>value===undefined?undefined:Object.freeze({apiKey:typeof value?.apiKey==='string'&&value.apiKey.length<=4096&&!/\s/.test(value.apiKey)?value.apiKey:'',model:typeof value?.model==='string'&&value.model.length<=200&&value.model?value.model:'anthropic/claude-sonnet-5',scopeId:typeof value?.scopeId==='string'?value.scopeId.slice(0,200):'',available:value?.available!==false});
+const connectionScope=value=>value===undefined?'suite':createHash('sha256').update(value.apiKey+'\0'+value.scopeId).digest('hex');
 export function createLabService({fetchImpl=globalThis.fetch,credential=existingCredential,timeoutMs=120000,catalogTimeoutMs=10000,now=()=>Date.now(),fetchMedia}={}){
- let cache=null,busy=false;
+ let cache=null;const inFlight=new Set();
+ const resolveCredential=async connection=>{if(connection!==undefined){if(!connection.apiKey||!connection.available)fail('Connect your AI Gateway account in Settings before generating.',503);return connection.apiKey;}return credential();};
  async function controlled(operation,{signal,timeout=timeoutMs}={}){
   if(signal?.aborted)fail('Generation cancelled.',499);const controller=new AbortController(),abort=()=>controller.abort(),timer=setTimeout(abort,timeout);signal?.addEventListener('abort',abort,{once:true});let rejectAbort;
   const cancelled=new Promise((_,reject)=>{rejectAbort=()=>reject(new LabError(signal?.aborted?'Generation cancelled.':'The request timed out. Try a shorter prompt or another model.',signal?.aborted?499:504));controller.signal.addEventListener('abort',rejectAbort,{once:true});});
@@ -51,11 +54,12 @@ export function createLabService({fetchImpl=globalThis.fetch,credential=existing
  async function models({signal,refresh=false}={}){if(cache&&!refresh&&now()-cache.time<300000)return {models:cache.models,fetchedAt:cache.fetchedAt,stale:false};
   try{return await controlled(async signal=>{const response=await fetchImpl(`${GATEWAY}/models`,{signal,redirect:'error'});if(!response.ok){await response.body?.cancel();providerFailure(response.status);}const models=normalizeModels(await boundedJSON(response,LAB_LIMITS.upstreamBytes));cache={models,time:now(),fetchedAt:new Date(now()).toISOString()};return {models,fetchedAt:cache.fetchedAt,stale:false};},{signal,timeout:catalogTimeoutMs});}catch(error){if(cache&&now()-cache.time<86400000&&error.status!==499)return {models:cache.models,fetchedAt:cache.fetchedAt,stale:true,warning:'Using the last available catalog. Model availability and pricing may have changed.'};throw error;}
  }
- return {models,...createVideoService({fetchImpl,credential,models,controlled,boundedJSON,providerFailure,fail,now,fetchMedia}),...createAudioService({fetchImpl,credential,models,controlled,boundedJSON,providerFailure,fail,now}),async status(){try{const key=await credential();return {available:!!key,provider:'Flux / AI Gateway',busy,...(!key?{reason:'Connect Fluxini to AI Gateway to enable FluxLab.'}:{})};}catch{return {available:false,provider:'Flux / AI Gateway',busy,reason:'The existing Flux connection is unavailable. Check its settings in Fluxini.'};}},
- async generate(body,{signal}={}){
-  const request=validateGeneration(body);if(busy)fail('Another generation is running. Cancel it or wait for it to finish.',409);busy=true;
+ return {models,...createVideoService({fetchImpl,credential:resolveCredential,snapshotConnection,models,controlled,boundedJSON,providerFailure,fail,now,fetchMedia}),...createAudioService({fetchImpl,credential:resolveCredential,snapshotConnection,connectionScope,models,controlled,boundedJSON,providerFailure,fail,now}),async status(connection){connection=snapshotConnection(connection);const busy=inFlight.has(connectionScope(connection));try{const key=await resolveCredential(connection);return {available:!!key,provider:'Flux / AI Gateway',busy,...(!key?{reason:'Connect Fluxini to AI Gateway to enable FluxLab.'}:{})};}catch{return {available:false,provider:'Flux / AI Gateway',busy,reason:'The existing Flux connection is unavailable. Check its settings in Fluxini.'};}},
+ async generate(body,{signal,connection}={}){
+  connection=snapshotConnection(connection);const scope=connectionScope(connection);
+  const request=validateGeneration(body);if(inFlight.has(scope))fail('Another generation is running. Cancel it or wait for it to finish.',409);if(inFlight.size>=64)fail('The AI service is busy. Try again shortly.',429);inFlight.add(scope);
   try{return await controlled(async abortSignal=>{
-   let key;try{key=await credential();}catch{fail('The existing Flux connection is unavailable. Check its settings in Fluxini.',503);}if(!key)fail('Connect Fluxini to AI Gateway before generating.',503);
+   let key;try{key=await resolveCredential(connection);}catch{fail('The existing Flux connection is unavailable. Check its settings in Fluxini.',503);}if(!key)fail('Connect Fluxini to AI Gateway before generating.',503);
    const catalog=await models({signal:abortSignal}),model=catalog.models.find(m=>m.id===request.model);if(!model||!model.capabilities.includes(request.kind))fail('Choose a catalog model that supports this generation type.');
    let endpoint,payload;if(request.kind==='image'&&model.type==='image'){endpoint='images/generations';payload={model:request.model,prompt:request.prompt,n:1,response_format:'b64_json',...(request.size==='auto'?{}:{size:request.size})};}
    else{endpoint='chat/completions';payload={model:request.model,messages:[{role:'user',content:request.prompt}],stream:false,max_tokens:request.maxOutputTokens,...(request.kind==='image'?{modalities:['text','image']}:{} )};if(request.kind==='image'&&request.size!=='auto')fail('This multimodal model selects image dimensions automatically. Choose Automatic size.');}
@@ -69,6 +73,6 @@ export function createLabService({fetchImpl=globalThis.fetch,credential=existing
    if(raw.choices?.[0]?.finish_reason==='length')warnings.push('The response reached its token limit. Increase the limit or continue with a new prompt.');
    const result={id:randomUUID(),kind:request.kind,model:request.model,prompt:request.prompt,createdAt:new Date(now()).toISOString(),text,images,usage:usageOf(raw.usage),warnings};
    if(Buffer.byteLength(JSON.stringify(result))>LAB_LIMITS.responseBytes)fail('The result is too large to transfer. Request a smaller image or shorter text.',502);if(abortSignal.aborted)fail('Generation cancelled.',499);return result;
-  },{signal});}finally{busy=false;}
+  },{signal});}finally{inFlight.delete(scope);}
  }};
 }

@@ -81,7 +81,11 @@ test('HTTP service enforces loopback host, same origin, JSON, size limits and is
     assert.equal((await fetch(url + '/api/health', {headers: {'Sec-Fetch-Site': 'cross-site'}})).status, 403);
     assert.equal((await fetch(url + '/api/ai/plan', {method: 'POST', headers: {'Content-Type': 'text/plain'}, body: '{}'})).status, 415);
     assert.equal((await fetch(url + '/api/ai/plan', {method: 'POST', headers, body: '{bad'})).status, 400);
-    assert.equal((await fetch(url + '/api/ai/plan', {method: 'POST', headers, body: JSON.stringify({padding: 'x'.repeat(4 * 1024 * 1024)})})).status, 413);
+    const large = await fetch(url + '/api/ai/plan', {method: 'POST', headers, body: JSON.stringify({padding: 'x'.repeat(4 * 1024 * 1024)})});
+    assert.equal(large.status, 413); assert.match((await large.json()).error, /too large/);
+    const streamedBody = new ReadableStream({start(controller) {for(let i=0;i<9;i++)controller.enqueue(new Uint8Array(512*1024).fill(120));controller.close();}});
+    const streamed = await fetch(url + '/api/ai/plan', {method: 'POST', headers, body: streamedBody, duplex: 'half'});
+    assert.equal(streamed.status, 413); assert.match((await streamed.json()).error, /too large/);
     const result = await fetch(url + '/api/ai/plan', {method: 'POST', headers: {...headers, Origin: url}, body: JSON.stringify(body(publication()))}); assert.equal(result.status, 200); assert.equal((await result.json()).summary, answer.summary);
     const saved = await fetch(url + '/api/recent', {method: 'POST', headers, body: JSON.stringify({name: 'Isolated test publication'})}); assert.equal(saved.status, 200); assert.equal(JSON.parse(await readFile(path.join(location, 'recent-fluxidesign.json'), 'utf8')).name, 'Isolated test publication');
     assert.equal((await fetch(url + '/api/does-not-exist')).status, 404); assert.equal((await fetch(url + '/main.js', {method: 'POST'})).status, 405);

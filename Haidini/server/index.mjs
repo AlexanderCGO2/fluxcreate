@@ -8,6 +8,7 @@ import { FontStore } from './fonts.mjs';
 import { ProjectStore } from './projects.mjs';
 import { modelStatus, planChange } from './planner.mjs';
 import { loadConnection } from './connection.mjs';
+import {handleSettings,resolveRequestConnection} from '../../FluxCreate/server/settings.mjs';
 import { readExchangeMetadata, preparePackage, prepareExchange, exportExchange, exchangeSummary } from './exchange.mjs';
 import { validatePatch, ProjectError } from '../src/engine/project.ts';
 
@@ -26,12 +27,15 @@ export async function createWorkbench({dataDir,webDir,port=4318,host='127.0.0.1'
   let planning=false;
   const server=http.createServer(async(req,res)=>{
     try {
-      if(req.headers.host!==new URL(origin).host)return reply(res,403,{error:'Invalid host.'});
-      if(req.headers.origin&&req.headers.origin!==origin)return reply(res,403,{error:'Cross-origin requests are not allowed.'});
+      const localHosts=new Set([new URL(origin).host,`localhost:${server.address().port}`]);
+      if(!localHosts.has(req.headers.host))return reply(res,403,{error:'Invalid host.'});
+      if(req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`)return reply(res,403,{error:'Cross-origin requests are not allowed.'});
       if(req.headers['sec-fetch-site']==='cross-site')return reply(res,403,{error:'Cross-site requests are not allowed.'});
       const url=new URL(req.url,origin),route=url.pathname;
       if(route.startsWith('/api/')){
-        if(req.method==='GET'&&route==='/api/session')return reply(res,200,{app:'fluxini',protocolVersion:1,token,model:modelStatus()});
+        if(await handleSettings(req,res,route.slice(4)))return;
+        const connection=await resolveRequestConnection(req);
+        if(req.method==='GET'&&route==='/api/session')return reply(res,200,{app:'fluxini',protocolVersion:1,token,model:modelStatus(connection)});
         if(req.headers['x-fluxini-token']!==token)return reply(res,403,{code:'SESSION_EXPIRED',error:'Session expired. Reload the workbench.'});
         if(req.method==='GET'&&route==='/api/fonts')return reply(res,200,fonts.list());
         if(req.method==='POST'&&route==='/api/fonts/import')return reply(res,201,fonts.import(await body(req,5*1024*1024)));
@@ -81,7 +85,7 @@ export async function createWorkbench({dataDir,webDir,port=4318,host='127.0.0.1'
           if(action==='plan'){
             if(planning)throw new ProjectError('A scene request is already running.',429);
             planning=true;
-            try {const current=projects.get(id).project;const result=await planner(current,input.intent,memory,undefined,input.selection||[]);validatePatch(projects.get(id).project,result.patch);return reply(res,200,result);}
+            try {const current=projects.get(id).project;const result=await planner(current,input.intent,memory,undefined,input.selection||[],undefined,{connection});validatePatch(projects.get(id).project,result.patch);return reply(res,200,result);}
             finally{planning=false;}
           }
         }

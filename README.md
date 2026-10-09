@@ -1,6 +1,6 @@
 # FluxCreate
 
-Fluxfoto, FluxDesign, Fluximiére, Flux3D, Fluxiffects, Fluxini and FluxLab: connected creative workspaces, shared exchange files and Vercel AI Gateway.
+Fluxfoto, FluxDesign, Fluximiére, Flux3D, Fluxiffects, Fluxini, FluxLab and FluxAgents: connected creative workspaces, shared exchange files and Vercel AI Gateway.
 
 Use Node 24 and pnpm. Run `pnpm install`, then `pnpm build`. The build creates all browser apps in `dist/` and the shared server function in `api/`.
 

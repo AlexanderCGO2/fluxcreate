@@ -1,8 +1,8 @@
 # FluxCreate hosting
 
-The complete suite lives in the sibling `FluxCreateSuite` release repository. `scripts/prepare-release.mjs` copies only source, documentation, public assets and package manifests from the nine working folders; it never copies `.data`, local environments, browser artifacts, dependencies or Git internals. Internal IDs and source folder names remain unchanged so existing files keep opening after the Fluxfoto, FluxDesign and Fluximiére display rename.
+The complete suite lives in the sibling `FluxCreateSuite` release repository. `scripts/prepare-release.mjs` copies only source, documentation, public assets and package manifests from the ten working folders; it never copies `.data`, local environments, browser artifacts, dependencies or Git internals. Internal IDs and source folder names remain unchanged so existing files keep opening after the Fluxfoto, FluxDesign and Fluximiére display rename.
 
-Use Node 24 and the pinned pnpm version. Install with `pnpm install --frozen-lockfile`, then run `pnpm build`. The release build creates eight browser entry points, the bundled Node API and the FluxLab MCP App resource. Vercel serves the generated `dist` directory; one dispatcher routes `/api/<app>/<operation>`.
+Use Node 24 and the pinned pnpm version. Install with `pnpm install --frozen-lockfile`, then run `pnpm build`. The release build creates nine browser entry points, the bundled Node API and the FluxLab MCP App resource. Vercel serves the generated `dist` directory; one dispatcher routes `/api/<app>/<operation>`.
 
 ## Addresses
 
@@ -16,6 +16,7 @@ Use Node 24 and the pinned pnpm version. Install with `pnpm install --frozen-loc
 | Fluxiffects | `/fluxiffects/` | 4320 |
 | Fluxini | `/fluxini/` | 4318 |
 | FluxLab | `/fluxlab/` | 4326 |
+| FluxAgents | `/fluxagents/` | 4327 |
 
 ## Persistence and access
 
@@ -26,6 +27,10 @@ Localhost and deployed domains have separate browser storage. Export native proj
 Protect **all deployments** using Vercel Authentication before adding the server-only `AI_GATEWAY_API_KEY`. The shared connection can make billable model requests, so anonymous production access is inappropriate for this personal workspace. `FLUXINI_MODEL` optionally selects the editing model. FluxLab chooses models from the live Gateway catalog. No key is embedded in a browser bundle, file export or MCP UI resource.
 
 FluxLab's external MCP App uses local stdio with the official SDK; see its README for the client configuration. This release does not expose a public remote MCP endpoint.
+
+General settings allows a personal Gateway connection scoped to the current browser. Configure the server-only `FLUXCREATE_CONNECTION_SECRET` to enable encrypted credential cookies; see [connection settings](CONNECTION_SETTINGS.md) for generation, rotation, expiry and isolation behavior. The suite's shared Gateway key remains unchanged when a visitor saves their own connection.
+
+FluxAgents supports hosted workflow design and no-charge simulation. Its local runner persists live runs, approvals and outputs in SQLite, using an explicitly selected suite connection. Hosted unattended execution remains disabled until its durable cloud runtime, connection vault and application storage are configured. The hosted function never imports the local SQLite runner.
 
 ## Verification
 
