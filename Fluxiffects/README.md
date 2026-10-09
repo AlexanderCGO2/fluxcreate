@@ -28,14 +28,14 @@ For development, `pnpm dev` watches source changes; refresh the browser after an
 - **Effects:** blur, glow, brightness, contrast, saturation and grayscale controls. The renderer also supports shadow, hue and sepia in imported project data.
 - **Media:** import and embed images/video/audio; relink missing AE footage; preview audio; adjust per-layer volume, mute, playback speed and source start. Trimming and splitting preserve source timing.
 - **Projects:** undo/redo, device-local IndexedDB autosave and portable JSON save/reopen, including imported media.
-- **Export:** full-resolution PNG frames and real-time WebM video, with progress and cancellation. Video export is currently silent and supports compositions up to 60 seconds and at most 60 fps.
+- **Export:** full-resolution PNG frames and real-time WebM video, with progress and cancellation. Video includes stereo Opus sound, supports compositions up to 60 seconds and at most 60 fps, and exposes picture-only export as an explicit choice.
 - **Appearance:** light and dark workspaces, keyboard shortcuts and compact desktop layouts. The editing workspace is designed for desktop; narrow phone screens use a horizontally scrollable layout.
 - **Flux Exchange:** readable `.flux.md` import/export for both studios, creative briefs, handoff notes, compatibility reports, and explicit recovery of saved native source snapshots.
 - **Ask Flux:** refine selected layers or the active composition, create a new editable composition from a brief, or explain a scene. Review animated before/after previews and individual changes before applying; every applied proposal is one undoable edit.
 
 ## Exchange with Fluxini
 
-FluxLab can send saved MP4/WebM videos and MP3/WAV audio directly to Fluxiffects. Review the playable preview and choose **Add to project** to create a media layer. The transfer carries the original saved file, up to 64 MiB, rather than an expiring generation link. Canceling the preview leaves the composition unchanged. Embedded sources remain in native project copies; audio plays in the editor, while WebM export is currently silent.
+FluxLab can send saved MP4/WebM videos and MP3/WAV audio directly to Fluxiffects. Review the playable preview and choose **Add to project** to create a media layer. The transfer carries the original saved file, up to 64 MiB, rather than an expiring generation link. Canceling the preview leaves the composition unchanged. Embedded sources remain in native project copies; audio plays in the editor and is included in the WebM sound mix.
 
 Choose **Exchange** in Fluxiffects, add a brief and handoff notes, and save a `.flux.md` file. In Fluxini, import that file and review the conversion report. To return, choose **Export → Exchange** in Fluxini and import the resulting file into Fluxiffects.
 
@@ -120,3 +120,9 @@ The tests exercise model validation, interpolation, native/AE import and roundtr
 This release is a motion editor with composited 3D scene layers, not a feature-complete replacement for After Effects. It does not yet have vector path/mask editing, track mattes, precomposition rendering, a shared 3D world across scene layers, mesh/rig editing, expression execution, tracking/rotoscoping, plugin hosting, MP4 encoding, audio export, or a native desktop installer. Graph curves are edited using keyframe values/easing in the inspector; direct Bézier handle editing is not implemented. Font selection uses installed/system fonts; it does not include proprietary Adobe fonts.
 
 After Effects is a trademark of Adobe. Fluxiffects is an independent project and is not affiliated with Adobe.
+
+## Audio export
+
+WebM includes volume/keyframes, audio fades, mute/visibility, source offsets and constant speed. Audio gain is independent of picture opacity. Source decoding is bounded to 96 MiB and unsupported audio blocks output with a relink message. The Media inspector exposes audio fades and animated volume; these persist in native projects.
+
+See [audio export scope, verification and remaining limits](docs/AUDIO-EXPORT.md). Run `node scripts/audio-smoke.mjs` to verify actual stereo sound with a native Flux3D scene, resampling, volume automation, cancellation and transfer history.

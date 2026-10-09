@@ -26,7 +26,7 @@ Localhost and deployed domains have separate browser storage. Export native proj
 
 Protect **all deployments** using Vercel Authentication before adding the server-only `AI_GATEWAY_API_KEY`. The shared connection can make billable model requests, so anonymous production access is inappropriate for this personal workspace. `FLUXINI_MODEL` optionally selects the editing model. FluxLab chooses models from the live Gateway catalog. No key is embedded in a browser bundle, file export or MCP UI resource.
 
-FluxLab's external MCP App uses local stdio with the official SDK; see its README for the client configuration. This release does not expose a public remote MCP endpoint.
+FluxLab's external MCP App retains local stdio support with the official SDK. The floating helpers also use protected HTTP MCP routes at `/api/<app>/mcp`, with the same deployment authentication and personal connection isolation as the other AI routes. These browser routes require the workspace origin and MCP header; they are not an anonymous public MCP service. The release bundles the MCP App HTML resource so resource reads do not depend on a runtime source-directory layout. See [floating AI implementation](FLOATING-AI-IMPLEMENTATION.md).
 
 General settings allows a personal Gateway connection scoped to the current browser. Configure the server-only `FLUXCREATE_CONNECTION_SECRET` to enable encrypted credential cookies; see [connection settings](CONNECTION_SETTINGS.md) for generation, rotation, expiry and isolation behavior. The suite's shared Gateway key remains unchanged when a visitor saves their own connection.
 

@@ -5,12 +5,12 @@ export const EASINGS = Object.freeze({linear: 'Linear', 'ease-in': 'Ease in', 'e
 export const SCENE3D_DEFAULTS = Object.freeze({modelX: 0, modelY: 0, modelZ: 0, modelRotationX: 0, modelRotationY: 0, modelRotationZ: 0, modelScale: 1, cameraYaw: 0, cameraPitch: 0, cameraZoom: 1, modelClip: 0, modelLoop: true});
 export const SCENE3D_RANGES = Object.freeze({modelX: [-1000000, 1000000], modelY: [-1000000, 1000000], modelZ: [-1000000, 1000000], modelRotationX: [-36000, 36000], modelRotationY: [-36000, 36000], modelRotationZ: [-36000, 36000], modelScale: [0.001, 1000], cameraYaw: [-36000, 36000], cameraPitch: [-89, 89], cameraZoom: [0.01, 1000]});
 export const SCENE3D_ANIMATABLE = Object.freeze(Object.keys(SCENE3D_RANGES));
-export const ANIMATABLE_PROPERTIES = Object.freeze(['x', 'y', 'width', 'height', 'anchorX', 'anchorY', 'scaleX', 'scaleY', 'rotation', 'opacity', 'fontSize', 'letterSpacing', 'strokeWidth', 'cornerRadius', 'fill', 'stroke', ...SCENE3D_ANIMATABLE]);
+export const ANIMATABLE_PROPERTIES = Object.freeze(['x', 'y', 'width', 'height', 'anchorX', 'anchorY', 'scaleX', 'scaleY', 'rotation', 'opacity', 'volume', 'fontSize', 'letterSpacing', 'strokeWidth', 'cornerRadius', 'fill', 'stroke', ...SCENE3D_ANIMATABLE]);
 const TYPES = new Set(['text', 'rectangle', 'ellipse', 'image', 'video', 'audio', 'solid', 'null', 'scene3d']);
 const BLENDS = new Set(['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'difference', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'exclusion']);
 const EFFECTS = new Set(['blur', 'shadow', 'brightness', 'contrast', 'saturate', 'hue', 'grayscale', 'sepia', 'glow']);
 const COLOR = /^(?:#(?:[\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})|(?:rgb|rgba|hsl|hsla)\([\d\s.,%+\-/]+\)|transparent|black|white)$/i;
-const PROPERTY_RANGES = {opacity: [0, 1], scaleX: [-1000, 1000], scaleY: [-1000, 1000], width: [0, 32768], height: [0, 32768], fontSize: [1, 10000], strokeWidth: [0, 10000], cornerRadius: [0, 32768], letterSpacing: [-10000, 10000], ...SCENE3D_RANGES};
+const PROPERTY_RANGES = {opacity: [0, 1], volume:[0,1], scaleX: [-1000, 1000], scaleY: [-1000, 1000], width: [0, 32768], height: [0, 32768], fontSize: [1, 10000], strokeWidth: [0, 10000], cornerRadius: [0, 32768], letterSpacing: [-10000, 10000], ...SCENE3D_RANGES};
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 let sequence = 0;
@@ -28,7 +28,7 @@ export function createLayer(type = 'rectangle', overrides = {}) {
     fill: text ? '#1d1d26' : '#8c82fc', stroke: '#ffffff', strokeWidth: 0, cornerRadius: 40,
     text: text ? 'Your next idea' : '', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
     fontSize: 100, fontWeight: 600, textAlign: 'left', letterSpacing: -2,
-    assetId: null, blendMode: 'normal', effects: [], keyframes: {}, parentId: null, ...(type === 'scene3d' ? SCENE3D_DEFAULTS : {}), ...overrides, type,
+    assetId: null, blendMode: 'normal', effects: [], keyframes: {}, parentId: null, ...(['audio','video'].includes(type)?{volume:1,muted:false,sourceIn:0,playbackRate:1,fadeIn:0,fadeOut:0}:{}), ...(type === 'scene3d' ? SCENE3D_DEFAULTS : {}), ...overrides, type,
   };
 }
 
@@ -85,6 +85,7 @@ export function evaluateLayer(layer, time) {
 }
 export function setKeyframe(layer, property, time, value, easing = 'ease-in-out') {
   if (!ANIMATABLE_PROPERTIES.includes(property)) throw new Error(`Cannot animate property: ${property}`);
+  if(property==='volume'&&(typeof value!=='number'||!Number.isFinite(value)||value<0||value>1))throw new Error('Volume keyframes must be between 0 and 1.');
   if (SCENE3D_ANIMATABLE.includes(property)) {
     if (layer.type !== 'scene3d') throw new Error('3D animation controls require a 3D scene layer.');
     const [min, max] = SCENE3D_RANGES[property];
@@ -188,6 +189,7 @@ function normalizeLayer(input, comp, warnings, counters) {
     }
   }
   if (input.muted !== undefined) layer.muted = bool(input.muted, false, 'media mute');
+  for(const key of ['fadeIn','fadeOut'])if(input[key]!==undefined)layer[key]=number(input[key],0,key,0,86400);
   if (input.gradient != null) {object(input.gradient, 'gradient'); layer.gradient = {from: color(input.gradient.from, layer.fill, 'gradient start'), to: color(input.gradient.to, layer.fill, 'gradient end'), angle: number(input.gradient.angle, 135, 'gradient angle', -36000, 36000)};}
   for (const entry of array(input.effects, [], 'effects', 50)) {
     object(entry, 'effect');

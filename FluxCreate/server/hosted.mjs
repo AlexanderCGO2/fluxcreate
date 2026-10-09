@@ -1,5 +1,6 @@
 import {createAIService,connectionStatus} from './ai.mjs';
 import {createAIService as createMotionAI} from '../../Fluxiffects/server/ai-service.mjs';
+import {createEditorMcpHandler} from '../../FluxLab/server/mcp-http.mjs';
 import {createLabService} from '../../FluxLab/server/service.mjs';
 import {sendVideoContent} from '../../FluxLab/server/video-media.mjs';
 import {planChange,modelStatus} from '../../Haidini/server/planner.mjs';
@@ -16,9 +17,12 @@ function answer(res,status,value){if(res.destroyed)return;const json=JSON.string
 export function prepareSceneRequest(body){const project=parseProject(body.project);if(typeof body.intent!=='string'||!body.intent.trim()||body.intent.length>2000)fail('Describe a change in up to 2,000 characters.');const selection=body.selection??[];if(!Array.isArray(selection)||selection.length>64||selection.some(id=>!project.graph.nodes.some(n=>n.id===id)))fail('Invalid scene selection.');const preferences=body.preferences??[];if(!Array.isArray(preferences)||preferences.length>100)fail('Too many creative preferences.');const approved=preferences.map(p=>{if(!p||p.status!=='approved'||!p.decided_at||typeof p.statement!=='string'||p.statement.length>240||typeof p.id!=='string'||p.id.length>100||typeof p.source_id!=='string'||p.source_id.length>100||(p.node_id!=null&&!project.graph.nodes.some(n=>n.id===p.node_id)))fail('Invalid approved preference.');return{id:p.id,statement:p.statement,source_id:p.source_id,node_id:p.node_id??null};});return{project,intent:body.intent,selection,memory:{assemble:()=>{const context=buildSceneContext(project,body.intent,selection,[],[],approved);context.retrieval='Browser project preferences';return context;}}};}
 export function createHostedHandler({services={},lab=createLabService(),agents=createAgentsService(),scenePlanner=planChange,status=connectionStatus}={}){
  const editors=new Map(Object.entries(services));for(const id of ['fluxoto','fluxidesign','fluximiere','flux3d'])if(!editors.has(id))editors.set(id,createAIService(id));if(!editors.has('fluxiffects'))editors.set('fluxiffects',createMotionAI());
+ const sceneEditor={appId:'fluxini',plan:(body,{connection,signal})=>{const input=prepareSceneRequest(body);return scenePlanner(input.project,input.intent,input.memory,undefined,input.selection,signal,{connection,mode:body.mode||'edit',scope:body.scope||'composition'});}};
+ const mcp=new Map([...apps].map(appId=>[appId,createEditorMcpHandler({appId,service:lab,hosted:true,editor:appId==='fluxini'?sceneEditor:editors.has(appId)?{appId,plan:(body,options)=>editors.get(appId).plan(body,options)}:undefined})]));
  return async(req,res)=>{try{const url=new URL(req.url,'https://workspace.invalid'),match=url.pathname.match(/^\/api\/([^/]+)(\/.*)?$/),appId=match?.[1],route=match?.[2]||'/';if(!apps.has(appId))fail('Unknown workspace.',404);const host=req.headers.host,origin=req.headers.origin;if(origin){let incoming;try{incoming=new URL(origin);}catch{fail('Invalid request origin.',403);}if(incoming.host!==host||!['http:','https:'].includes(incoming.protocol))fail('Open this request from your FluxCreate workspace.',403);}if(req.headers['sec-fetch-site']==='cross-site')fail('Open this request from your FluxCreate workspace.',403);
  if(await handleSettings(req,res,route,{hosted:true}))return;
  const connection=await resolveRequestConnection(req,{hosted:true});
+ if(route==='/mcp')return mcp.get(appId)(req,res,{connection});
  if(req.method==='GET'&&route==='/health')return answer(res,200,{app:appId,version:'0.2.0'});
  if(appId==='fluxagents'&&req.method==='GET'&&route==='/status')return answer(res,200,await agents.status());
  if(appId==='fluxagents'&&req.method==='GET'&&route==='/models')return answer(res,200,await lab.models());

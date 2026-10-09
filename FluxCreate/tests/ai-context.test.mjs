@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {captureAIContext,sameAIContext,decodeMcpAsset} from '../shared/ai-context.mjs';
+test('AI snapshot captures selected labels and kinds and rejects changed document, revision or selection',()=>{
+ const input={documentId:'doc',revision:3,selectionRevision:2,selection:[{id:'a',label:'Title',kind:'text',suiteSource:{secret:'not context'}}]},snapshot=captureAIContext(input);assert.equal(snapshot.selection[0].label,'Title');assert.equal(snapshot.selection[0].kind,'text');assert.equal(snapshot.selection[0].suiteSource,undefined);assert.ok(Object.isFrozen(snapshot.selection[0]));input.selection[0].label='Other';assert.equal(sameAIContext(snapshot,input),false);for(const changes of [{documentId:'other'},{revision:4},{selectionRevision:4},{selection:[]}])assert.equal(sameAIContext(snapshot,{...snapshot,...changes}),false);
+});
+test('MCP asset decoding rejects remote URLs, malformed media, oversized dimensions and unsupported kinds',()=>{assert.throws(()=>decodeMcpAsset({structuredContent:{id:'a',kind:'video'}}));assert.throws(()=>decodeMcpAsset({structuredContent:{id:'a',kind:'image',images:[{width:1,height:1,src:'https://external.invalid'}]},content:[]}));assert.throws(()=>decodeMcpAsset({structuredContent:{id:'a',kind:'image',images:[{width:99999,height:1}]},content:[{type:'image',mimeType:'image/png',data:'AAAA'}]}));assert.equal(decodeMcpAsset({structuredContent:{id:'t',kind:'text',text:'Reviewed copy'}}).text,'Reviewed copy');});

@@ -6,7 +6,7 @@ Source audit: 2026-10-09. The comparison target is a reliable visual workflow bu
 
 ## Current baseline
 
-The editor supports input, text-generation, deterministic text transformation, approval, delay and output steps. A workflow is a validated, acyclic, bounded graph. Each non-input node takes one text source. Multiple nodes can reference the same source, but execution is sequential and there is no conditional routing.
+The editor supports input, text-generation, deterministic text transformation, text conditions, true/false branch guards, ordered joins, approval, delay and output steps. Version-2 graphs validate text inputs and boolean decisions; version-1 graphs remain readable. Joins collect active inputs or require every selected input. Execution remains sequential and acyclic. See the implemented [branching slice](BRANCHING.md) for contracts and verification.
 
 Live local runs use a SQLite operation ledger, persisted delays and approvals, a single-runner lease, conservative spending reservations and explicit retry for uncertain paid calls. Closing the browser does not stop the local server. Turning off that server or computer does. The hosted application currently supports designing, validating, importing/exporting and simulating workflows; live cloud execution is deliberately disabled.
 
@@ -15,8 +15,8 @@ Live local runs use a SQLite operation ledger, persisted delays and approvals, a
 | Area | Current state | Missing or restricted behavior | Priority |
 | --- | --- | --- | --- |
 | Visual workflow editor | Partial | Typed step cards, inspector, source selection and undo/redo. No free-position canvas, draggable connection ports, pan/zoom, minimap, multi-select, groups, alignment or collapsed subflows. | P1 |
-| Graph structure | Partial | Acyclic graph, one input, multiple output nodes, fan-out through source references. Each step takes one text source; no joins, multi-input ports, conditional branches, switch nodes, loops or parallel execution. | P1 |
-| Data model | Partial | Bounded text values and prompt interpolation. No typed JSON schemas, file/media ports, arrays/maps, binary artifacts or expression builder. | P1 |
+| Graph structure | Partial | Acyclic graph, one input, multiple outputs, true/false condition guards and 2–8-source text joins. No switch node, bounded loops, parallel execution or general multi-type port wiring. | P1 |
+| Data model | Partial | Bounded typed text/boolean values, versioned per-step artifacts with provenance, and prompt interpolation. No typed JSON schemas, file/media ports, arrays/maps, binary artifacts or expression builder. | P1 |
 | Text generation | Working / partial | Live Gateway model choice and output-token limit. No streamed step output, structured-output schema, tool calls, multimodal input or model-specific generation settings. | P1 |
 | Transformations | Partial | Trim, case changes, prefix and suffix. No field mapping, parsing, format conversion, safe expressions, validation nodes or collection processing. | P1 |
 | Human review | Partial | Persisted approval pause, correct-node approval and explicit continuation. No edited approval output, rejection branch, reviewer assignment, comments, escalation or expiry policy. | P1 |
@@ -32,7 +32,7 @@ Live local runs use a SQLite operation ledger, persisted delays and approvals, a
 | Run snapshots and portability | Working / partial | Each run pins its validated graph; JSON/text audit downloads and inactive portable workflow imports exist. No resumable cross-machine run package, migration tooling or artifact-inclusive backup. | P2 |
 | Start request recovery | Partial | Server deduplicates the same request ID and graph. The current pending start request identity is not a durable browser draft across reload; run history is the recovery path. | P1 |
 | Run monitoring | Partial | Status, step output, token/estimate totals and bounded event history. No streaming trace, step-duration breakdown, searchable full history, log retention settings, alerts or stuck-run dashboard. | P1 |
-| Simulation | Working / bounded | Clearly labelled, deterministic, no-charge preview of graph flow, reviews and delays. It does not predict model quality, real timing, provider cost or tool effects. | Preserve |
+| Simulation | Working / bounded | Clearly labelled, deterministic, no-charge preview of branches, joins, reviews and delays. Conditions evaluate simulated model placeholders and do not predict live model routes, real timing, cost or tool effects. | Preserve |
 | Testing and evaluation | Partial | Automated schema/runner/API/browser regressions exist. No in-product assertions, fixture inputs, golden outputs, eval datasets, regression scorecards or model comparison reports. | P1/P2 |
 | Suite outputs | Working / partial | Reviewed text handoff to Fluxfoto, FluxDesign, Fluxiffects, Fluximiére and FluxLab, plus downloads, with simulations visibly labelled. Real local origins and all five destinations passed browser checks. No project-reference inputs, binary/media output nodes, linked updates or source-to-result lineage. | P1/P2 |
 | FluxLab destination | Working | A reviewed output-to-prompt route accepts editable text without automatically generating or billing. Long text can be shortened before applying; the original run output remains in FluxAgents. | Preserve |
@@ -68,7 +68,7 @@ Acceptance: refresh during submission finds the existing run without billing twi
 
 ### Phase 2 — grow the graph without sacrificing validation
 
-Introduce a versioned typed-data model and port schema, then safe mappings, conditions and joins. Separate canvas layout metadata from executable semantics. Add draggable nodes/connections, keyboard connection editing and accessible list navigation. Add approval rejection and optional reviewed output edits with an audit record. Add parallel execution only after join and accounting semantics are defined.
+The initial version-2 text/boolean ports, deterministic conditions and guarded joins are implemented and tested; decisions, skips and artifacts survive local restart. Next extend this bounded type model with safe mappings and richer value schemas. Separate canvas layout metadata from executable semantics. Add draggable nodes/connections, keyboard connection editing and accessible list navigation. Add approval rejection and optional reviewed output edits with an audit record. Add parallel execution only after join and accounting semantics are defined.
 
 Acceptance: imports migrate or fail with a specific report; malformed data cannot traverse incompatible ports; skipped branches do not spend tokens; a join waits only for its defined inputs; loops remain rejected until a bounded loop type exists. Undo preserves graph and layout coherently. Old workflow exports still open, and an in-flight run retains its original version.
 
@@ -104,4 +104,4 @@ For immediate user value, retain the verified handoff and implement the workflow
 
 Primary source: [graph validation and simulation](../src/model.mjs), [editor](../src/main.jsx), [browser storage](../src/storage.mjs), [local execution engine](../server/engine.mjs), [SQLite store](../server/store.mjs), [hosted boundary](../server/hosted.mjs), [runner tests](../tests/runner.test.mjs), [API tests](../tests/api.test.mjs), [core tests](../tests/core.test.mjs), [browser harness](../scripts/browser-smoke.mjs) and [recovery harness](../scripts/recovery-browser-smoke.mjs). See also [README](../README.md), [optimization status](OPTIMIZATIONS.md) and the suite's [framework/runtime research](../../FluxCreate/docs/FLUXAGENTS_RESEARCH.md).
 
-This document records a source-based feature audit. It does not imply that missing features were implemented, that a managed runtime was deployed, or that paid model/provider trials were performed during the audit.
+This document records the source audit and the explicitly implemented branching slice linked above. Missing features remain missing; no managed runtime was deployed and no paid model/provider trial was performed.

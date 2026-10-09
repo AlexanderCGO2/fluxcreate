@@ -1,0 +1,8 @@
+import React,{useEffect,useRef,useState} from 'react';
+export function AudioWaveform({clip,asset,engine}){
+  const canvas=useRef(),[data,setData]=useState(null),[error,setError]=useState('');
+  useEffect(()=>{let active=true;setData(null);setError('');if(asset?.src)engine.store.peaks(asset).then(value=>{if(active)setData(value);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[asset?.src,asset?.id,engine]);
+  useEffect(()=>{const el=canvas.current;if(!el||!data)return;const paint=()=>{const width=Math.max(1,Math.round(el.getBoundingClientRect().width)),height=22;el.width=width*2;el.height=height*2;const ctx=el.getContext('2d');ctx.scale(2,2);ctx.clearRect(0,0,width,height);ctx.strokeStyle=getComputedStyle(el).color;ctx.globalAlpha=clip.muted?.28:.85;ctx.lineWidth=1;
+    for(let x=0;x<width;x++){const from=(clip.sourceIn+x/width*clip.duration*clip.playbackRate)*data.sampleRate,to=(clip.sourceIn+(x+1)/width*clip.duration*clip.playbackRate)*data.sampleRate;let low=0,high=0;for(let i=Math.max(0,Math.floor(from/data.bucketSize));i<Math.min(data.peaks.length/2,Math.ceil(to/data.bucketSize));i++){low=Math.min(low,data.peaks[i*2]);high=Math.max(high,data.peaks[i*2+1]);}ctx.beginPath();ctx.moveTo(x+.5,height/2-low*height/2);ctx.lineTo(x+.5,height/2-high*height/2);ctx.stroke();}};paint();const observer=new ResizeObserver(paint);observer.observe(el);return()=>observer.disconnect();},[data,clip.sourceIn,clip.duration,clip.playbackRate,clip.muted]);
+  return data?<canvas className="audio-waveform" ref={canvas} role="img" aria-label={`Source waveform for ${clip.name}`}/>:<span className="waveform-status" title={error}>{error?'Sound unavailable':asset?.src?'Reading sound…':'Audio offline'}</span>;
+}

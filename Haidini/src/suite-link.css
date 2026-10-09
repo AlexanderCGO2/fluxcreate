@@ -1,1 +1,10 @@
-.studio-header .suite-brand-group{display:flex;align-items:center;gap:11px;flex-shrink:0}.studio-header .suite-home-link{width:27px;height:31px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#9caea3;text-decoration:none}.studio-header .suite-home-link:hover{color:#d2e7a8;background:#c6db911c}.studio-header .suite-home-link:focus-visible{outline:2px solid #c6db91;outline-offset:3px}@media(max-width:1100px){.studio-header .suite-brand-group{gap:6px}.studio-header .project-picker select{width:135px}}
+/* Keep the suite header and the server-backed scene picker. */
+.studio .fc-brand{flex-shrink:0}
+.studio .fc-document{position:static;transform:none;width:auto;max-width:400px;min-width:160px;flex:1;display:block;margin:0 auto}
+.studio .project-picker{width:100%;min-width:0;gap:6px;border:1px solid var(--border);border-radius:8px;padding:3px;background:var(--field)}
+.studio .project-picker select{flex:1;width:0;min-width:0;text-overflow:ellipsis;font-size:13px;padding:7px 0}
+.studio .project-picker button{width:32px;flex-shrink:0}
+.studio .fc-header-actions{flex-shrink:0}
+.studio .fc-header-actions>.header-action{padding:8px 10px}
+.studio .fc-header-actions>button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent)}
+@media(max-width:1100px){.studio .fc-header{gap:12px}.studio .fc-document{max-width:285px}.studio .fc-lab-link{padding:8px}.studio .fc-header-actions{gap:6px}}

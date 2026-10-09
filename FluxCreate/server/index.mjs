@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {createEditorMcpHandler} from '../../FluxLab/server/mcp-http.mjs';
 import {readFile,stat,mkdir,writeFile,rename} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -11,11 +12,13 @@ function json(res,status,body){if(res.destroyed)return;res.writeHead(status,{'Co
 async function readJSON(req){if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']||'')){req.resume();throw new ServiceError('Send an application/json request.',415);}const max=4*1024*1024;if(Number(req.headers['content-length'])>max){req.resume();throw new ServiceError('The request is too large.',413);}return new Promise((resolve,reject)=>{let size=0,done=false;const chunks=[];const fail=e=>{if(done)return;done=true;chunks.length=0;req.resume();reject(e);};req.on('data',chunk=>{if(done)return;size+=chunk.length;if(size>max)return fail(new ServiceError('The request is too large.',413));chunks.push(chunk);});req.once('error',()=>fail(new ServiceError('The request could not be read.')));req.once('aborted',()=>fail(new ServiceError('Request cancelled.',499)));req.once('end',()=>{if(done)return;done=true;try{const data=JSON.parse(Buffer.concat(chunks).toString());if(!data||typeof data!=='object'||Array.isArray(data))throw Error();resolve(data);}catch{reject(new ServiceError('The request is not valid JSON.'));}});});}
 export async function suiteStatus(){return await Promise.all(APPS.map(async app=>{let available=false,recent=null;try{const res=await fetch(`http://127.0.0.1:${app.port}${app.id==='fluxini'?'/api/session':'/api/health'}`,{signal:AbortSignal.timeout(1200)});const body=await res.json();available=res.ok&&body.app===app.id;}catch{}try{recent=JSON.parse(await readFile(path.join(suite,'.data',`recent-${app.id}.json`),'utf8'));}catch{}return {...app,available,recent};}));}
 export async function serveApp({appId,root,port,planner,aiService=createAIService(appId,{planner}),dataDir=path.join(suite,'.data')}){
+ const mcp=createEditorMcpHandler({appId,editor:appId==='fluxcreate'?undefined:{appId,plan:(input,options)=>aiService.plan(input,options)}});
  const dist=path.join(root instanceof URL?fileURLToPath(root):root,'dist');let writing=Promise.resolve();
  const server=http.createServer(async(req,res)=>{try{const p=server.address()?.port,hosts=new Set([`localhost:${p}`,`127.0.0.1:${p}`]);if(!hosts.has(req.headers.host))throw new ServiceError('Use the local FluxCreate address.',403);let pathname;try{pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);}catch{throw new ServiceError('Invalid address.');}
  if(pathname.startsWith('/api/')){if((req.headers.origin&&![...hosts].map(h=>'http://'+h).includes(req.headers.origin))||req.headers['sec-fetch-site']==='cross-site')throw new ServiceError('Open this action from your local FluxCreate workspace.',403);
  if(await handleSettings(req,res,pathname.slice(4)))return;
  const connection=await resolveRequestConnection(req);
+ if(pathname==='/api/mcp')return mcp(req,res,{connection});
  if(req.method==='GET'&&pathname==='/api/health')return json(res,200,{app:appId,version:'0.1.0'});
  if(req.method==='GET'&&pathname==='/api/ai/status')return json(res,200,appId==='fluxcreate'?await connectionStatus(connection):await aiService.status(connection));
  if(req.method==='GET'&&pathname==='/api/suite'&&appId==='fluxcreate')return json(res,200,{apps:await suiteStatus()});

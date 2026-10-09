@@ -1,6 +1,7 @@
 import {randomUUID,createHash} from 'node:crypto';
 import {loadConnection} from '../../Haidini/server/connection.mjs';
 import {fileURLToPath} from 'node:url';
+import {imageEditCapability} from './pixel-capabilities.mjs';
 import {imageHeader} from './image-header.mjs';
 import {createVideoService,videoModelOptions} from './video.mjs';
 import {createAudioService,audioModelOptions} from './audio.mjs';
@@ -37,7 +38,7 @@ function usageOf(raw){const usage={};for(const [out,key]of [['inputTokens','prom
 function normalizeModels(body){
  if(!Array.isArray(body?.data)||body.data.length>2000)fail('The live model catalog is unavailable.',502);
  const models=[];for(const model of body.data){if(!plain(model)||!MODEL_ID.test(model.id)||!['language','image','video','speech'].includes(model.type))continue;const outputs=Array.isArray(model.modalities?.output)?model.modalities.output:[],capabilities=[],video=videoModelOptions(model),audio=audioModelOptions(model);if(model.type==='language'&&outputs.includes('text'))capabilities.push('text');if(model.type==='image'||outputs.includes('image'))capabilities.push('image');if(video)capabilities.push('video');if(audio)capabilities.push('audio');if(!capabilities.length)continue;const pricing={};for(const key of ['input','output']){const v=model.pricing?.[key];if((typeof v==='string'||typeof v==='number')&&Number.isFinite(Number(v))&&Number(v)>=0)pricing[key]=String(v);}
-  models.push({id:model.id,name:cleanString(model.name,160)||model.id,provider:cleanString(model.owned_by,100)||model.id.split('/')[0],type:model.type,capabilities,description:cleanString(model.description,1200),contextWindow:Number.isFinite(model.context_window)?model.context_window:0,maxTokens:Number.isFinite(model.max_tokens)?model.max_tokens:0,pricing,...(video?{video}:{}),...(audio?{audio}:{})});
+  models.push({...(imageEditCapability(model)?{imageEdit:imageEditCapability(model)}:{}),id:model.id,name:cleanString(model.name,160)||model.id,provider:cleanString(model.owned_by,100)||model.id.split('/')[0],type:model.type,capabilities,description:cleanString(model.description,1200),contextWindow:Number.isFinite(model.context_window)?model.context_window:0,maxTokens:Number.isFinite(model.max_tokens)?model.max_tokens:0,pricing,...(video?{video}:{}),...(audio?{audio}:{})});
  }
  if(!models.length)fail('No supported models were found in the live catalog.',502);return models;
 }
@@ -55,23 +56,31 @@ export function createLabService({fetchImpl=globalThis.fetch,credential=existing
   try{return await controlled(async signal=>{const response=await fetchImpl(`${GATEWAY}/models`,{signal,redirect:'error'});if(!response.ok){await response.body?.cancel();providerFailure(response.status);}const models=normalizeModels(await boundedJSON(response,LAB_LIMITS.upstreamBytes));cache={models,time:now(),fetchedAt:new Date(now()).toISOString()};return {models,fetchedAt:cache.fetchedAt,stale:false};},{signal,timeout:catalogTimeoutMs});}catch(error){if(cache&&now()-cache.time<86400000&&error.status!==499)return {models:cache.models,fetchedAt:cache.fetchedAt,stale:true,warning:'Using the last available catalog. Model availability and pricing may have changed.'};throw error;}
  }
  return {models,...createVideoService({fetchImpl,credential:resolveCredential,snapshotConnection,models,controlled,boundedJSON,providerFailure,fail,now,fetchMedia}),...createAudioService({fetchImpl,credential:resolveCredential,snapshotConnection,connectionScope,models,controlled,boundedJSON,providerFailure,fail,now}),async status(connection){connection=snapshotConnection(connection);const busy=inFlight.has(connectionScope(connection));try{const key=await resolveCredential(connection);return {available:!!key,provider:'Flux / AI Gateway',busy,...(!key?{reason:'Connect Fluxini to AI Gateway to enable FluxLab.'}:{})};}catch{return {available:false,provider:'Flux / AI Gateway',busy,reason:'The existing Flux connection is unavailable. Check its settings in Fluxini.'};}},
- async generate(body,{signal,connection}={}){
+ async editImage(body,options={}){
+  if(!plain(body)||Object.keys(body).some(k=>!['model','prompt','referenceImage'].includes(k)))fail('Include a model, prompt and one source image.');
+  const src=body.referenceImage;if(typeof src!=='string'||src.length>LAB_LIMITS.imageBase64+40||!/^data:image\/(?:png|jpeg|webp);base64,/i.test(src))fail('Choose one PNG, JPEG or WebP source image.');
+  let reference;try{reference=imageResult(src.slice(src.indexOf(',')+1));}catch{fail('The reference image is invalid, too large or has unsupported dimensions.');}
+  return this.generate({kind:'image',model:body.model,prompt:body.prompt},{...options,referenceImage:reference.src});
+ },
+ async generate(body,{signal,connection,referenceImage}={}){
   connection=snapshotConnection(connection);const scope=connectionScope(connection);
   const request=validateGeneration(body);if(inFlight.has(scope))fail('Another generation is running. Cancel it or wait for it to finish.',409);if(inFlight.size>=64)fail('The AI service is busy. Try again shortly.',429);inFlight.add(scope);
   try{return await controlled(async abortSignal=>{
    let key;try{key=await resolveCredential(connection);}catch{fail('The existing Flux connection is unavailable. Check its settings in Fluxini.',503);}if(!key)fail('Connect Fluxini to AI Gateway before generating.',503);
    const catalog=await models({signal:abortSignal}),model=catalog.models.find(m=>m.id===request.model);if(!model||!model.capabilities.includes(request.kind))fail('Choose a catalog model that supports this generation type.');
-   let endpoint,payload;if(request.kind==='image'&&model.type==='image'){endpoint='images/generations';payload={model:request.model,prompt:request.prompt,n:1,response_format:'b64_json',...(request.size==='auto'?{}:{size:request.size})};}
+   let endpoint,payload;if(referenceImage){if(request.kind!=='image'||!model.imageEdit?.supported)fail('This model has no verified reference-image integration in the current catalog.');endpoint='images/edits';payload={model:request.model,prompt:request.prompt,images:[{image_url:referenceImage}],n:1,response_format:'b64_json'};}
+   else if(request.kind==='image'&&model.type==='image'){endpoint='images/generations';payload={model:request.model,prompt:request.prompt,n:1,response_format:'b64_json',...(request.size==='auto'?{}:{size:request.size})};}
    else{endpoint='chat/completions';payload={model:request.model,messages:[{role:'user',content:request.prompt}],stream:false,max_tokens:request.maxOutputTokens,...(request.kind==='image'?{modalities:['text','image']}:{} )};if(request.kind==='image'&&request.size!=='auto')fail('This multimodal model selects image dimensions automatically. Choose Automatic size.');}
    const response=await fetchImpl(`${GATEWAY}/${endpoint}`,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${key}`},body:JSON.stringify(payload),signal:abortSignal,redirect:'error'});if(!response.ok){await response.body?.cancel();providerFailure(response.status);}
    const raw=await boundedJSON(response,LAB_LIMITS.upstreamBytes),message=raw.choices?.[0]?.message,text=typeof message?.content==='string'?message.content:Array.isArray(message?.content)?message.content.filter(p=>p.type==='text').map(p=>p.text).join('\n'):'';
    if(text.length>200000)fail('The generated text is too large. Request a shorter result.',502);
    const warnings=catalog.stale?[catalog.warning]:[],images=[];if(request.kind==='image'){
-    if(endpoint==='images/generations'){if(!Array.isArray(raw.data)||!raw.data.length)fail('The provider returned no image. Refine your prompt or choose another model.',502);if(raw.data.length>1)warnings.push('Only the first returned image is included.');images.push(imageResult(raw.data[0].b64_json));}
+    if(endpoint==='images/generations'||endpoint==='images/edits'){if(!Array.isArray(raw.data)||!raw.data.length)fail('The provider returned no image. Refine your prompt or choose another model.',502);if(raw.data.length>1)warnings.push('Only the first returned image is included.');images.push(imageResult(raw.data[0].b64_json));}
     else{const image=message?.images?.[0]?.image_url?.url;if(typeof image!=='string'||!/^data:image\/(?:png|jpeg|webp);base64,/i.test(image))fail('The model returned no embedded image. Refine your prompt or choose an image model.',502);images.push(imageResult(image.slice(image.indexOf(',')+1)));if(message.images.length>1)warnings.push('Only the first returned image is included.');}
    }else if(!text.trim())fail('The model returned no text. Try a clearer prompt or another model.',502);
    if(raw.choices?.[0]?.finish_reason==='length')warnings.push('The response reached its token limit. Increase the limit or continue with a new prompt.');
-   const result={id:randomUUID(),kind:request.kind,model:request.model,prompt:request.prompt,createdAt:new Date(now()).toISOString(),text,images,usage:usageOf(raw.usage),warnings};
+   if(referenceImage)warnings.push('Generated from your selected image. Insert as a new copy to preserve the original. No mask or AI upscaling was applied.');
+   const result={id:randomUUID(),kind:request.kind,...(referenceImage?{operation:'image-edit'}:{}),model:request.model,prompt:request.prompt,createdAt:new Date(now()).toISOString(),text,images,usage:usageOf(raw.usage),warnings};
    if(Buffer.byteLength(JSON.stringify(result))>LAB_LIMITS.responseBytes)fail('The result is too large to transfer. Request a smaller image or shorter text.',502);if(abortSignal.aborted)fail('Generation cancelled.',499);return result;
   },{signal});}finally{inFlight.delete(scope);}
  }};

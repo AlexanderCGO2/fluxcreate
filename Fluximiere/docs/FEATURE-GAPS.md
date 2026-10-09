@@ -2,7 +2,7 @@
 
 Source review: 2026-10-09. This document describes the current implementation and a proposed order of work. It does not claim Premiere parity or completion of planned features. **Working** means the stated workflow is implemented; **Partial** identifies restrictions; **Missing** means no complete workflow is present. Historical checks are in [OPTIMIZATIONS.md](OPTIMIZATIONS.md); this review did not rerun the entire browser suite.
 
-Fluximiére can assemble browser-decodable picture and sound, edit cuts, create simple titles and preserve native projects. The first delivery milestone should be a reliable short-form movie with synchronized exported sound. Current WebM output is silent, which prevents many ordinary finished-video jobs even though editor playback has sound.
+Fluximiére can assemble browser-decodable picture and sound, edit cuts, create simple titles and preserve native projects. The audio/export increment now adds a bounded AudioWorklet mix, actual waveforms, audible forward/reverse scrubbing and precise audio-inclusive WebM. See [implemented scope and measured checks](AUDIO-ENGINE.md); professional mixing, long-source decoding and hardware latency validation remain incomplete.
 
 ## Evidence and comparison scope
 
@@ -35,15 +35,15 @@ Priorities: **P0** protects work and deliverable correctness; **P1** completes c
 | Captions/subtitles | Missing | P1: timed caption tracks, SRT/VTT import/export, burn-in and style editing. P2: broadcast formats, translation and accessibility review |
 | Transcript editing | Missing | P2: transcription, word timing/speakers, transcript-driven cuts and correction workflow; cannot operate solely on generated prose |
 | Color correction | Missing | P2: exposure/contrast/white balance, LUTs, scopes and match workflow; then defined input/working/output color spaces and HDR handling |
-| Audio playback | Partial: per-clip media element, volume/mute, fades and speed | P0: synchronized audio graph and independent audio/picture envelope semantics. Current renderer multiplies media volume by active visual opacity |
-| Real-time audio scrubbing / scratching | Missing | P1, explicit user priority: audible pointer scrubbing, jog/shuttle, signed reverse playback and variable-speed scratch response. Setting an HTML media element's `currentTime` does not provide this workflow |
+| Audio playback | Working bounded mono/stereo AudioWorklet mix, shared source timing/gain/fades, independent opacity | P1: device-change/long-source qualification; professional routing remains limited |
+| Real-time audio scrubbing / scratching | Working bounded ruler audition, ±4× signed Scratch and J/K/L shuttle; ramps and crossfades | P1: hardware listening and measured input-to-speaker latency; source proxies and sustained stress qualification |
 | Pitch-preserving time stretch | Missing | P2: a separate mode for changing duration/speed while retaining pitch; scratching normally changes pitch with signed playback speed and must remain a distinct control |
-| Audio waveforms/meters | Missing real analysis | P1: decoded peak cache, actual waveform and level meters. Current timeline bars are decorative and do not represent source amplitude |
+| Audio waveforms/meters | Working worker-generated source min/max peaks and worklet output peak meter | P1: multiresolution disk cache, channel/loudness metering and editable automation |
 | Audio mixing | Missing mixer/bus model | P1: gain/pan, track/master mix, headroom and clipping warnings. P2: channels/submixes, EQ/compression, loudness targets and automation |
 | Recording/audio repair | Missing | P2: voice-over recording, noise/speech cleanup, ducking and sync tools; preserve source audio and make derived changes reversible |
-| Movie export | Partial: real-time full-resolution silent WebM via Canvas/MediaRecorder | P0: sound mix/mux, deterministic timestamps and output validation. P1: configurable size/rate/quality and codec-aware MP4 support or honest fallback |
-| Still export | Working subset: current canvas frame as PNG | P0/P1: export independently awaits exact source seek/decode; range/sequence export and color metadata are additional work |
-| Render queue | Missing durable job workflow | P1: cancellable deterministic export with progress; P2: background jobs/restart recovery, batch presets and external/native encoder option |
+| Movie export | Working bounded precise WebM: timestamped VP9/VP8 + stereo Opus, awaited source seeks; explicit real-time and picture-only choices | P1: MP4, output presets, disk streaming and broader device/codec qualification |
+| Still export | Working PNG using isolated media and awaited exact source seeks | P1: range/sequence export and color metadata |
+| Render queue | Partial: cancellable precise export with progress, output budgets and cleanup | P2: durable/background jobs, restart recovery, batch presets and native encoders |
 | Proxies/performance | Missing proxy workflow; full-resolution preview | P1: prune unused decoders and cache indexes; P2: managed proxies, preview quality and optimized long-timeline rendering |
 | Local high-performance edition | Partial: local Node-served browser version already exists | P1: benchmark the media/render path locally. P2: optional desktop shell/native helper for streaming decode/encode and file access; a wrapper alone does not improve the current algorithms |
 | Multicam/nesting | Missing live sequence model | P2: nested sequences first, then synchronized angles, angle switching and audio-follow rules. Imported nested/multicam content currently needs replacements |
@@ -69,7 +69,7 @@ Priorities: **P0** protects work and deliverable correctness; **P1** completes c
 | Legacy `.xml` / xmeml | Cuts, source references/rates, stills, basic Text titles; transition timing can be resolved | Transition effects and native complex graphics are omitted; modern `.fcpxml` is a different format and is rejected |
 | CMX3600 `.edl` | Non-drop V cuts; export V1 only, integer fps, nonoverlap and normal speed | No audio, extra picture tracks or reliable effect/title transfer; source relinking required |
 | FluxExchange / other suite project | Active portable composition, destination-supported media/text/shapes/timing | Animation, gradients, effects, parent transforms and 3D are simplified or skipped with notices |
-| PNG / WebM output | Actual rendered picture; WebM is recorded in real time and contains no audio | No current delivery guarantee for background tabs, exact frame count, codec portability, managed color or sound |
+| PNG / WebM output | Actual isolated still rendering; precise WebM with stereo Opus and explicit compatibility/picture-only choices | Browser codec support and stated memory budgets apply; no managed-color or native-encoder guarantee |
 
 Native project files remain the complete source for supported editor features. Original Adobe files must be retained independently. Import limits and variant-specific details are in the [README](../README.md); they are not certification of every Premiere version.
 
@@ -99,7 +99,7 @@ Acceptance: waveform peaks match a known tone/silence fixture; the meter and ren
 
 ### M2a — Make scrubbing audible and evaluate the local edition (P1)
 
-This is an explicit requested workflow, not an existing feature. The current renderer seeks HTML media elements with approximately 25 ms tolerance while paused and 220 ms while playing. Its positive `playbackRate` range is 0.1–16; it has no signed PCM reader or AudioWorklet. It cannot provide convincing reverse scratching simply by changing those tolerances.
+The bounded first implementation is now available; its measured checks and remaining qualification are recorded in [AUDIO-ENGINE.md](AUDIO-ENGINE.md). The steps below remain the broader target, including proxies, latency measurement and optional desktop work.
 
 1. Build a shared audio clock and a bounded PCM cache keyed by immutable source/range. Generate waveform peaks from that same decoded data. Decode/load work stays away from the real-time processor; evict inactive ranges and expose unavailable/loading states. `decodeAudioData` operates on complete file data, so use it for bounded sources, not as a claim of incremental arbitrary-length decoding.
 2. Add an AudioWorklet processor that reads PCM with a signed position/rate, interpolates samples and smooths speed changes. Connect pointer scrubbing and keyboard jog/shuttle to this transport; ramp/crossfade grain boundaries to avoid clicks, preserve source limits and mute at intentional zero speed. Keep normal playback, scratch mode and precise edit seeking distinguishable.
@@ -109,7 +109,7 @@ This is an explicit requested workflow, not an existing feature. The current ren
 
 Acceptance targets: audible forward/reverse scrub follows direction immediately, silence boundaries remain silent, rapid reversals do not click or leave ghost playback, and scrubbing does not alter the edit. Measure a target of under 50 ms input-to-audio response on declared reference hardware, report actual values and fallback behavior, and test overlapping clips, sample-rate conversion, source limits, cache misses and audio-device changes. A long-source test must remain within the declared memory budget. Normal export timing and full A/V sync must remain unchanged.
 
-Technical references: [MDN AudioWorklet](https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet), [MDN decodeAudioData](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/decodeAudioData), and [Tauri native sidecars](https://v2.tauri.app/develop/sidecar/). These APIs supply building blocks; the proposed transport, cache and desktop performance gains are not implemented or measured yet.
+Technical references: [MDN AudioWorklet](https://developer.mozilla.org/en-US/docs/Web/API/AudioWorklet), [MDN decodeAudioData](https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/decodeAudioData), and [Tauri native sidecars](https://v2.tauri.app/develop/sidecar/). The browser transport and bounded cache are implemented; desktop performance gains and hardware latency remain unmeasured.
 
 ### M3 — Build a reusable effect and transition model (P1/P2)
 

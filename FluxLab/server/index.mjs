@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {createEditorMcpHandler} from './mcp-http.mjs';
 import {randomBytes,timingSafeEqual} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
@@ -10,6 +11,7 @@ const root=fileURLToPath(new URL('../dist/',import.meta.url));
 const send=(res,status,value)=>{res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(value));};
 async function body(req,limit=65536){let size=0;const chunks=[];for await(const chunk of req){size+=chunk.length;if(size>limit)throw new LabError('The generation request is too large.',413);chunks.push(chunk);}try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new LabError('Include a valid JSON generation request.');}}
 export async function serve(port=Number(process.env.PORT||4326),{service=createLabService()}={}){
+ const mcp=createEditorMcpHandler({appId:'fluxlab',service});
  const token=randomBytes(32).toString('hex');const server=http.createServer(async(req,res)=>{try{
   const address=server.address(),allowed=new Set([`localhost:${address.port}`,`127.0.0.1:${address.port}`,`[::1]:${address.port}`]);if(!allowed.has(req.headers.host))throw new LabError('Local host required.',403);
   if(req.headers.origin&&!Array.from(allowed).some(host=>req.headers.origin===`http://${host}`))throw new LabError('Same-origin requests only.',403);
@@ -17,6 +19,7 @@ export async function serve(port=Number(process.env.PORT||4326),{service=createL
   const url=new URL(req.url,`http://${req.headers.host}`),pathname=url.pathname;
   if(await handleSettings(req,res,pathname.slice(4)))return;
   const connection=await resolveRequestConnection(req);
+  if(pathname==='/api/mcp')return mcp(req,res,{connection});
   if(pathname==='/api/health'&&req.method==='GET')return send(res,200,{ok:true,app:'fluxlab'});
   if(pathname==='/api/session'&&req.method==='GET')return send(res,200,{token});
   if(pathname==='/api/status'&&req.method==='GET')return send(res,200,await service.status(connection));

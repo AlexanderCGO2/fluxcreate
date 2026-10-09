@@ -1,5 +1,7 @@
 # FluxCreate integration review
 
+> Working-source update (2026-10-09): the connected four-editor floating MCP helper and bounded reference-image editing are now implemented. See [implementation evidence and limits](FLOATING-AI-IMPLEMENTATION.md). AI upscaling, provider smoke verification and durable cross-instance paid-job recovery remain open; the broader milestone is not marked complete.
+
 Reviewed 2026-10-09 against the working source. This is an implementation audit, not a claim of Adobe, Blender or Houdini parity. New feature expansion was paused at the user's request so the next phase can follow a detailed plan.
 
 ## What exists

@@ -1,3 +1,4 @@
+import {destinationsFor} from '../../FluxCreate/shared/capabilities.mjs';
 import {LabPromptReceiver} from '../../FluxCreate/shared/LabPromptReceiver.jsx';
 import React,{useEffect,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
@@ -13,7 +14,7 @@ import {useVideoJobs,VideoJobQueue,VideoPreview,AudioPreview} from './VideoJobs.
 import {materializeAudioResult} from './audio.mjs';
 import './style.css';
 
-const DESTINATIONS=[['fluxoto','Fluxfoto'],['fluxidesign','FluxDesign'],['fluximiere','Fluximiére'],['fluxiffects','Fluxiffects']];
+const DESTINATIONS=destinationsFor('text').filter(app=>app.id!=='fluxlab').map(app=>[app.id,app.name]);
 const PROMPTS={audio:[['Voiceover','Every great idea begins with a moment of curiosity. Make space for yours.'],['Welcome','Welcome. Take a breath, settle in, and let your next chapter begin.'],['Closing note','Thank you for being part of this story. The next possibility is yours to create.']],video:[['Cinematic moment','A slow dolly shot through a sunlit greenhouse, leaves moving gently in the breeze, realistic cinematic lighting, a quiet contemplative mood.'],['Product in motion','A sculptural glass bottle slowly rotates on an ivory plinth, soft studio lighting, subtle reflections, elegant product film, no typography.'],['Dream sequence','Clouds of pale peach and lavender silk unfold in slow motion in a minimal architectural space, cinematic texture, smooth camera movement.']],image:[['Product study','A sculptural frosted-glass perfume bottle on warm ivory stone, soft afternoon sunlight, subtle shadows, editorial product photography, no text.'],['Dream in color','An abstract landscape of flowing pale lavender and warm peach silk, architectural curves, soft studio lighting, quiet and minimal, no typography.'],['World building','A tiny modern cabin beside a still alpine lake at blue hour, cinematic wide composition, realistic materials, soft mist, inviting warm windows.']],text:[['Shape an idea','Develop three distinct creative directions for a premium sustainable skincare brand. Include a short concept, visual language, palette, and sample headline for each.'],['Write a campaign','Write a concise launch campaign for a thoughtfully designed everyday backpack. Include a headline, a short story, and five social captions. Warm, clear, and specific.'],['Plan the motion','Create a 12-second motion design storyboard for a minimalist music festival announcement. Describe each shot, text, transitions, and timing.'] ]};
 const dateLabel=value=>new Date(value).toLocaleDateString(undefined,{month:'short',day:'numeric'});
 function loadTheme(){try{return localStorage.getItem('fluxlab-theme')||'light';}catch{return'light';}}
@@ -25,7 +26,7 @@ function App(){
  const generation=useRef(null),requestId=useRef(0),openId=useRef(0),promptRef=useRef(null),activeRef=useRef(null),pendingSaves=useRef(new Map());
  function setCurrent(result){activeRef.current=result;setActive(result);}
  const compatible=models.filter(item=>item.capabilities?.includes(kind)),chosen=compatible.find(item=>item.id===model),selectedImage=active?.images[imageIndex]||active?.images[0];
- const destinations=['video','audio'].includes(active?.kind)?DESTINATIONS.filter(([id])=>['fluximiere','fluxiffects'].includes(id)):DESTINATIONS;
+ const destinations=destinationsFor(active?.kind||'text').filter(app=>app.id!=='fluxlab').map(app=>[app.id,app.name]);
  const videoQueue=useVideoJobs({onComplete:completeVideo,onError:setError});
  const videoDurations=chosen?.video?.durations||[],videoRatios=chosen?.video?.aspectRatios||[],audioVoices=chosen?.audio?.voices||[],audioFormats=chosen?.audio?.outputFormats||[],promptLimit=kind==='audio'?Math.min(outputFormat==='wav'?400:1500,chosen?.audio?.maxPromptChars||1500):kind==='video'?Math.min(12000,chosen?.video?.maxPromptChars||12000):12000;
  const filtered=results.filter(item=>(item.prompt+' '+item.model+' '+item.excerpt).toLowerCase().includes(search.toLowerCase()));

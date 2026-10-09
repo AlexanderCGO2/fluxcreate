@@ -5,11 +5,11 @@ A visual workflow studio for FluxCreate. Build editable flows, test them without
 ## What works
 
 - An Apple-inspired light/dark designer, typed step inspector, templates, source connections, undo/redo, draft autosave and protected recovery.
-- Input, Gateway text generation, deterministic text transformations, approval, delay and output nodes. Graphs may branch through explicit source references; every non-input step accepts one text source. Graphs are bounded and acyclic.
+- Input, Gateway text generation, deterministic text transformations, text conditions, guarded true/false branches, ordered joins, approval, delay and output nodes. Graphs are bounded and acyclic; text inputs and boolean condition ports are validated. The Route a request template is a complete branching workflow with no model calls. See [conditional workflows and typed results](docs/BRANCHING.md).
 - Portable `.fluxagent.json` and `.fluxagent.md` files. Markdown has one authoritative `flux-agent` JSON block. Imported files remain inactive. Credentials and run histories are never included in graph exports.
-- Deterministic, visibly labeled simulation. It calls no AI model, previews reviews/delays and records the simulation in browser history.
-- Real local background runs, SQLite run/operation ledger, persisted approval pauses and delay deadlines, cancellation and restart recovery. Successful writing results are reused after restart. A crash or failed request with an uncertain model outcome pauses for explicit retry; retries keep prior reservations and call counts.
-- Downloadable run records/text, and editable-text handoff to FluxDesign, Fluxfoto, Fluxiffects and Fluximiére. Simulation handoffs include a visible simulation label.
+- Deterministic, visibly labeled simulation. It calls no AI model, previews reviews/delays and records decisions, skipped branches and typed text/boolean results in browser history. Conditions on simulated model text do not predict live model routing.
+- Real local background runs, SQLite run/operation ledger, persisted decisions/skips, versioned step artifacts, approval pauses and delay deadlines, cancellation and restart recovery. Successful writing results are reused after restart. A crash or failed request with an uncertain model outcome pauses for explicit retry; retries keep prior reservations and call counts.
+- Downloadable run records/text, and editable-text handoff to FluxDesign, Fluxfoto, Fluxiffects, Fluximiére and FluxLab prompt review. Simulation handoffs include a visible simulation label.
 
 ## Run locally
 
@@ -37,4 +37,4 @@ The local runner is a real local implementation, **not** Vercel Workflow SDK, an
 
 No schedules, remote webhooks, arbitrary JavaScript, shell tools, imported executable code, self-directed tool agents, publishing connectors, multiple users, automatic paid retries, media-generation steps or cloud execution yet. The UI edits explicit source connections rather than freely positioned nodes. Each run pins its validated graph; editing the designer affects future runs only.
 
-`npm test` passes 15 checks covering schema/format safety, simulation, HTTP boundaries, restart recovery, approvals, uncertainty, cancellation races, lease ownership and budgets. `npm run test:browser` passes six real Edge workflow groups using an injected unpaid model fixture. `node scripts/recovery-browser-smoke.mjs` passes five additional recovery, blocked-storage and text-handoff groups. Screenshots and reports are in ignored `artifacts/`. No paid model calls were used for verification.
+`npm test` passes 22 checks covering schema/format safety, simulation, HTTP boundaries, restart recovery, approvals, uncertainty, cancellation races, lease ownership and budgets. `npm run test:browser` passes six real Edge workflow groups using an injected unpaid model fixture. `node scripts/recovery-browser-smoke.mjs` passes five additional recovery, blocked-storage and text-handoff groups. `node scripts/branching-browser.mjs` passes six additional condition, join, branch, typed-output and live approval/reload groups. Screenshots and reports are in ignored `artifacts/`. No paid model calls were used for verification.

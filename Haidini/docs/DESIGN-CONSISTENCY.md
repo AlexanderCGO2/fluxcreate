@@ -1,6 +1,21 @@
 # Fluxini design consistency review
 
-Reviewed 2026-10-09 against actual local renders of Fluxfoto, FluxDesign, Fluximiére and Fluxiffects. This is a read-only visual audit and implementation plan. No product code, scene data, rendering settings or project history was changed.
+Reviewed 2026-10-09 against actual local renders of Fluxfoto, FluxDesign, Fluximiére and Fluxiffects. The initial audit below records the original interface. The approved first implementation batch is now implemented and locally verified; deployment is tracked separately.
+
+## Implemented and verified — 2026-10-09
+
+- Shared 70 px `SuiteHeader`, registry-backed app switching, home/FluxLab navigation, Settings and appearance action. A shared `documentSlot` preserves the server-backed scene picker and explicit rename/save/revision behavior. Scene tools remain available in a compact toolbar; Ask Flux and Export remain in the header.
+- Persisted light/dark interface appearance, neutral semantic surfaces, consistent numeric/unit fields, focus states, dialog styling and graph chrome. Settings receives the active theme. Axis, socket/type, material swatch and scene/render colors remain meaningful; theme changes do not touch renderer settings.
+- Readable translucent viewport hint/status surfaces; short viewports switch the camera tools into a horizontal row so opening a tall graph does not hide them.
+- Collapsible object and water-performance explanations, preserved material override notice, a 200 px laptop object list with existing collapse/tooltips, and one saved-state indicator in the bottom bar.
+- Graph divider supports pointer drag and keyboard arrows/Home/End; dock height persists. The initial graph view focuses the selection at a readable zoom (minimum 0.8), with separate Fit all and Focus selection actions. Fullscreen restores the exact docked view. Graph positions and procedural semantics are unchanged by view controls.
+- Existing Ask Flux review/compare/apply behavior retained with clearer panel/field presentation and a labelled full-width preview action. Existing export choices remain available with neutral dialogs.
+
+Verification uses isolated Edge profiles and temporary scene stores, with no provider generation requests. `scripts/design-consistency-smoke.mjs --staging` checks light/dark at 1600×1000 and 1280×800, the supported 1000×720 minimum desktop, long scene names, Settings theme, app-switcher Escape, export/cancel, graph pointer/keyboard resize, readable scale, exact fullscreen return, inspector resize and panel collapse. It compares complete scene JSON before/after appearance-only interactions, proving unchanged data and revision; no JavaScript page errors or desktop document overflow were observed. The 1000 px minimum is explicit; this is not a mobile layout certification.
+
+`scripts/graph-editor-smoke.mjs --staging` passes node search/selection, parameter validation/protection, graph undo/redo, keyboard focus containment and save/reload. `scripts/studio-smoke.mjs --staging` passes numeric validation/reset, explicit project rename and undo/redo, primary water controls at 1280×720, real PNG/GLB/WebM download checks, cancellation, scene creation and effect insertion. The staging build passes. Final combined TypeScript verification follows the concurrently integrated floating AI adapter.
+
+New evidence: `artifacts/design-consistency/report.json`, `light-1600.png`, `dark-1600.png`, `light-1280.png`, `dark-1280.png`, both graph dock/fullscreen views and both export themes; regression reports are `artifacts/studio/graph-editor-smoke.json` and `artifacts/studio/studio-smoke.json`. These are local verification artifacts and are not a claim of deployment. Resizable object-list width, a shared modal implementation, and deeper inspector grouping are later polish; the existing bounded list, modal focus handling and editor semantics remain supported.
 
 **Conclusion:** Fluxini's workspace is functional, but its surrounding interface reads as a separate, older product. Align the header, neutral surfaces, appearance controls, fields and dialog styling with FluxCreate. Keep its object list, procedural graph, simulation controls, timeline and resizable inspector; these are meaningful differences in the tool rather than inconsistencies to remove.
 

@@ -30,7 +30,7 @@ try{
   report.checks.push('Space activates focused controls; dialogs trap Tab, close with Escape and restore focus');
   await newScene('Dam break');await ready(.6);const id=state().project.id;
   assert.equal(await page.getByRole('spinbutton',{name:'Gravity value'}).count(),0);
-  const color=await page.getByLabel('Color',{exact:true}).boundingBox();assert(color.y+color.height<690,'All five primary controls fit at 1280×720');
+  await page.screenshot({path:'artifacts/studio/water-controls-1280.png'});const color=await page.getByLabel('Color',{exact:true}).boundingBox();assert(color.y+color.height<690,'All five primary controls fit at 1280×720: '+JSON.stringify(color));
   const dimensions=await page.evaluate(()=>({width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight}));assert.deepEqual(dimensions,{width:1280,height:720});
   await page.screenshot({path:'artifacts/studio/water-1280.png'});
   await button('Calmer water').click();await button('Before').click();assert.equal(state().project.revision,0);await button('After').click();await button('Apply change').click();await settled();assert.equal(state().project.graph.nodes[0].params.impulse,.96);await button('Undo').click();await settled();assert.equal(state().project.graph.nodes[0].params.impulse,1.6);
@@ -40,8 +40,8 @@ try{
   report.checks.push('Invalid numeric edits stay local; reset and parameter protection behave correctly');
   await button('Rename project').click();await page.getByLabel('Project name').fill('Blue study');await button('Save name').click();await settled();assert.equal(state().project.name,'Blue study');await button('Undo').click();await settled();assert.equal(state().project.name,'Water / dam break');await button('Redo').click();await settled();assert.equal(state().project.name,'Blue study');
   await ready(.6);const workers=await page.evaluate(()=>window.workerCreations);await button('Graph').click();const node=page.locator('[data-id="water"]').first();await node.waitFor();const bounds=await node.boundingBox();await page.mouse.move(bounds.x+40,bounds.y+20);await page.mouse.down();await page.mouse.move(bounds.x+80,bounds.y+35,{steps:8});await page.mouse.up();await settled();assert.equal(await page.evaluate(()=>window.workerCreations),workers,'Layout edit must not restart the worker');
-  await page.getByRole('separator',{name:'Inspector width'}).focus();await page.keyboard.press('ArrowLeft');assert.equal(await page.getByRole('separator').getAttribute('aria-valuenow'),'306');
-  await page.reload();await ready(.6);assert.equal(state().project.name,'Blue study');assert.equal(await button('Graph').getAttribute('aria-pressed'),'true');assert.equal(await page.getByRole('separator').getAttribute('aria-valuenow'),'306');await button('Graph').click();
+  await page.getByRole('separator',{name:'Inspector width'}).focus();await page.keyboard.press('ArrowLeft');assert.equal(await page.getByRole('separator',{name:'Inspector width'}).getAttribute('aria-valuenow'),'306');
+  await page.reload();await ready(.6);assert.equal(state().project.name,'Blue study');assert.equal(await button('Graph').getAttribute('aria-pressed'),'true');assert.equal(await page.getByRole('separator',{name:'Inspector width'}).getAttribute('aria-valuenow'),'306');await button('Graph').click();
   report.checks.push('Project rename supports undo/redo; graph drag preserves workers; panel layout survives reload');
   const download=async(kind,action,file)=>{await button('Export').click();await button(kind).click();const wait=page.waitForEvent('download',{timeout:45000});await button(action).click();const d=await wait;await d.saveAs('artifacts/studio/'+file);await settled();return readFile('artifacts/studio/'+file);};
   const png=await download('Image','Save image','water.png');assert.equal(png.subarray(1,4).toString(),'PNG');

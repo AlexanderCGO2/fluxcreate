@@ -13,7 +13,9 @@
   "dependencies": {
     "ai": "5.0.216",
     "@ai-sdk/gateway": "1.0.41",
-    "zod": "4.4.3"
+    "zod": "4.4.3",
+    "@modelcontextprotocol/server": "2.3.1",
+    "@modelcontextprotocol/ext-apps": "2.0.3"
   },
   "devDependencies": {
     "esbuild": "0.25.12"

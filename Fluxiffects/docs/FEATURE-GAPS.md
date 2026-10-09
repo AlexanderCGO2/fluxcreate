@@ -30,10 +30,10 @@ Evidence reviewed: `src/core.mjs`, `main.jsx`, `renderer.mjs`, `storage.mjs`, `a
 | 3D scene layers | Working: native Flux3D and self-contained GLB/glTF retain source motion, hierarchy, skins, morphs and embedded textures through the separate loader | Internal mesh/rig/material editing stays in the source app; separate scene layers do not share depth, shadows or lights | P1/P2 |
 | AE 3D workflow | Missing | Shared 3D world, editable cameras/lights, 3D text/shape extrusion, render passes, depth of field and motion blur | P2 |
 | Media interpretation | Partial: browser codecs and basic timing/size metadata | Image sequences, frame-rate interpretation, field/pixel-aspect controls, proxies, variable-frame-rate normalization and dependable professional codecs | P1/P2 |
-| Audio | Partial: editor playback, volume, mute, source timing/rate | Waveforms, meters, mixing automation, audio effects and synchronized audio in video export | P1 |
+| Audio | Partial: bounded mono/stereo export mix, volume keyframes/easing, audio fades, mute, source offsets/rate and matching preview gain | Shared sample-accurate preview transport, waveforms, track/bus routing, effects and device/latency qualification | P1/P2 |
 | Color pipeline | Partial: browser/Canvas color behavior | Explicit working space, linear compositing, 16/32-bit processing, OCIO/ICC handling, HDR and display transforms | P2 |
 | Preview performance | Partial: local live rendering and media preparation | Managed RAM/disk frame cache, region of interest, preview resolution, background preparation, profiling and worker scheduling | P1/P2 |
-| Output | Working: PNG still and real-time silent WebM, currently capped at 60 seconds/60 fps | Deterministic offline frame encoder, MP4 with tested licensing/runtime constraints, alpha codecs, EXR/image sequences, render queue and crash-resumable jobs | P1/P2 |
+| Output | Working: PNG still and real-time WebM with stereo Opus, currently capped at 60 seconds/60 fps; progress/cancel and explicit picture-only output | Deterministic offline frame encoder, MP4, alpha codecs, EXR/image sequences, render queue and crash-resumable jobs | P1/P2 |
 | AE files | Partial: supplied AE-host export bridge transfers supported 2D layers/keys and records unsupported data | Direct `.aep`/`.aepx` decoding is absent; bridge cannot reproduce masks, paths, nested rendering, AE 3D or third-party effects; real AE-host execution remains unverified | P0 |
 | Adobe ecosystem | Missing | `.mogrt`, Essential Graphics controls, Dynamic Link, plugin hosting and template packaging | P3 |
 | FluxCreate interchange | Working subset: `.flux.md`, suite motion wrappers, rendered media and live Flux3D scene layers | Per-object editable adapters, source refresh, fidelity review and cross-app layer placement | P0/P1 |
@@ -60,3 +60,7 @@ Every stage also needs a usable preset, plain-language controls, saved/undoable 
 ## Pause and verification record
 
 On 9 October, new feature expansion was paused for this planning pass. Unfinished snapshot import controls were removed because the shared browser adapter does not yet exist. The source-retention/placement foundation remains isolated in `core.mjs`, `ai-commands.mjs` and `suite-object.mjs`. **Two new snapshot core tests and the Fluxiffects build pass.** The broader Node regression run passed 64 cases; two suites initially could not access dependency junctions, then passed all 27 of their cases with that access (91 passing cases in total). No paid model requests were made. This does not verify a snapshot UI or constitute a fresh browser regression run. Floating-helper integration remains planned.
+
+## Audio delivery increment — 2026-10-09
+
+The previous silent export gap is closed for bounded real-time WebM. Native scene output and actual decoded stereo sound were verified together. Animated gain and fades now survive native save/open. The explicit 60-second/60-fps limit remains, and deterministic Fluximiére output is not claimed for this app. See [AUDIO-EXPORT.md](AUDIO-EXPORT.md) for architecture, measured cues, resource limits and remaining work.

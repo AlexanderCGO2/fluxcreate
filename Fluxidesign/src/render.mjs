@@ -1,4 +1,3 @@
-import {PDFDocument} from 'pdf-lib';
 
 const images = new Map();
 function limitImages() {let pixels=0;for(const entry of images.values())pixels+=entry.pixels;while(images.size>12||pixels>24_000_000){const [key,entry]=images.entries().next().value;pixels-=entry.pixels;images.delete(key);}}
@@ -70,13 +69,9 @@ export function pageSVG(page, assets) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${page.width}" height="${page.height}" viewBox="0 0 ${page.width} ${page.height}"><title>${esc(page.name)}</title><rect width="100%" height="100%" fill="${esc(page.background)}"/>${objects}</svg>`;
 }
 export function canvasBlob(canvas, type = 'image/png') {return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Image export failed.')), type));}
-export async function exportPDF(project, onProgress = () => {}) {
-  const pdf = await PDFDocument.create(); pdf.setTitle(project.name); pdf.setCreator('FluxDesign · FluxCreate');
-  for (let i = 0; i < project.pages.length; i++) {
-    const page = project.pages[i]; onProgress(i + 1, project.pages.length); const scale = Math.min(2, 8192 / Math.max(page.width, page.height));
-    const canvas = await renderPage(page, project.assets, scale); const png = await pdf.embedPng(await (await canvasBlob(canvas)).arrayBuffer());
-    pdf.addPage([page.width, page.height]).drawImage(png, {x: 0, y: 0, width: page.width, height: page.height});
-    canvas.width=canvas.height=1;
-  }
-  return new Blob([await pdf.save()], {type: 'application/pdf'});
+export async function exportPDF(project, onProgress = () => {}, options = {}) {
+  const {createPDF} = await import('./pdf-export.mjs');
+  const {blob, report} = await createPDF(project, onProgress, options);
+  options.onReport?.(report);
+  return blob;
 }

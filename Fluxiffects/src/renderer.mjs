@@ -1,5 +1,6 @@
 import { evaluateLayer } from './core.mjs';
 import { loadSceneSource } from '../../Flux3D/src/compositor.mjs';
+import {audioLayerGain,renderCompositionAudio} from './audio.mjs';
 
 // Canvas rendering stays in composition pixels. The preview may use any backing size.
 const assetCache = new Map();
@@ -232,7 +233,7 @@ function mediaTime(layer, time, element) {
   return Number.isFinite(element.duration) ? clamp(requested, 0, Math.max(0, element.duration - 0.001)) : requested;
 }
 
-/** Preview supports audio; exports deliberately report hasAudio:false. */
+/** Preview and export share gain automation and independent picture/audio fades. */
 export function syncMedia(comp, assets, time, playing = false) {
   const activeElements = new Set();
   for (const layer of comp.layers || []) {
@@ -248,7 +249,7 @@ export function syncMedia(comp, assets, time, playing = false) {
       try { element.currentTime = desired; } catch { /* Metadata is still becoming available. */ }
     }
     element.playbackRate = clamp(number(layer.playbackRate, 1), 0.1, 16);
-    element.volume = clamp(number(layer.volume, 1), 0, 1);
+    element.volume = clamp(audioLayerGain(layer,time), 0, 1);
     element.muted = !!layer.muted;
     if (playing && element.paused && !element.ended) element.play().catch(() => {});
     else if (!playing && !element.paused) element.pause();
@@ -502,18 +503,19 @@ export async function exportFrame(comp, assets, time = 0) {
   } finally { disposeCompositionMedia(isolated.id); }
 }
 
-/** Real-time WebM export. The returned metadata explicitly identifies the silent track. */
-export async function exportVideo(comp, assets, onProgress = () => {}, { signal } = {}) {
+/** Bounded real-time WebM with an offline native-layer sound mix and an audio clock. */
+export async function exportVideo(comp, assets, onProgress = () => {}, { signal, pictureOnly=false } = {}) {
   if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) throw new Error('Video export needs a browser with MediaRecorder and canvas capture support, such as Chrome or Edge.');
   const duration = number(comp.duration);
   if (duration <= 0 || duration > 60) throw new Error('Video export supports compositions from 0 to 60 seconds. Shorten the duration and try again.');
   const fps = clamp(number(comp.fps, 30), 1, 60);
-  const mimeType = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find(type => MediaRecorder.isTypeSupported(type));
+  const mimeType = (pictureOnly?['video/webm;codecs=vp9','video/webm;codecs=vp8']:['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus']).find(type => MediaRecorder.isTypeSupported(type));
   if (!mimeType) throw new Error('This browser cannot encode WebM video. Try Chrome or Edge.');
   if (signal?.aborted) throw new DOMException('Export cancelled.', 'AbortError');
   const isolated = exportComposition(comp);
-  let stream;
+  let stream,mix,destination,sound;
   try {
+    if(!pictureOnly)mix=await renderCompositionAudio(isolated,assets,signal,value=>onProgress(value*.15));
     await loadCompositionMedia(isolated, assets);
     await seekVideos(isolated, assets, 0);
     if (signal?.aborted) throw new DOMException('Export cancelled.', 'AbortError');
@@ -521,12 +523,13 @@ export async function exportVideo(comp, assets, onProgress = () => {}, { signal 
     const ctx = canvas.getContext('2d', { alpha: false });
     renderComposition(ctx, isolated, assets, 0, { throwMediaErrors: true });
     stream = canvas.captureStream(fps);
-    const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: clamp(isolated.width * isolated.height * fps * 0.15, 2500000, 25000000) });
+    if(mix){await mix.context.resume();if(mix.context.state!=='running')throw Error('Sound is suspended. Click Export again to enable audio.');destination=mix.context.createMediaStreamDestination();destination.stream.getAudioTracks().forEach(track=>stream.addTrack(track));sound=mix.context.createBufferSource();sound.buffer=mix.buffer;sound.connect(destination);}
+    const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: clamp(isolated.width * isolated.height * fps * 0.15, 2500000, 25000000),audioBitsPerSecond:192000 });
     const chunks = [];
     let timer, startedAt, finished = false, renderError;
     const notify = value => { try { onProgress(value); } catch { /* A UI callback cannot invalidate recording. */ } };
     const result = new Promise((resolve, reject) => {
-      const cleanup = () => { clearTimeout(timer); signal?.removeEventListener('abort', cancel); };
+      const cleanup = () => { clearTimeout(timer);clearTimeout(stalled);signal?.removeEventListener('abort', cancel);document.removeEventListener('visibilitychange',visibility); };
       const fail = error => {
         if (finished) return;
         finished = true; cleanup();
@@ -534,7 +537,10 @@ export async function exportVideo(comp, assets, onProgress = () => {}, { signal 
         reject(error);
       };
       const cancel = () => fail(new DOMException('Export cancelled.', 'AbortError'));
+      const visibility=()=>{if(document.hidden)fail(Error('Export stopped because this tab was hidden. Keep the editor visible and export again.'));};
+      const stalled=setTimeout(()=>fail(Error('Export stalled. Check the audio output device and try again.')),(duration+20)*1000);
       signal?.addEventListener('abort', cancel, { once: true });
+      document.addEventListener('visibilitychange',visibility);
       recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
       recorder.onerror = event => fail(event.error || new Error('The browser could not finish recording.'));
       recorder.onstop = () => {
@@ -543,11 +549,11 @@ export async function exportVideo(comp, assets, onProgress = () => {}, { signal 
         if (renderError) { reject(renderError); return; }
         const blob = new Blob(chunks, { type: recorder.mimeType || mimeType });
         if (!blob.size) { reject(new Error('The browser returned an empty video. Try again with a smaller composition.')); return; }
-        notify(1); resolve({ blob, mimeType: recorder.mimeType || mimeType, hasAudio: false });
+        notify(1); resolve({ blob, mimeType: recorder.mimeType || mimeType, hasAudio: !pictureOnly });
       };
       const tick = () => {
         if (finished || recorder.state === 'inactive') return;
-        const elapsed = (performance.now() - startedAt) / 1000;
+        const elapsed = (mix?mix.context.currentTime:performance.now()/1000) - startedAt;
         const time = Math.min(Math.floor(elapsed * fps) / fps, Math.max(0, duration - 1 / fps));
         try {
           // Each export owns separate video instances so recording cannot disrupt preview playback.
@@ -563,15 +569,16 @@ export async function exportVideo(comp, assets, onProgress = () => {}, { signal 
             if (element.paused && !element.ended) element.play().catch(() => {});
           }
           renderComposition(ctx, isolated, assets, time, { throwMediaErrors: true });
-          notify(Math.min(0.995, elapsed / duration));
+          notify(.15+.85*Math.min(0.995, elapsed / duration));
         } catch (error) { renderError = error; recorder.stop(); return; }
         if (elapsed >= duration) { recorder.stop(); return; }
         timer = setTimeout(tick, 1000 / fps);
       };
-      recorder.start(250); startedAt = performance.now(); notify(0); tick();
+      if(signal?.aborted){cancel();return;}if(document.hidden){visibility();return;}recorder.start(250); startedAt = mix?mix.context.currentTime:performance.now()/1000;sound?.start(startedAt);notify(.15);tick();stream.getVideoTracks()[0]?.requestFrame?.();
     });
     return await result;
   } finally {
+    try{sound?.stop();}catch{}sound?.disconnect();destination?.disconnect();await mix?.store.dispose();
     stream?.getTracks().forEach(track => track.stop());
     disposeCompositionMedia(isolated.id);
   }

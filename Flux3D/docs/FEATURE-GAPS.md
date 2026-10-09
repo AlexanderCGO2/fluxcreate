@@ -4,6 +4,16 @@ Audit date: **9 October 2026**. Reference product: **Blender**. This report comp
 
 Blender’s official [feature overview](https://www.blender.org/features/?eventId=21), [modeling documentation](https://www.blender.org/features/modeling/) and [Geometry Nodes introduction](https://docs.staging.blender.org/manual/en/latest/modeling/geometry_nodes/introduction.html) establish the reference domains. The live manual pages were inaccessible to the browsing tool during this audit; official indexed feature pages were used instead. No unreleased roadmap item is counted as an existing Blender requirement.
 
+## Implemented increment — 9 October 2026
+
+Retained studio objects are now implemented as unlit textured planes. The shared Place studio object review renders a selected source page/frame/scene; the destination retains both its PNG preview and exact original document. Replace source and Refresh preview preserve destination transforms; native save/reload, duplication, lock protection, undo/redo and source download are supported. Base color tints the snapshot and opacity controls transparency. Physical roughness/metalness controls remain available for regular geometry.
+
+GLB/glTF exports embed the actual preview PNG with UVs, transparency and an unlit material. OBJ/STL remain geometry-only. The editable GLB importer still omits general texture/material graphs and reports this; the native scene compositor and the standard GLTFLoader preserve snapshot appearance. This increment does not add UV authoring, arbitrary mesh texturing or live source synchronization.
+
+Each source is limited to 16 MiB and each preview to 2048×2048 / 4 MiB. A scene enforces a combined 32 MiB source/preview budget and a 16-megapixel decoded-preview budget. Texture loads are awaited for PNG/native-compositor output; replacement/removal and late loads release textures. Runtime texture state is held outside serialized scene metadata. AI context and request transport exclude original document and preview bytes.
+
+Verified locally: all **38 Node tests**, existing **26 editor browser checks**, and `scripts/studio-object-smoke.mjs`. The source workflow proves actual red/blue transparent artwork pixels, replacement preserving transforms, one-step undo/redo, refresh, exact original download, duplicate/locks, mocked AI privacy, native save/reload, and independent native/GLB compositor rendering. No provider requests or deployment were part of these checks. Evidence is in `artifacts/studio-objects/report.json`, `red-plane-light.png`, `blue-plane-dark.png`, `scene.flux3d`, and `scene.glb`.
+
 Inspected source: `src/main.jsx`, `model.mjs`, `geometry.mjs`, `formats.mjs`, `Viewport.jsx`, `document-state.mjs`, `scene-loader.mjs`, `compositor.mjs`, format/interoperability tests and [the optimization audit](OPTIMIZATIONS.md). Prior tests are recorded below, not represented as freshly rerun here.
 
 ## Coverage and gaps
@@ -17,7 +27,7 @@ Inspected source: `src/main.jsx`, `model.mjs`, `geometry.mjs`, `formats.mjs`, `V
 | Curves/surfaces/text | Missing authoring workflow | Bézier/NURBS editing, curve extrusion, editable 3D text, metaballs and volumes | P2 |
 | Sculpting/retopology | Missing | Brushes, symmetry, multiresolution/dynamic topology, masks, remesh and retopology aids | P3 |
 | UVs and texture painting | Missing | UV layers/seams/unwrap, image assets, projection paint, brushes and baking | P1/P2 |
-| Materials | Partial: base color, opacity, metalness and roughness | Textures, material slots, normal/bump maps, transmission/emission/clearcoat, node graph, subsurface and material library | P1/P2 |
+| Materials | Partial: base color, opacity, metalness and roughness; unlit studio snapshot textures on planes | General mesh textures, material slots, normal/bump maps, transmission/emission/clearcoat, node graph, subsurface and material library | P1/P2 |
 | Lighting | Partial: fixed soft studio environment with real-time shadows | Editable lights/HDR environments, light linking, area lights and exposure controls | P1 |
 | Camera | Working subset: saved position/target/FOV, presets, frame selected | Multiple cameras/shots, physical lens/sensor, depth of field, composition guides and animated camera control | P1/P2 |
 | Animation in Flux3D editor | Missing | Timeline/keyframes, curves, actions/clips, constraints, drivers, shape keys and exportable animation | P1/P2 |
@@ -32,7 +42,7 @@ Inspected source: `src/main.jsx`, `model.mjs`, `geometry.mjs`, `formats.mjs`, `V
 | GLB/glTF editable import | Partial: bounded triangle geometry, baked parent transforms, basic PBR values and supported GPU instance colors | Editable hierarchy reconstruction, textures, vertex colors, skins, morphs and animation; compressed/required unknown extensions remain rejected | P0/P1 |
 | Other geometry formats | Working subset: OBJ geometry, STL, GLB/glTF/OBJ/STL export | OBJ MTL/textures, units/axis dialogs, CAD/FBX/USD/Alembic and larger asset pipelines | P1/P2 |
 | Blender native files | Missing | `.blend` is not decoded. A real Blender-host export bridge is a possible future path; an accepted extension is not a parser | P0 honesty |
-| Cross-app objects | Partial: PNG to 2D apps, GLB geometry, native static scene into Fluxiffects | Retained source/preview image planes from other studios, refresh/reopen and editable adapters are planned; no new Flux3D object implementation in this batch | P1 |
+| Cross-app objects | Working bounded snapshot path: review/place retained sources on textured planes; replace/refresh, save original, native persistence and portable GLB/glTF preview textures | Live synchronization, shared media deduplication and deeper editable adapters remain later work | P1 |
 | AI | Working subset: reviewed typed scene/material/transform edits and primitive creation respecting scope/locks | Floating helper, visual grounding, topology/material-graph commands and explicit cost/history controls | P1/P2 |
 | Files and history | Working subset: native copies, browser autosave, recovery quarantine and 30-state undo | Persistent revision history, media deduplication, backups, quota UI and large-asset save progress | P0/P1 |
 | Performance | Partial: immutable geometry reuse, limits and stale import checks | Worker parsing/cancel, render-on-demand, progressive meshes, asset caching, profiling and hardware targets | P1 |
@@ -61,4 +71,4 @@ B0/B1 are the recommended first practical slice. B2 and B3 share geometry/asset 
 
 ## Verification and freeze record
 
-No Flux3D source changes were made in this planning batch. Existing README evidence records **33 Node tests, 26 editor browser checks and six document-reliability workflows**, including actual Fluxini GLTFExporter imports and inverse standard-loader validation. Those prior checks do not verify any planned modeling, texture, animation-editor, source-object or floating-helper feature. The next implementation slice should add real pixel/geometry fixtures and a complete user task before changing status to Working.
+The original planning audit changed no source. The implemented increment above supersedes that freeze for retained source planes: 38 Node tests and 26 editor browser checks now pass, with a dedicated real-pixel source workflow. Prior document-reliability evidence remains separate. Modeling, general texture authoring, animation editing and full Blender compatibility remain unimplemented; the source-plane feature is not evidence for those broader capabilities.

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {createEditorMcpHandler} from '../../FluxLab/server/mcp-http.mjs';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -32,6 +33,7 @@ async function readJSON(req){
   return body;
 }
 export function serve(port = Number(process.env.PORT || 4320), {aiService = createAIService()} = {}) {
+  const mcp=createEditorMcpHandler({appId:'fluxiffects',editor:{appId:'fluxiffects',plan:(input,options)=>aiService.plan(input,options)}});
   const server = http.createServer(async (req, res) => {
     try {
       const actualPort=server.address()?.port;
@@ -43,6 +45,7 @@ export function serve(port = Number(process.env.PORT || 4320), {aiService = crea
         if((req.headers.origin&&!allowedOrigins.has(req.headers.origin))||req.headers['sec-fetch-site']==='cross-site'){json(res,403,{error:'This action must originate from your local Fluxiffects workspace.'});return;}
         if(await handleSettings(req,res,pathname.slice(4)))return;
         const connection=await resolveRequestConnection(req);
+        if(pathname==='/api/mcp')return mcp(req,res,{connection});
         if(req.method==='GET'&&pathname==='/api/health'){json(res,200,{app:'fluxiffects',version:'0.3.0'});return;}
         if(req.method==='GET'&&pathname==='/api/ai/status'){json(res,200,await aiService.status(connection));return;}
         if(req.method==='POST'&&pathname==='/api/ai/plan'){

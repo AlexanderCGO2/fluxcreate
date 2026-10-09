@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {createEditorMcpHandler} from '../../FluxLab/server/mcp-http.mjs';
 import { readFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,6 +26,13 @@ export async function createWorkbench({dataDir,webDir,port=4318,host='127.0.0.1'
   const reply=(res,status,data)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(data));};
   async function body(req,limit=128*1024){let bytes=0,chunks=[];for await(const chunk of req){bytes+=chunk.length;if(bytes>limit)throw new ProjectError('Request is too large.',413);chunks.push(chunk);}try{return JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}');}catch{throw new ProjectError('Invalid JSON.');}}
   let planning=false;
+  const mcp=createEditorMcpHandler({appId:'fluxini',editor:{appId:'fluxini',plan:async(input,{connection,signal})=>{
+    if(!input||typeof input.intent!=='string'||!input.intent.trim()||input.intent.length>2000)throw Object.assign(Error('Describe a change in 1–2,000 characters.'),{status:400});
+    const current=projects.get(input.project?.id).project;
+    if(input.project?.revision!==current.revision)throw Object.assign(Error('The scene changed. Prepare a fresh proposal.'),{status:409});
+    const selection=input.selection||[];if(!Array.isArray(selection)||selection.length>64||selection.some(id=>!current.graph.nodes.some(n=>n.id===id)))throw Object.assign(Error('Select valid scene objects.'),{status:400});
+    const result=await planner(current,input.intent,memory,undefined,selection,signal,{connection,mode:input.mode||'edit',scope:input.scope||'composition'});if(result.patch)validatePatch(projects.get(current.id).project,result.patch);return result;
+  }}});
   const server=http.createServer(async(req,res)=>{
     try {
       const localHosts=new Set([new URL(origin).host,`localhost:${server.address().port}`]);
@@ -35,6 +43,7 @@ export async function createWorkbench({dataDir,webDir,port=4318,host='127.0.0.1'
       if(route.startsWith('/api/')){
         if(await handleSettings(req,res,route.slice(4)))return;
         const connection=await resolveRequestConnection(req);
+        if(route==='/api/mcp')return mcp(req,res,{connection});
         if(req.method==='GET'&&route==='/api/session')return reply(res,200,{app:'fluxini',protocolVersion:1,token,model:modelStatus(connection)});
         if(req.headers['x-fluxini-token']!==token)return reply(res,403,{code:'SESSION_EXPIRED',error:'Session expired. Reload the workbench.'});
         if(req.method==='GET'&&route==='/api/fonts')return reply(res,200,fonts.list());
