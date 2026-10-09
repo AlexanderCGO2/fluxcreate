@@ -56,3 +56,11 @@ Only the chosen page's editable properties, the explicit request, and the creati
 Run `node --test tests/*.test.mjs`, `node scripts/build.mjs`, `node scripts/browser-smoke.mjs`, and `node scripts/adobe-import-smoke.mjs`. These use isolated Edge contexts and temporary local servers; AI uses an injected planner, with no AI credits or normal local workspace changes. Adobe checks use generated standards-based IDML ZIP/XML and real PDF files, verify affine placement, story editability, rendered pixels, multipage sizes/rotation, Illustrator compatibility, undo, cancellation, recovery, and no external requests. They are not a certification against every InDesign/Illustrator version. Reports and fixtures are in `artifacts/adobe-import`; existing editor checks are in `artifacts/browser`.
 
 See [the prioritized optimization worklist](docs/OPTIMIZATIONS.md) for completed reliability/performance improvements and remaining work.
+
+## Recovery and interrupted imports
+
+If browser storage cannot be read or the saved publication fails validation, autosave pauses and the preview cannot replace the original record. The recovery banner lets you download the original saved data when available, open a project copy, or deliberately start a new publication. Adding an image or a FluxLab result does not resolve recovery. Successful project opening or New resumes saving; save a separate file for long-term backups.
+
+Native, IDML, PDF and exchange imports are prepared before one complete replacement. Canceling, switching pages, opening another document, or using New/Undo invalidates an older pending import. Image replacement also checks the current frame and lock after decoding.
+
+`node ../FluxCreate/scripts/editor-recovery-smoke.mjs` verifies both FluxDesign and Fluximiére recovery, original-data downloads, failed reads, media additions during recovery, delayed import races and atomic batches in isolated Edge sessions.

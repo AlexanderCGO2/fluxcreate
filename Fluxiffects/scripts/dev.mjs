@@ -1,9 +1,11 @@
 import { context } from 'esbuild';
 import { mkdir, copyFile, cp } from 'node:fs/promises';
 import { serve } from './serve.mjs';
+import {fileURLToPath} from 'node:url';
+const alias=Object.fromEntries(['react','react-dom','lucide-react'].map(name=>[name,fileURLToPath(new URL(`../../FluxCreate/node_modules/${name}`,import.meta.url))]));
 await mkdir('dist', { recursive: true });
 await copyFile('index.html', 'dist/index.html');
 await cp('public', 'dist', { recursive: true });
-const ctx = await context({ entryPoints: ['src/main.jsx'], bundle: true, outdir: 'dist', format: 'esm', target: 'es2022', sourcemap: true, define: { 'process.env.NODE_ENV': '"development"' } });
+const ctx = await context({ entryPoints: ['src/main.jsx'], bundle: true, outdir: 'dist', format: 'esm', target: 'es2022', sourcemap: true, alias, define: { 'process.env.NODE_ENV': '"development"' } });
 await ctx.watch();
 serve();

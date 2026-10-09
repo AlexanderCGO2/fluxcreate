@@ -2,6 +2,8 @@ import {randomUUID} from 'node:crypto';
 import {loadConnection} from '../../Haidini/server/connection.mjs';
 import {fileURLToPath} from 'node:url';
 import {imageHeader} from './image-header.mjs';
+import {createVideoService,videoModelOptions} from './video.mjs';
+import {createAudioService,audioModelOptions} from './audio.mjs';
 const GATEWAY='https://ai-gateway.vercel.sh/v1',MODEL_ID=/^[a-z0-9][a-z0-9._-]{0,79}\/[a-z0-9][a-z0-9._:-]{0,160}$/i;
 export const LAB_LIMITS={prompt:12000,outputTokens:4096,imageBase64:3500000,responseBytes:4*1024*1024,upstreamBytes:8*1024*1024};
 export class LabError extends Error{constructor(message,status=400){super(message);this.status=status;}}
@@ -25,7 +27,7 @@ async function boundedJSON(response,maxBytes){
  try{while(true){const {done,value}=await reader.read();if(done)break;length+=value.byteLength;if(length>maxBytes){await reader.cancel();fail('The provider response is too large. Request a smaller result.',502);}parts.push(value);}}finally{reader.releaseLock();}
  try{return JSON.parse(Buffer.concat(parts,length).toString('utf8'));}catch{fail('The provider returned an unreadable response. Try again.',502);}
 }
-function providerFailure(status){if(status===401||status===403)fail('AI Gateway did not accept the configured connection. Check its access in Fluxini.',503);if(status===402)fail('AI Gateway needs available credits. Check its billing before generating again.',502);if(status===429)fail('This model is busy or rate limited. Wait a moment or choose another model.',429);if(status===400||status===422)fail('This model rejected the prompt or settings. Try automatic image size or another model.',502);fail('The AI provider could not complete this request. Try again or choose another model.',502);}
+function providerFailure(status){if(status===401||status===403)fail('AI Gateway did not accept the configured connection. Check its access in Fluxini.',503);if(status===402)fail('AI Gateway needs available credits. Check its billing before generating again.',502);if(status===429)fail('This model is busy or rate limited. Wait a moment or choose another model.',429);if(status===400||status===422)fail('This model rejected the prompt or settings. Check the selected settings or choose another model.',502);fail('The AI provider could not complete this request. Try again or choose another model.',502);}
 function imageResult(encoded,mimeType){
  if(typeof encoded!=='string'||!encoded||encoded.length>LAB_LIMITS.imageBase64||encoded.length%4||!/^[a-z0-9+/]*={0,2}$/i.test(encoded))fail('The generated image is missing, invalid or too large. Request a smaller image.',502);
  let header;try{header=imageHeader(Buffer.from(encoded,'base64'));}catch(error){fail(error.message,502);}
@@ -34,12 +36,12 @@ function imageResult(encoded,mimeType){
 function usageOf(raw){const usage={};for(const [out,key]of [['inputTokens','prompt_tokens'],['outputTokens','completion_tokens'],['totalTokens','total_tokens']]){const value=raw?.[key]??raw?.[{prompt_tokens:'input_tokens',completion_tokens:'output_tokens'}[key]];if(typeof value==='number'&&Number.isFinite(value)&&value>=0)usage[out]=value;}return usage;}
 function normalizeModels(body){
  if(!Array.isArray(body?.data)||body.data.length>2000)fail('The live model catalog is unavailable.',502);
- const models=[];for(const model of body.data){if(!plain(model)||!MODEL_ID.test(model.id)||!['language','image'].includes(model.type))continue;const outputs=model.modalities?.output??[],capabilities=[];if(model.type==='language'&&outputs.includes('text'))capabilities.push('text');if(model.type==='image'||outputs.includes('image'))capabilities.push('image');if(!capabilities.length)continue;const pricing={};for(const key of ['input','output']){const v=model.pricing?.[key];if((typeof v==='string'||typeof v==='number')&&Number.isFinite(Number(v))&&Number(v)>=0)pricing[key]=String(v);}
-  models.push({id:model.id,name:cleanString(model.name,160)||model.id,provider:cleanString(model.owned_by,100)||model.id.split('/')[0],type:model.type,capabilities,description:cleanString(model.description,1200),contextWindow:Number.isFinite(model.context_window)?model.context_window:0,maxTokens:Number.isFinite(model.max_tokens)?model.max_tokens:0,pricing});
+ const models=[];for(const model of body.data){if(!plain(model)||!MODEL_ID.test(model.id)||!['language','image','video','speech'].includes(model.type))continue;const outputs=Array.isArray(model.modalities?.output)?model.modalities.output:[],capabilities=[],video=videoModelOptions(model),audio=audioModelOptions(model);if(model.type==='language'&&outputs.includes('text'))capabilities.push('text');if(model.type==='image'||outputs.includes('image'))capabilities.push('image');if(video)capabilities.push('video');if(audio)capabilities.push('audio');if(!capabilities.length)continue;const pricing={};for(const key of ['input','output']){const v=model.pricing?.[key];if((typeof v==='string'||typeof v==='number')&&Number.isFinite(Number(v))&&Number(v)>=0)pricing[key]=String(v);}
+  models.push({id:model.id,name:cleanString(model.name,160)||model.id,provider:cleanString(model.owned_by,100)||model.id.split('/')[0],type:model.type,capabilities,description:cleanString(model.description,1200),contextWindow:Number.isFinite(model.context_window)?model.context_window:0,maxTokens:Number.isFinite(model.max_tokens)?model.max_tokens:0,pricing,...(video?{video}:{}),...(audio?{audio}:{})});
  }
  if(!models.length)fail('No supported models were found in the live catalog.',502);return models;
 }
-export function createLabService({fetchImpl=globalThis.fetch,credential=existingCredential,timeoutMs=120000,catalogTimeoutMs=10000,now=()=>Date.now()}={}){
+export function createLabService({fetchImpl=globalThis.fetch,credential=existingCredential,timeoutMs=120000,catalogTimeoutMs=10000,now=()=>Date.now(),fetchMedia}={}){
  let cache=null,busy=false;
  async function controlled(operation,{signal,timeout=timeoutMs}={}){
   if(signal?.aborted)fail('Generation cancelled.',499);const controller=new AbortController(),abort=()=>controller.abort(),timer=setTimeout(abort,timeout);signal?.addEventListener('abort',abort,{once:true});let rejectAbort;
@@ -49,7 +51,7 @@ export function createLabService({fetchImpl=globalThis.fetch,credential=existing
  async function models({signal,refresh=false}={}){if(cache&&!refresh&&now()-cache.time<300000)return {models:cache.models,fetchedAt:cache.fetchedAt,stale:false};
   try{return await controlled(async signal=>{const response=await fetchImpl(`${GATEWAY}/models`,{signal,redirect:'error'});if(!response.ok){await response.body?.cancel();providerFailure(response.status);}const models=normalizeModels(await boundedJSON(response,LAB_LIMITS.upstreamBytes));cache={models,time:now(),fetchedAt:new Date(now()).toISOString()};return {models,fetchedAt:cache.fetchedAt,stale:false};},{signal,timeout:catalogTimeoutMs});}catch(error){if(cache&&now()-cache.time<86400000&&error.status!==499)return {models:cache.models,fetchedAt:cache.fetchedAt,stale:true,warning:'Using the last available catalog. Model availability and pricing may have changed.'};throw error;}
  }
- return {models,async status(){try{const key=await credential();return {available:!!key,provider:'Flux / AI Gateway',busy,...(!key?{reason:'Connect Fluxini to AI Gateway to enable FluxLab.'}:{})};}catch{return {available:false,provider:'Flux / AI Gateway',busy,reason:'The existing Flux connection is unavailable. Check its settings in Fluxini.'};}},
+ return {models,...createVideoService({fetchImpl,credential,models,controlled,boundedJSON,providerFailure,fail,now,fetchMedia}),...createAudioService({fetchImpl,credential,models,controlled,boundedJSON,providerFailure,fail,now}),async status(){try{const key=await credential();return {available:!!key,provider:'Flux / AI Gateway',busy,...(!key?{reason:'Connect Fluxini to AI Gateway to enable FluxLab.'}:{})};}catch{return {available:false,provider:'Flux / AI Gateway',busy,reason:'The existing Flux connection is unavailable. Check its settings in Fluxini.'};}},
  async generate(body,{signal}={}){
   const request=validateGeneration(body);if(busy)fail('Another generation is running. Cancel it or wait for it to finish.',409);busy=true;
   try{return await controlled(async abortSignal=>{

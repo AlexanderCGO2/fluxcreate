@@ -1,6 +1,7 @@
 import {createAIService,connectionStatus} from './ai.mjs';
 import {createAIService as createMotionAI} from '../../Fluxiffects/server/ai-service.mjs';
 import {createLabService} from '../../FluxLab/server/service.mjs';
+import {sendVideoContent} from '../../FluxLab/server/video-media.mjs';
 import {planChange,modelStatus} from '../../Haidini/server/planner.mjs';
 import {parseProject} from '../../Haidini/src/engine/project.ts';
 import {buildSceneContext} from '../../Haidini/src/flux/context.ts';
@@ -19,9 +20,13 @@ export function createHostedHandler({services={},lab=createLabService(),scenePla
  if(appId==='fluxini'&&req.method==='GET'&&route==='/status')return answer(res,200,{model:await status()});
  if(appId==='fluxlab'&&req.method==='GET'&&route==='/status')return answer(res,200,await lab.status());
  if(appId==='fluxlab'&&req.method==='GET'&&route==='/models')return answer(res,200,await lab.models());
+ if(appId==='fluxlab'&&req.method==='GET'&&route==='/video/content'){const controller=new AbortController();req.once('aborted',()=>controller.abort());res.once('close',()=>{if(!res.writableEnded)controller.abort();});return await sendVideoContent(res,await lab.videoContent({ticket:url.searchParams.get('ticket')},{signal:controller.signal}));}
  if(req.method!=='POST')fail('Unknown service endpoint.',404);
  const controller=new AbortController();req.once('aborted',()=>controller.abort());res.once('close',()=>{if(!res.writableEnded)controller.abort();});
  if(appId==='fluxlab'&&route==='/generate')return answer(res,200,await lab.generate(await bodyFor(req,64000),{signal:controller.signal}));
+ if(appId==='fluxlab'&&route==='/video/start')return answer(res,200,await lab.startVideo(await bodyFor(req,64000),{signal:controller.signal}));
+ if(appId==='fluxlab'&&route==='/video/status')return answer(res,200,await lab.videoStatus(await bodyFor(req,80000),{signal:controller.signal}));
+ if(appId==='fluxlab'&&route==='/audio/generate')return answer(res,200,await lab.generateAudio(await bodyFor(req,64000),{signal:controller.signal}));
  if(editors.has(appId)&&route==='/ai/plan')return answer(res,200,await editors.get(appId).plan(await bodyFor(req,1100000),{signal:controller.signal}));
  if(appId==='fluxini'&&route==='/plan'){const input=prepareSceneRequest(await bodyFor(req,1100000));return answer(res,200,await scenePlanner(input.project,input.intent,input.memory,undefined,input.selection,controller.signal));}
  fail('Unknown service endpoint.',404);

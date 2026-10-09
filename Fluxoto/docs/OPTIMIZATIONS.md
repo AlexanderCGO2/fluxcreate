@@ -23,3 +23,10 @@ Inspected the current layer model, Canvas renderer, file import, native exchange
 | P2 | Add mask ergonomics | Next: softness/density, invert, grayscale overlay, mask thumbnail, selection tools and pressure-sensitive strokes. Current masks support hard round hide/reveal strokes. |
 
 Validation: 17 Node tests, 10 Photoshop/photo browser workflows, 3 portable mask browser checks and 25 existing editor browser checks. Reports and exported PNG/native files live in artifacts/photoshop and artifacts/browser.
+
+
+## Recovery continuation — 2026-10-09
+
+Invalid autosaves and read errors now pause autosave and show explicit recovery actions. Preview edits, malformed recovery files and FluxLab handoffs cannot overwrite the original stored data. When the raw record is readable, Download saved data preserves it for recovery. A successful native project open or explicit New resumes saving. Async imports capture document identity/revision and reject late results after edits.
+
+Verified with 12 isolated browser recovery checks and the 25 existing editing/import/export browser checks. The actual user's browser data was not touched.

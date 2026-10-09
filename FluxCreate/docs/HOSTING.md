@@ -32,3 +32,12 @@ FluxLab's external MCP App uses local stdio with the official SDK; see its READM
 `scripts/hosted-browser-smoke.mjs` checks all direct app URLs, same-origin navigation, browser recents, the Fluxini simulation worker, AE bridge/example downloads, and editable FluxLab handoffs in an isolated browser. API tests validate routing, cross-origin rejection, request bounds and rebuilding AI context from validated scene data. Paid model generation is not part of automated verification.
 
 See [the suite audit](OPTIMIZATIONS.md) and each editor's README for supported import features and remaining work. Native AEP, INDD and BLEND require their documented bridges/exports; importing a filename does not imply full proprietary-format fidelity.
+
+
+## Media jobs
+
+FluxLab video jobs are held by AI Gateway; signed job references are saved in the browser and survive application restarts. No server filesystem or in-memory job store is required for recovery. Signed content requests stream MP4/WebM up to 64 MiB, while normal JSON results remain below 4 MiB. The Vercel dispatcher preserves query parameters, including the compact content ticket. Speech uses short synchronous requests with bounded MP3/WAV output.
+
+Downloaded video and speech are saved as browser Blobs. They do not become cloud-synchronized assets. Job tickets last seven days, provider media can expire earlier, and changing the Gateway key invalidates existing job tickets. Export media needed on another device or origin.
+
+The video route writes response chunks directly instead of buffering one JSON body. See [Vercel's response-size and streaming guidance](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions).

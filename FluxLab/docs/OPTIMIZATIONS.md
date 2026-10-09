@@ -12,3 +12,17 @@
 | P2 | Visual browsing | Next | Generate small thumbnails once per image to improve library recognition without repeatedly decoding originals. |
 | P2 | Prompt workspace | Next | Persist in-progress prompts independently from generated results and offer named prompt collections. |
 | P2 | Result portability | Next | Add a bulk library export/import package with per-record validation and conflict review. Individual text and image downloads already work. |
+
+| Priority | Area | Status | Result or next step |
+| --- | --- | --- | --- |
+| P1 | Video and speech generation | Implemented | Live catalog controls, verified playback, bounded original downloads, permanent Blob assets, and motion-editor handoff. |
+| P1 | Background video recovery | Implemented | Pre-submission request IDs, durable signed tickets, explicit pause/resume, reload/MCP recovery, safe recognition of already-saved clips, failed-download retry, atomic completed-job removal, and cross-tab removal protection. Provider/ticket availability still limits recovery. |
+| P2 | Music generation | Planned, not implemented | Add a dedicated ElevenLabs connection and Music mode only after server-side credentials and real provider behavior are verified. See the research note below. |
+
+## Music research — checked 2026-10-09
+
+The [live Vercel AI Gateway catalog](https://ai-gateway.vercel.sh/v1/models) contained 413 models, including 12 speech models, but no standalone music model or ElevenLabs entry. Matches for music or sound referred to audio accompanying generated video. The existing Gateway connection therefore does not currently expose the documented ElevenLabs Music route.
+
+ElevenLabs directly supports `music_v2_5` through `POST /v1/music`, with a prompt or composition plan, instrumental or vocal music, and durations from 3 seconds to 10 minutes. Its Music API requires a paid ElevenLabs account and a separate server-side `ELEVENLABS_API_KEY`. See the official [compose API](https://elevenlabs.io/docs/api-reference/music/compose) and [Music quickstart](https://elevenlabs.io/docs/eleven-api/guides/cookbooks/music).
+
+Planned integration: a dedicated Music mode with an instrumental/vocals choice, duration control, decoded audio preview, durable library storage, download and audio handoff to Fluximiére and Fluxiffects. Provider settings and output limits must be validated before submission. Background recovery must only be offered if a documented provider job/status mechanism supports it; stopping a local request must not imply that provider work or charges were cancelled. This is a proposal, not an available feature. No paid generation was performed for this research.

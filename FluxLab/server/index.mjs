@@ -4,9 +4,10 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createLabService,LabError} from './service.mjs';
+import {sendVideoContent} from './video-media.mjs';
 const root=fileURLToPath(new URL('../dist/',import.meta.url));
 const send=(res,status,value)=>{res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(value));};
-async function body(req){let size=0;const chunks=[];for await(const chunk of req){size+=chunk.length;if(size>65536)throw new LabError('The generation request is too large.',413);chunks.push(chunk);}try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new LabError('Include a valid JSON generation request.');}}
+async function body(req,limit=65536){let size=0;const chunks=[];for await(const chunk of req){size+=chunk.length;if(size>limit)throw new LabError('The generation request is too large.',413);chunks.push(chunk);}try{return JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new LabError('Include a valid JSON generation request.');}}
 export async function serve(port=Number(process.env.PORT||4326),{service=createLabService()}={}){
  const token=randomBytes(32).toString('hex');const server=http.createServer(async(req,res)=>{try{
   const address=server.address(),allowed=new Set([`localhost:${address.port}`,`127.0.0.1:${address.port}`,`[::1]:${address.port}`]);if(!allowed.has(req.headers.host))throw new LabError('Local host required.',403);
@@ -17,11 +18,15 @@ export async function serve(port=Number(process.env.PORT||4326),{service=createL
   if(pathname==='/api/session'&&req.method==='GET')return send(res,200,{token});
   if(pathname==='/api/status'&&req.method==='GET')return send(res,200,await service.status());
   if(pathname==='/api/models'&&req.method==='GET')return send(res,200,await service.models());
-  if(pathname==='/api/generate'&&req.method==='POST'){
+  if(pathname==='/api/video/content'&&req.method==='GET'){
+   const controller=new AbortController(),abort=()=>{if(!res.writableEnded)controller.abort();};req.once('aborted',abort);res.once('close',abort);
+   try{return await sendVideoContent(res,await service.videoContent({ticket:url.searchParams.get('ticket')},{signal:controller.signal}));}finally{req.removeListener('aborted',abort);res.removeListener('close',abort);}
+  }
+  if(['/api/generate','/api/video/start','/api/video/status','/api/audio/generate'].includes(pathname)&&req.method==='POST'){
    const given=Buffer.from(String(req.headers['x-flux-token']||'')),expected=Buffer.from(token);if(given.length!==expected.length||!timingSafeEqual(given,expected))throw new LabError('Refresh FluxLab to reconnect this local session.',403);
    if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))throw new LabError('Send JSON content.',415);
    const controller=new AbortController(),abort=()=>{if(!res.writableEnded)controller.abort();};req.once('aborted',abort);res.once('close',abort);
-   try{const result=await service.generate(await body(req),{signal:controller.signal});if(!res.destroyed)return send(res,200,result);}finally{req.removeListener('aborted',abort);res.removeListener('close',abort);}return;
+   try{const method=pathname==='/api/generate'?'generate':pathname==='/api/audio/generate'?'generateAudio':pathname.endsWith('/start')?'startVideo':'videoStatus',result=await service[method](await body(req,method==='videoStatus'?80000:65536),{signal:controller.signal});if(!res.destroyed)return send(res,200,result);}finally{req.removeListener('aborted',abort);res.removeListener('close',abort);}return;
   }
   if(pathname.startsWith('/api/'))return send(res,404,{error:'Unknown FluxLab endpoint.'});
   if(req.method!=='GET'&&req.method!=='HEAD')return send(res,405,{error:'Method not allowed.'});

@@ -35,6 +35,8 @@ For development, `pnpm dev` watches source changes; refresh the browser after an
 
 ## Exchange with Fluxini
 
+FluxLab can send saved MP4/WebM videos and MP3/WAV audio directly to Fluxiffects. Review the playable preview and choose **Add to project** to create a media layer. The transfer carries the original saved file, up to 64 MiB, rather than an expiring generation link. Canceling the preview leaves the composition unchanged. Embedded sources remain in native project copies; audio plays in the editor, while WebM export is currently silent.
+
 Choose **Exchange** in Fluxiffects, add a brief and handoff notes, and save a `.flux.md` file. In Fluxini, import that file and review the conversion report. To return, choose **Export → Exchange** in Fluxini and import the resulting file into Fluxiffects.
 
 Markdown carries readable context and one versioned JSON block with the authoritative scene data. Text, basic shapes, placement, colors and supported animation convert into editable elements. Each export saves that studio's current native source and retains the other studio's latest source snapshot. Returning a file converts the latest work by default; **Recover saved source** explicitly opens the older native copy. Keep earlier handoff files for historical versions.

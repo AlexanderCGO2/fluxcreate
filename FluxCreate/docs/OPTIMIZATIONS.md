@@ -15,7 +15,7 @@ Updated 2026-10-09. **Building** identifies the first implementation round; **Ne
 | P0 | Protected cloud AI: authenticate access before using the shared Gateway key; keep credentials server-side | Verified |
 | P1 | AI preview performance: typing a prompt does not rehash large media or rebuild unchanged previews; stale proposals still reject | Verified |
 | P1 | Progress/cancellation: lengthy imports and renders report progress and cannot commit partially after cancellation | Building in importers |
-| P1 | Recovery quarantine for every editor: extend the explicit Flux3D recovery flow to remaining 2D studios | Next |
+| P1 | Recovery quarantine: Fluxfoto, FluxDesign, Fluximiére and Fluxiffects preserve invalid/unreadable autosaves and resume saving only after explicit New or successful project opening | Verified |
 | P1 | Shared asset library: content-addressed assets, missing-media detection and explicit relink across editors | Next |
 | P1 | Named documents and recovery checkpoints: multiple recent files, timestamps and storage-usage visibility | Next |
 | P1 | Accessibility: keyboard workflows, focus-restoring dialogs, readable controls and consistent shortcuts | Next |
@@ -113,22 +113,30 @@ Updated 2026-10-09. **Building** identifies the first implementation round; **Ne
 
 | Priority | Optimization and acceptance condition | State |
 |---|---|---|
-| P0 | Shared Gateway credential remains server-only; live model discovery advertises actual text/image capabilities | Verified |
+| P0 | Shared Gateway credential remains server-only; live model discovery advertises supported text/image/video/speech capabilities | Verified |
 | P0 | Cancel, timeout and upstream failures preserve the previous result; bounded image/JSON memory | Verified |
 | P0 | Durable result library commits before reporting saved; duplicate IDs cannot overwrite another result | Verified |
 | P1 | Text/image handoffs preview before adding into Fluxfoto, FluxDesign, Fluximiére and Fluxiffects | Verified |
+| P1 | Video/audio handoffs retain original media, preview before Add, and persist in Fluximiére/Fluxiffects | Verified |
 | P1 | Genuine MCP App with official tools, UI resource and external stdio transport | Verified |
 | P1 | Reference image input, image variations and editable generation recipes | Next |
 | P1 | Searchable model metadata and accurate per-request provider cost reporting | Next |
-| P2 | Audio/video generation and background job recovery | Next |
+| P2 | Audio/video generation and background job recovery | Verified · speech and text-to-video; resumable video jobs; permanent saved media |
+| P2 | Dedicated music generation: separate ElevenLabs connection, instrumental/vocals and duration controls, saved audio and motion-editor handoff | Planned, not implemented · see research below |
 | P2 | Remote authenticated MCP transport and multi-device asset library | Next |
+
+### Music availability — checked 2026-10-09
+
+The [live Gateway catalog](https://ai-gateway.vercel.sh/v1/models) has no standalone music model or ElevenLabs entry; its music-related descriptions concern sound accompanying video. ElevenLabs offers the direct `music_v2_5` [Music API](https://elevenlabs.io/docs/api-reference/music/compose), including instrumental/vocal music and 3-second to 10-minute durations. A [paid ElevenLabs account and separate server-side API key](https://elevenlabs.io/docs/eleven-api/guides/cookbooks/music) are required; this is not currently available through the suite's Gateway connection.
+
+The proposed FluxLab Music mode would provide instrumental/vocals and duration controls, preview, durable library storage, downloads and audio handoff. It is not implemented. Background recovery must not be claimed unless a documented provider job/status mechanism supports it. Research used no paid generation requests. Detailed notes are in `FluxLab/docs/OPTIMIZATIONS.md`.
 
 ## Release checks
 
 Build every editor from the complete repository. Exercise actual supported import files, undo, native save/reopen and exports. Inspect light/dark rendering. Test every hosted app prefix, simulation worker and downloadable bridge/example. Record the exact remaining format limitations. Previous tests are regression evidence, not proof of new behavior.
 
 
-## Published release — 2026-10-09
+## Previous published baseline — 2026-10-09
 
 - Production: https://fluxcreate.vercel.app (Vercel Authentication required).
 - Complete source: https://github.com/AlexanderCGO2/fluxcreate — runtime commit `b457475`.
@@ -138,4 +146,23 @@ Build every editor from the complete repository. Exercise actual supported impor
 - All 20 live deployment checks pass: eight pages, required resources, seven protected AI connections, live model catalog (304 supported models) and rejected anonymous access.
 - Local ports 4318 and 4320–4326 are healthy; the home page shows all seven updated app names.
 - No paid model generation was performed during verification. Provider generation behavior and account credits remain unverified live.
-- Native AEP/INDD/BLEND require the documented bridges/exports. FluxLab MCP uses local stdio; remote authenticated MCP, audio/video generation and reference uploads remain later work.
+- Native AEP/INDD/BLEND require the documented bridges/exports. FluxLab MCP uses local stdio; remote authenticated MCP and reference uploads remain later work. The media continuation is recorded below.
+
+
+## Current continuation — media and recovery
+
+- Video: live text-to-video model settings, asynchronous Gateway jobs, saved submission IDs and signed tickets, pause/resume checking, seven-day ticket recovery, bounded media downloads and durable Blob library entries.
+- Audio: speech generation with documented voices, MP3/WAV output, real playback, downloads, durable library entries and motion-editor handoff. Music, sound effects and transcription remain outside this implementation.
+- MCP: video start/status tools with studio recovery links, and standard playable speech content in the App.
+- Recovery — verified: shared quarantine and editor-specific storage handling prevent unreadable or invalid autosaves from being silently replaced by demo projects. Explicit New or successful project opening resumes saving; failed imports keep quarantine active. Real-browser evidence: 12 Fluxfoto checks, 19 FluxDesign/Fluximiére checks, and 6 Fluxiffects checks, including retained original records, failed imports, explicit recovery and blocked asset handoff during recovery.
+- Import safety: reject late file results when the target document changed; preserve the active project when parsing or validation fails.
+
+The remaining rows above continue to be a prioritized backlog. This continuation does not claim full Adobe compatibility, shared cloud media storage, reference-image generation, music generation or remote authenticated MCP.
+
+### Continuation verification — 2026-10-09
+
+- The complete release builds, all nine package suites pass (361 passed; one optional external Premiere fixture skipped), and Fluxini's TypeScript check passes.
+- All 34 hosted browser checks pass. Separate media checks cover 9 FluxLab generation/library groups, 6 cross-tab job-removal checks, 13 video/audio handoff checks, and the actual MCP App bridge for text, image, video and speech.
+- Recovery checks cover 12 Fluxfoto, 19 FluxDesign/Fluximiére and 6 Fluxiffects browser groups. Existing editing and import browser regressions also pass.
+- The live Gateway catalog exposes 26 supported text-to-video models and 8 supported speech adapters to FluxLab. Other advertised provider capabilities are not assumed compatible.
+- No paid model generation was run. Playback, saved bytes, handoff and recovery use valid local media fixtures and controlled provider responses; provider latency, account credits and generation output quality remain unverified live.

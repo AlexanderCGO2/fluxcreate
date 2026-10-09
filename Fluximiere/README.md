@@ -6,6 +6,8 @@ The first release includes an editable demo, a media bin, up to 16 visual tracks
 
 Ask Flux uses the suite's existing Fluxini AI connection. Proposed timeline changes are validated, previewed, and applied as one undoable edit. Selected-clip scope and locked clips are enforced. Media bytes, source paths, and unrelated clips are excluded from the AI context. Actual AI availability depends on the configured gateway account.
 
+FluxLab can send a saved video or audio result directly to the editor. Review the playable preview, choose **Add to project**, then click the source in the media bin to place it on the timeline. The transfer carries the saved file bytes, so it does not depend on an expiring generation URL. MP4/WebM and MP3/WAV handoffs support up to 64 MiB with browser-compatible codecs; native projects retain those sources. Video export is still silent, as described below.
+
 ## Formats
 
 - `.fluximiere`: full native JSON envelope with embedded media and a portable motion scene. The original native timeline is restored when reopened in Fluximiére. Keep native project files as the complete editable source.
@@ -26,6 +28,10 @@ Choose each offline source in the media bin to relink it. The source's original 
 Timeline XML imports accept at most 12 MB of file data and 32 MB of expanded XML, with element/depth limits. External XML entities and DTDs are rejected (the harmless bare `<!DOCTYPE xmeml>` declaration is allowed). Failed imports leave the current project unchanged. This release does not provide multicam editing, live nested sequences, transitions beyond opacity fades, audio mixing export, proxies, color grading, or lossless Adobe project round-tripping. It does not export `.prproj` or Final Cut XML yet.
 
 ## Checks
+
+If a saved sequence is invalid or browser storage cannot be read, autosave pauses. The recovery banner preserves the original record, offers its raw data for download when available, and requires an explicit project Open or New before saving resumes. Ordinary media imports and FluxLab handoffs do not clear recovery. Pending project/media reads are invalidated by Cancel, a newer import, New or Undo; a media batch commits only after every source has loaded successfully.
+
+`node ../FluxCreate/scripts/editor-recovery-smoke.mjs` verifies this recovery behavior and delayed-import races in isolated browser sessions. `node ../FluxCreate/scripts/media-handoff-smoke.mjs` checks real saved video/audio transfers, playback previews, exact source bytes and persistence across both motion editors.
 
 `node --test tests/*.test.mjs` checks edits, splits, locks, AI scope, media privacy, format round-trips, Premiere graph/timing parsing, XML titles, bounds and malformed imports. `node scripts/browser-smoke.mjs` uses Edge to verify rendered frames, timeline edits, undo, autosave and playable WebM export. `node scripts/premiere-smoke.mjs` covers the Premiere/XML import, sequence-choice, track-change, relink, title-edit and export-safeguard workflows.
 

@@ -4,6 +4,8 @@ Updated 2026-10-09. This is an observed implementation worklist, not a claim tha
 
 | Priority | Area / observed issue | Status and concrete next step | Verification |
 | --- | --- | --- | --- |
+| P0 | Invalid or unreadable autosave was followed by saving the demo over the original | **Done:** persistent recovery quarantine pauses all autosave; optional original-data download; explicit valid project Open or New resumes; ordinary media and FluxLab additions do not clear recovery | 9 focused Edge recovery/race groups plus 19 baseline editor groups |
+| P0 | An image read could finish after New/Undo returned to the same document or a frame was locked | **Done:** generation and document-reference guards, post-decode frame/lock check, decode timeout, temporary canvas release | Delayed image/New/Undo regression and existing image undo checks |
 | P0 | Adobe formats were rejected together, including open IDML and PDF | **Done:** separate IDML ZIP/XML conversion and local PDF/PDF-compatible AI rendering, with accurate editability labels and format-specific guidance | Model tests plus real Edge file-import tests |
 | P0 | An asynchronous import could replace newer work or commit partially | **Done:** prepare complete candidate first, revision/reference guard during loading and review, one undo commit; cancellable PDF rendering | Preview/cancel/undo and original-document equality checks |
 | P0 | ZIP/XML input could allocate uncontrolled output or follow external paths | **Done:** bounded central/local ZIP headers, streamed bounded inflate, checksums, safe names, entry/total/XML nesting limits; reject DTD/entities; never resolve outside package | Malformed archive/XML/path/size tests |
