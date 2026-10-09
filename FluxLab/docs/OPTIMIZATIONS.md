@@ -33,3 +33,9 @@ Additional candidates checked on the same date:
 - MiniMax documents `music-3.0`, `music-2.6` and `music-cover`, but its [Music API availability notice](https://platform.minimax.io/docs/api-reference/music-generation) says that paid Music/Lyrics access closed to new users on 2026-08-20; existing paying users retain access. Do not present it as generally available without confirming account eligibility.
 
 For a new connection, investigate ElevenLabs first and Google as the alternative. Neither connection is configured or implemented in FluxLab.
+
+## Completed recipe/filter subset — 2026-10-09
+
+Exact normalized request recipes now accompany new result records and persisted video jobs. Bounded named recipe storage uses atomic transactions, a 40-item limit and optimistic version checks for update/delete. Loading only edits a draft; generated variations retain source-result identity. Missing models/settings block submission, and one synchronous submission guard prevents rapid duplicate approvals. Request schemas exclude credentials, tickets, arbitrary fields and automatic batch counts. Unknown total cost stays explicit.
+
+Metadata-only library filters combine type/model/query/order and render 48 cards at a time. Search covers bounded saved previews/excerpts, not complete outputs. Build + 65 unit + 12 existing studio + nine media/recovery + eight recipe/filter browser groups pass with no paid calls. Full-text indexes, thumbnails, draft autosave, folders/tags, library archives, quote/reconciliation and cloud ownership remain open.

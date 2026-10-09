@@ -2,7 +2,7 @@
 
 Reviewed 2026-10-09. The application is branded **Fluxfoto**; its source folder and native extension remain `Fluxoto` and `.fluxoto`.
 
-Fluxfoto currently supports useful layered photo composites, simple graphic layouts, nondestructive pixel masks, supported PSD/PSB import, bounded layered-raster PSD export, drag ordering, and reviewed AI commands. Geometric and lasso selections now create feathered/inverted layer masks. The biggest everyday gaps are **retouching, selected-layer pixel painting, layer groups, adjustment layers, richer transforms and broader selection operations**. It is not yet a general replacement for Photoshop's pixel editor, photographic processing, or production document pipeline.
+Fluxfoto currently supports useful layered photo composites, simple graphic layouts, nondestructive pixel masks, supported PSD/PSB import, bounded layered-raster PSD export, drag ordering, and reviewed AI commands. Geometric and lasso selections now create feathered/inverted layer masks. The biggest everyday gaps are **retouching, selected-layer pixel painting, layer groups, adjustment layers, richer transforms and advanced selection refinement**. It is not yet a general replacement for Photoshop's pixel editor, photographic processing, or production document pipeline.
 
 This is a source-and-documentation audit, not a fresh performance benchmark or a claim that every Photoshop feature should be copied. Adobe references establish the comparison categories; Fluxfoto status comes from the inspected implementation. Release verification supplied by the implementing agent includes 16 layer-order browser checks, 11 PSD export/reopen checks and the existing 25-check editor regression. No paid provider generation was run for this audit. Existing regression evidence is also recorded in [OPTIMIZATIONS.md](OPTIMIZATIONS.md).
 
@@ -23,7 +23,7 @@ Data preservation and accurate compatibility notices remain release gates for ev
 | Capability | Status | Actual implementation boundary |
 |---|---|---|
 | Local photographs | Implemented | PNG/JPEG/WebP import through picker, file drop, and pasted image files. GIF/SVG also pass through the browser image decoder; there is no animation editor or editable SVG path import. Imported image source bytes remain embedded. |
-| Basic layers | Implemented | Image, text, rectangle/ellipse, and brush-stroke layers; rename, visibility, lock, duplicate, delete, opacity, drag/touch ordering, Alt+Up/Down and up/down buttons. Selection currently targets one layer. |
+| Basic layers | Implemented | Image, text, rectangle/ellipse, and brush-stroke layers; rename, visibility, lock, duplicate, delete, opacity, drag/touch ordering, Alt+Up/Down and up/down buttons. Ctrl/Cmd toggles multiple layers; Shift selects a range. Atomic move, drag ordering, duplicate and delete preserve internal order and reject a set containing locked layers. |
 | Position and dimensions | Implemented | Move by dragging, numeric X/Y/width/height/rotation, one resize handle, and keyboard nudging. Raster source pixels are retained rather than rewritten for each transform. |
 | Pixel layer masks | Implemented | Add a reveal-all mask; paint hard round hide/reveal strokes; enable/disable/remove; preserve source pixels, undo, native saving, and reopening. Image, text, and shape layers can have masks. |
 | Basic appearance | Implemented | Nine blend modes; brightness, contrast, saturation, blur; solid fill and two-color linear gradients on shapes. These are per-layer properties. |
@@ -56,10 +56,10 @@ Photoshop distinguishes pixel selections from layer selection, provides geometri
 
 | Capability | Status | What remains |
 |---|---|---|
-| Rectangular/elliptical pixel selection | Partial, verified | Dedicated selection tool and visible boundary, inversion, feathering and selection-to-mask work; original pixels survive undo and native reload. Add selection unions/subtraction/intersection, select-all/reselect, stored selections and additional pixel operations. |
-| Lasso and polygonal selection | Partial, verified | Freehand lasso closes into a selection-to-mask path. Click-based polygon construction and combining separate selections remain open. |
+| Rectangular/elliptical pixel selection | Partial, verified | Dedicated selection tool and visible boundary, inversion, feathering and selection-to-mask work; original pixels survive undo and native reload. Union/subtraction/intersection and pixel copy/cut/fill now work. Select-all/reselect, saved selections and advanced refinement remain open. |
+| Lasso and polygonal selection | Partial, verified | Freehand lasso closes into a selection-to-mask path. Combining separate areas works; click-based polygon construction remains open. |
 | Magic wand and color-range selection | Missing | Tolerance, contiguous/all matching pixels, anti-aliasing and sample-current/all-layers controls. |
-| Selection editing and pixel clipboard | Partial | Invert, feather and selection-to-mask are implemented, including intersection with an existing enabled mask. Grow/shrink, move/transform selection, selected-pixel clipboard, copy merged, selection fill/delete and selection-to-layer remain open. Pasting an image file is supported. |
+| Selection editing and pixel clipboard | Partial | Invert, feather and selection-to-mask are implemented, including intersection with an existing enabled mask. Selected-layer copy/cut/paste, separate-layer fill and mask-based hiding now work. Copy includes isolated appearance/mask; cut preserves original pixels through a mask. The clipboard is in-memory inside Fluxfoto. Grow/shrink, move/transform selection, copy merged and OS pixel clipboard integration remain open. |
 | Quick Selection / Select Subject / background removal | Missing | Actual image-aware segmentation and edge refinement; no subject detection or background-removal command is currently connected. |
 | Mask refinement and visualization | Partial | Add feather/softness, adjustable density, invert, hide-all initialization, grayscale/red overlay, actual mask thumbnail, copy/move masks, and link/unlink mask transforms. Imported PSD density is incorporated into mask pixels; it is not retained as an editable density slider. |
 | Paint into a selected pixel layer | Missing | A raster editing surface with source-preserving history and explicit target. Current Brush creates a new vector-stroke layer for every gesture; it does not paint the selected photograph. |
@@ -74,7 +74,7 @@ Photoshop's brush controls include hardness, opacity, flow and tablet pressure; 
 
 | Capability | Status | What remains |
 |---|---|---|
-| Multiple layer selection and batch editing | Missing | Shift/range selection, multi-select on canvas, batch transforms, duplicate/delete/lock, alignment and distribution. |
+| Multiple layer selection and batch editing | Partial, verified | Ctrl/Cmd toggle, Shift range, canvas multi-pick and atomic move/duplicate/delete/order work. Batch rotation/scale, batch lock controls, alignment and distribution remain open. |
 | Groups and linked layers | Missing | Hierarchical folders, group transforms/opacity/masks, correct isolated/pass-through compositing and linked movement. PSD groups currently flatten into named children. |
 | Clipping masks | Missing | Clip upper content/adjustments to lower-layer alpha with explicit relationships and export parity. Imported Photoshop clipping relationships are reported as unsupported. |
 | Layers panel organization | Partial | Add rendered image/text/stroke thumbnails, mask thumbnails, search/filter, color labels and solo visibility. Current rows mostly show type icons or fill swatches. Drag and keyboard reordering are implemented. |
@@ -163,7 +163,7 @@ Source evidence: `commit`, `importFiles`, pointer handlers and autosave in [main
 1. Finish and verify selected-object transfer; keep the verified ordering/PSD regressions and make layer/mask targeting and thumbnails clear.
 2. Add geometric pixel selections, selection-to-mask, pixel copy/paste/fill and mask inversion/feathering. This unlocks many later tools.
 3. Add a source-preserving raster brush/eraser target, brush controls and eyedropper; then clone/healing on a separate retouch layer.
-4. Add groups, multi-selection, clipping, alignment/snapping and a complete basic transform interaction.
+4. Build on multi-selection with groups, clipping, alignment/snapping and a complete basic transform interaction.
 5. Add histogram, Levels/Curves and masked adjustment layers; expand photo color controls afterward.
 6. Improve text controls, layer styles and vector paths; introduce an editable embedded-object model before promising Smart Object fidelity.
 7. Expand PSD fidelity/export, TIFF/RAW and color-managed output with real application-produced fixtures and pixel comparisons.
@@ -176,3 +176,11 @@ For every new capability, check real rendered pixels, target/lock behavior, undo
 - Geometric/lasso selection masks: six real browser pixel checks for rectangle, inverted ellipse, lasso, feather, rotated-layer coordinates, one-step undo, reload and byte-identical original source (`scripts/selections-smoke.mjs`). Mask previews are bounded to 4096 pixels per side; selection outlines are temporary workspace state, while applied masks are native document data. Existing masks can be intersected or explicitly replaced.
 - Studio objects: native photo/publication/motion/3D rendering, original-source download, replacement, undo and reload are verified by the suite source-object smoke. Fluxini sources use Flux Exchange; arbitrary native procedural graphs are not rendered in Fluxfoto.
 - Floating helper: actual editor + official MCP client/server with mocked providers verifies review, validated apply, one-step undo, stale proposal rejection, generated text/image insertion and original/result comparison.
+
+## Parallel continuation — 2026-10-09
+
+Combined rectangle/ellipse/lasso areas support replace/add/subtract/intersect and inversion, bounded to 32 operations. Copy reads one isolated selected layer including its appearance/mask; cut/hide preserve originals through a mask, while fill/paste create separate movable image layers. The internal clipboard stays in memory and supports Ctrl/Cmd+C/X/V without overwriting the OS clipboard. Pixel operations reject empty content and documents above 32 MP. Native selection outlines are temporary; applied pixels/masks persist.
+
+Flat multi-selection supports Ctrl/Cmd toggle, Shift range and atomic movement, duplication, deletion and ordering. A locked member blocks the complete mutation. Nested groups, aggregate rotation/scaling and Photoshop Smart Objects remain open.
+
+Evidence: 8 new end-to-end groups in `scripts/editing-smoke.mjs`, layer-operation and selection-validation unit tests, existing 6 selection groups, expanded delayed-image cancellation checks, 16 drag-order checks and 11 PSD export/reopen checks. Final hosted release status is tracked centrally.

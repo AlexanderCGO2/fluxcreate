@@ -10,7 +10,11 @@
     "test:browser": "node scripts/browser-smoke.mjs",
     "test:recovery": "node scripts/recovery-smoke.mjs",
     "test:layers": "node scripts/layer-order-smoke.mjs",
-    "test:psd-export": "node scripts/psd-export-smoke.mjs"
+    "test:psd-export": "node scripts/psd-export-smoke.mjs",
+    "test:editing": "node scripts/editing-smoke.mjs",
+    "test:selections": "node scripts/selections-smoke.mjs",
+    "test:selection-cancel": "node scripts/selection-cancel-smoke.mjs",
+    "test:gestures": "node scripts/gesture-smoke.mjs"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",

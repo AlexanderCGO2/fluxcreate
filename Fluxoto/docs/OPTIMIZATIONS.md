@@ -38,3 +38,7 @@ Drag ordering now supports mouse/touch, insertion markers, keyboard alternatives
 Layered PSD export writes RGB/8-bit rendered pixel layers with names/order, visibility, opacity, supported blending and lock metadata. Text, shapes, masks and filters are baked into each layer; source controls remain editable in native Fluxfoto files. Content outside the canvas is clipped. Canvas-wide erasers use a visible merged appearance plus a hidden group of original rendered layers. Exports are bounded to 200 layers, 48 megapixels of retained raster surfaces and 64 MB. All 11 PSD decode/reimport/pixel browser checks pass. This verifies the generated file with the installed PSD reader and Fluxfoto, not a manual Photoshop desktop opening.
 
 See [the full Photoshop gap audit](PHOTOSHOP-FEATURE-GAPS.md) for remaining selections, painting, retouching, groups, adjustment layers, editable PSD fidelity and other tools.
+
+### Parallel gap continuation (2026-10-09)
+
+Combined selection algebra, source-preserving cut/hide, isolated copy/paste and separate fill now have actual pixel/undo checks. Flat multi-selection and atomic batch operations have lock/order/reload coverage. Detailed boundaries and evidence are in PHOTOSHOP-FEATURE-GAPS.md; the shared release record determines deployment status.

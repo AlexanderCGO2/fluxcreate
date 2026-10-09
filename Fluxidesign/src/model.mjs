@@ -1,3 +1,4 @@
+import {TEXT_STYLE_FIELDS,markTextOverrides} from './text-styles.mjs';
 import {createBlankProject, createLayer, parseProject, evaluateLayer} from '../../Fluxiffects/src/core.mjs';
 
 export const uid = () => globalThis.crypto.randomUUID();
@@ -30,17 +31,21 @@ function normalizeObject(raw) {
   out.fill = color(raw.fill, base.fill); out.stroke = color(raw.stroke, base.stroke);
   out.textAlign = ['left', 'center', 'right'].includes(raw.textAlign) ? raw.textAlign : 'left';
   out.assetId = raw.assetId == null ? null : id(raw.assetId); out.fit = raw.fit === 'contain' ? 'contain' : 'cover';
+  if(raw.textStyleId!=null){if(raw.type!=='text')fail('Only text frames can use a text style.');out.textStyleId=id(raw.textStyleId);const overrides=list(raw.textStyleOverrides??[],TEXT_STYLE_FIELDS.length);if(overrides.some(key=>!TEXT_STYLE_FIELDS.includes(key))||new Set(overrides).size!==overrides.length)fail('Invalid text style overrides.');out.textStyleOverrides=[...overrides];}
+  else if(raw.textStyleOverrides?.length)fail('Style overrides need a linked text style.');
   return out;
 }
 export function validateProject(raw) {
   record(raw); if (raw.format !== 'fluxidesign' || raw.version !== 1) fail('Choose a supported FluxDesign project.');
+  const textStyles=list(raw.textStyles??[],100).map(style=>{record(style);if(Object.keys(style).some(key=>!['id','name','properties'].includes(key)))fail('Unsupported text style fields.');record(style.properties);if(Object.keys(style.properties).some(key=>!TEXT_STYLE_FIELDS.includes(key)))fail('Unsupported text style property.');const frame=normalizeObject({type:'text',...style.properties});const name=str(style.name,'',80).trim();if(!name)fail('Text styles need a name.');return{id:id(style.id),name,properties:Object.fromEntries(TEXT_STYLE_FIELDS.map(key=>[key,frame[key]]))};});unique(textStyles);if(new Set(textStyles.map(s=>s.name.toLowerCase())).size!==textStyles.length)fail('Text style names must be unique.');
   let objectCount = 0;
   const pages = list(raw.pages, 100).map(p => {record(p); const objects = list(p.objects, 1000).map(normalizeObject); unique(objects); objectCount += objects.length;
     return {id: id(p.id), name: str(p.name, 'Untitled page', 200), width: num(p.width, 595, 72, 4096, 'Page width'), height: num(p.height, 842, 72, 4096, 'Page height'), margin: num(p.margin, 42, 0, 1000, 'Margins'), columns: Math.round(num(p.columns, 3, 1, 12, 'Columns')), gutter: num(p.gutter, 16, 0, 500, 'Gutter'), background: color(p.background, '#fffdf8'), objects};});
+  for(const page of pages)for(const frame of page.objects)if(frame.textStyleId){const style=textStyles.find(s=>s.id===frame.textStyleId);if(!style)fail('A linked text style is missing.');for(const key of TEXT_STYLE_FIELDS)if(!frame.textStyleOverrides.includes(key))frame[key]=style.properties[key];}
   if (!pages.length || objectCount > 5000) fail('Use 1–100 pages and at most 5,000 frames.'); unique(pages);
   const assets = list(raw.assets ?? [], 500).map(a => {record(a); const src = str(a.src, '', 40000000); if (src && !/^data:image\/(png|jpeg|webp|svg\+xml);(?:base64,|charset=utf-8,|utf8,)/i.test(src)) fail('Only embedded PNG, JPEG, WebP, and SVG images are supported.');
     return {id: id(a.id), name: str(a.name, 'Image', 300), type: 'image', src, width: num(a.width, 1, 1, 32768, 'Image width'), height: num(a.height, 1, 1, 32768, 'Image height'), missing: !src};}); unique(assets);
-  return {format: 'fluxidesign', version: 1, id: id(raw.id), name: str(raw.name, 'Untitled publication', 200), activePageId: pages.some(p => p.id === raw.activePageId) ? raw.activePageId : pages[0].id, pages, assets};
+  return {format: 'fluxidesign', version: 1, id: id(raw.id), name: str(raw.name, 'Untitled publication', 200), activePageId: pages.some(p => p.id === raw.activePageId) ? raw.activePageId : pages[0].id, pages, assets,...(textStyles.length?{textStyles}:{})};
 }
 const art = `<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1000" viewBox="0 0 1100 1000"><rect width="1100" height="1000" fill="#e8e5d8"/><circle cx="807" cy="226" r="172" fill="#e17852"/><path d="M-40 1050V442C173 156 437 398 567 454s384-229 579-4v600" fill="#354c40"/><path d="M-40 1050V778C183 414 406 516 587 648s270 64 559-50v452" fill="#8e9c70"/><path d="M-40 1050V924c266-228 469-160 660-2s427-4 526-115v243" fill="#c8c5a5"/><path d="M660 1000c-121-278-235-437-96-659M621 723c-134 3-206-49-188-146 118-23 184 38 188 146M570 485c-74-58-98-123-42-185 74 12 99 88 42 185M612 793c114-15 150-88 110-160-94 2-132 72-110 160" fill="none" stroke="#f5efd9" stroke-width="15" stroke-linecap="round"/></svg>`;
 export function createDemoProject() {
@@ -104,7 +109,7 @@ export function applyAICommands(project, commands, {selection = [], scope = 'com
   for (const command of commands) {record(command);
     switch (command.type) {
       case 'updateObject': {
-        onlyKeys(command, ['type', 'objectId', 'properties']); const target = getObject(command.objectId); onlyKeys(command.properties, [...editable]); Object.assign(target, command.properties); break;
+        onlyKeys(command, ['type', 'objectId', 'properties']); const target = getObject(command.objectId); onlyKeys(command.properties, [...editable]); markTextOverrides(target, command.properties); break;
       }
       case 'addObject': {
         onlyKeys(command, ['type', 'object']); if (scope === 'selection') fail('Choose page scope to add frames.'); onlyKeys(command.object, ['type', ...editable]); if (!['text', 'rectangle', 'ellipse'].includes(command.object.type)) fail('AI can add text and shapes.'); page.objects.push(createObject(command.object.type, command.object)); break;

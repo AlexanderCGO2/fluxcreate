@@ -9,10 +9,11 @@ export async function serve(port=4327,{service,resolveService=service?async()=>(
  const server=http.createServer(async(req,res)=>{try{const url=new URL(req.url,'http://localhost'),route=url.pathname;if(!['localhost','127.0.0.1','[::1]'].map(host=>host+':'+server.address().port).includes(req.headers.host)||req.headers['sec-fetch-site']==='cross-site'){json(res,{error:'Local access only.'},403);return;}if(req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`){json(res,{error:'Open FluxAgents in its own window to make changes.'},403);return;}
  if(route.startsWith('/api/')){const api=route.slice(4);if(settings&&await settings.handleSettings(req,res,api,{hosted:false}))return;
  if(req.method==='GET'&&api==='/health'){json(res,{app:'fluxagents',ok:true});return;}
- if(req.method==='GET'&&api==='/status'){let connected=false;try{const s=await resolveService();connected=!!(await s.service.status()).available;}catch{}json(res,{app:'fluxagents',live:true,connected,mode:'local',reason:'Runs are stored on this computer. Keep the FluxAgents server running; the browser may close.'});return;}
+ if(req.method==='GET'&&api==='/status'){let connected=false;try{const s=await resolveService();connected=!!(await s.service.status()).available;}catch{}json(res,{app:'fluxagents',live:true,connected,runnerId:store.runnerId,mode:'local',reason:'Runs are stored on this computer. Keep the FluxAgents server running; the browser may close.'});return;}
  if(req.method==='GET'&&api==='/models'){const s=await resolveService();json(res,await s.service.models());return;}
  if(req.method==='POST'&&api==='/validate'){json(res,{graph:validateGraph((await readBody(req)).graph)});return;}
  if(req.method==='POST'&&api==='/simulate'){const body=await readBody(req);json(res,simulate(body.graph,{input:body.input}));return;}
+ const savedStart=/^\/start-intents\/([0-9a-f-]{36})$/i.exec(api);if(savedStart&&req.method==='GET'){json(res,runner.findStart(savedStart[1],url.searchParams.get('runnerId')));return;}
  if(api==='/runs'&&req.method==='GET'){json(res,{runs:runner.list()});return;}
  if(api==='/runs'&&req.method==='POST'){const run=await runner.start(await readBody(req));json(res,runner.get(run.id),201);return;}
  const match=/^\/runs\/([0-9a-f-]{36})(?:\/(approve|resume|retry|cancel))?$/.exec(api);if(match&&req.method==='GET'&&!match[2]){json(res,runner.get(match[1]));return;}if(match&&req.method==='POST'&&match[2]){json(res,runner.action(match[1],match[2],await readBody(req)));return;}json(res,{error:'This endpoint is unavailable.'},404);return;}

@@ -5,7 +5,7 @@ import {ease} from './core.mjs';
 export function audioLayerGain(layer,time){
   if(layer.visible===false)return 0;
   let volume=layer.volume??1;const keys=layer.keyframes?.volume;
-  if(keys?.length){if(time<=keys[0].time)volume=keys[0].value;else if(time>=keys.at(-1).time)volume=keys.at(-1).value;else{let low=0,high=keys.length-1;while(low+1<high){const mid=(low+high)>>>1;if(keys[mid].time<=time)low=mid;else high=mid;}const a=keys[low],b=keys[high];volume=a.value+(b.value-a.value)*ease((time-a.time)/(b.time-a.time),a.easing);}}
+  if(keys?.length){if(time<=keys[0].time)volume=keys[0].value;else if(time>=keys.at(-1).time)volume=keys.at(-1).value;else{let low=0,high=keys.length-1;while(low+1<high){const mid=(low+high)>>>1;if(keys[mid].time<=time)low=mid;else high=mid;}const a=keys[low],b=keys[high];volume=a.value+(b.value-a.value)*ease((time-a.time)/(b.time-a.time),a.easing,a.bezier);}}
   return clipGain({start:layer.start??0,duration:layer.end-(layer.start??0),volume,muted:layer.muted,fadeIn:layer.fadeIn??0,fadeOut:layer.fadeOut??0},time);
 }
 

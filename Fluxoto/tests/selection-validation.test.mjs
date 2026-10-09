@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {combineSelection,selectionBounds,maskFromSelection} from '../src/pixel-selection.mjs';
+const area=(x=0)=>({kind:'rectangle',points:[[x,0],[x+20,20]],inverted:false});
+test('combined selections preserve inputs and explicit inversion order',()=>{const first={...area(),inverted:true},second=area(30),result=combineSelection(first,second,'add');assert.deepEqual(result.steps.map(s=>s.mode),['replace','invert','add']);assert.equal(result.steps[0].shape.inverted,false);assert.equal(first.inverted,true);assert.deepEqual(selectionBounds(result),{x:0,y:0,width:50,height:20});second.points[0][0]=99;assert.equal(result.steps[2].shape.points[0][0],30);});
+test('invalid and excessive selection geometry is rejected before allocation',()=>{assert.throws(()=>selectionBounds({...area(),points:[[0,0],[Infinity,10]]}));assert.throws(()=>combineSelection(area(),area(),'unsupported'));assert.throws(()=>selectionBounds({kind:'lasso',points:[[0,0],[20,20]]}));let combined=area();for(let i=0;i<31;i++)combined=combineSelection(combined,area(i),'add');assert.throws(()=>combineSelection(combined,area(),'add'),/32/);});
+test('mask feather validates original document units before downscaling',async()=>{for(const feather of [NaN,-1,101,Infinity])await assert.rejects(maskFromSelection({type:'image',width:16384,height:16384},area(),{feather}),/Feather/);});

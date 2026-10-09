@@ -30,7 +30,7 @@ Live local runs use a SQLite operation ledger, persisted delays and approvals, a
 | Credentials | Partial | Live local runs explicitly bill the suite connection; only credential fingerprints are persisted. Personal browser keys are not background-run credentials. No revocable account vault, per-workflow provider identity, OAuth connector accounts or scoped secret references. | P1 platform gate |
 | Workflow library | Partial | One protected browser draft, templates, autosave, undo and portable JSON/Markdown. No named multi-workflow library, folders/tags, saved versions, visual diff, branching or publish/activate lifecycle. | P1 |
 | Run snapshots and portability | Working / partial | Each run pins its validated graph; JSON/text audit downloads and inactive portable workflow imports exist. No resumable cross-machine run package, migration tooling or artifact-inclusive backup. | P2 |
-| Start request recovery | Partial | Server deduplicates the same request ID and graph. The current pending start request identity is not a durable browser draft across reload; run history is the recovery path. | P1 |
+| Start request recovery | Working / bounded | Atomic browser intent records pin request ID, graph, billing and stable local database identity before POST. Reload only looks up an existing run; a missing result requires fresh approval to retry the same ID/snapshot. Storage/lookup failures retain recovery; expired records cannot replay. Explicit removal does not cancel prior work. No cross-machine or distributed exactly-once guarantee. | Preserve |
 | Run monitoring | Partial | Status, step output, token/estimate totals and bounded event history. No streaming trace, step-duration breakdown, searchable full history, log retention settings, alerts or stuck-run dashboard. | P1 |
 | Simulation | Working / bounded | Clearly labelled, deterministic, no-charge preview of branches, joins, reviews and delays. Conditions evaluate simulated model placeholders and do not predict live model routes, real timing, cost or tool effects. | Preserve |
 | Testing and evaluation | Partial | Automated schema/runner/API/browser regressions exist. No in-product assertions, fixture inputs, golden outputs, eval datasets, regression scorecards or model comparison reports. | P1/P2 |
@@ -62,7 +62,7 @@ Regression gate: the real-origin five-destination test already demonstrates labe
 
 ### Phase 1 — make workflows reusable and inspectable
 
-Add a named workflow library with stable IDs, explicit save-as/duplicate, immutable versions and a readable change view. Persist an unresolved start intent before submitting it so reload can look up the same run instead of inviting a second start. Add a useful run monitor with current step, wait reason, duration, attempt history and explicit retry consequences. Keep draft recovery and failed-import preservation.
+Add a named workflow library with stable IDs, explicit save-as/duplicate, immutable versions and a readable change view. Implemented: unresolved start intents persist before submission, and reload performs read-only recovery of the same request. Preserve this boundary while expanding the library. Add a useful run monitor with current step, wait reason, duration, attempt history and explicit retry consequences. Keep draft recovery and failed-import preservation.
 
 Acceptance: refresh during submission finds the existing run without billing twice; renaming or editing a draft does not alter a pinned run; storage failure keeps the original draft; duplicate IDs have explicit conflict handling. A user can distinguish an approval wait, delay, credential pause, budget stop, provider uncertainty and terminal failure without reading raw logs.
 
@@ -104,4 +104,10 @@ For immediate user value, retain the verified handoff and implement the workflow
 
 Primary source: [graph validation and simulation](../src/model.mjs), [editor](../src/main.jsx), [browser storage](../src/storage.mjs), [local execution engine](../server/engine.mjs), [SQLite store](../server/store.mjs), [hosted boundary](../server/hosted.mjs), [runner tests](../tests/runner.test.mjs), [API tests](../tests/api.test.mjs), [core tests](../tests/core.test.mjs), [browser harness](../scripts/browser-smoke.mjs) and [recovery harness](../scripts/recovery-browser-smoke.mjs). See also [README](../README.md), [optimization status](OPTIMIZATIONS.md) and the suite's [framework/runtime research](../../FluxCreate/docs/FLUXAGENTS_RESEARCH.md).
 
-This document records the source audit and the explicitly implemented branching slice linked above. Missing features remain missing; no managed runtime was deployed and no paid model/provider trial was performed.
+This document records the source audit, the explicitly implemented branching slice linked above, and durable browser start recovery. Missing features remain missing; no managed runtime was deployed and no paid model/provider trial was performed.
+
+## Completed local start-recovery increment — 2026-10-09
+
+Build, 24 unit/API checks, six standard browser groups, five draft-recovery groups, six branching groups and eight new start-recovery groups pass. Accepted-but-lost responses, lookup authentication failure, reload, frozen-graph recovery, cross-tab blocking, expired records, changed SQLite identity and pre-submit storage failure are covered without paid calls. No automatic resubmission or hosted live execution was added. Named multi-workflow versions, richer run monitoring, edited/rejected approvals, structured data, tools/media and durable hosted execution remain open.
+
+Independent review correction: refreshing a saved start clears all prior approval/removal acknowledgments; retry re-reads and compares the complete saved record before POST. The two-tab A→B replacement regression and an unrefreshed stale retry both pass without a new submission.

@@ -53,6 +53,39 @@ export function splitClip(project, clipId, time, newId=uid()) {
   p.clips.splice(index,1,{...clip,duration:leftLength,fadeIn:Math.min(clip.fadeIn,leftLength),fadeOut:0},{...clip,id:newId,name:`${clip.name} · B`,start:time,duration:rightLength,sourceIn:clip.sourceIn+leftLength*clip.playbackRate,fadeIn:0,fadeOut:Math.min(clip.fadeOut,rightLength)});
   return validateProject(p);
 }
+/** Remove one interval, preserving the source position and gain of every surviving sample. */
+export function planRippleEdit(project,{clipId,operation='delete',scope='track',time}={}) {
+  const p=validateProject(project),selected=p.clips.find(c=>c.id===clipId),epsilon=1e-7;
+  if(!selected)throw Error('Select a clip for ripple editing.');
+  if(!['track','all'].includes(scope))throw Error('Choose the selected track or all tracks as the ripple scope.');
+  if(!['delete','trim-start','trim-end'].includes(operation))throw Error('Choose a supported ripple operation.');
+  let from=selected.start,to=selected.start+selected.duration;
+  if(operation!=='delete'){
+    if(!Number.isFinite(time))throw Error('Place the playhead inside the selected clip.');
+    const boundary=Math.round(time*p.fps)/p.fps,minimum=Math.max(.01,1/p.fps);
+    if(boundary-from<minimum-epsilon||to-boundary<minimum-epsilon)throw Error('Place the playhead inside the clip, leaving at least one frame on each side.');
+    if(operation==='trim-start')to=boundary;else from=boundary;
+  }
+  const amount=to-from,changes=[],result=[];
+  for(const c of p.clips){
+    const end=c.start+c.duration;
+    if(scope==='track'&&c.track!==selected.track||end<=from+epsilon){result.push(c);continue;}
+    if(c.locked)throw Error(`“${c.name}” is locked on ${c.track}. Unlock it or choose another track scope.`);
+    if(c.start>=to-epsilon){result.push({...c,start:Math.max(0,c.start-amount)});changes.push({id:c.id,name:c.name,track:c.track,action:'Move earlier'});continue;}
+    // This clip intersects the removed interval. Cuts inside a fade would alter
+    // its gain envelope in the current model, so refuse the entire operation.
+    for(const point of [from,to])if(point>c.start+epsilon&&point<end-epsilon&&((c.fadeIn&&point<c.start+c.fadeIn-epsilon)||(c.fadeOut&&point>end-c.fadeOut+epsilon)))throw Error(`The cut crosses a fade in “${c.name}”. Move the cut outside the fade or adjust that fade first.`);
+    const left=Math.max(0,from-c.start),right=Math.max(0,end-to),minimum=Math.max(.01,1/p.fps);
+    if(left>epsilon&&left<minimum-epsilon||right>epsilon&&right<minimum-epsilon)throw Error(`This edit leaves less than one frame of “${c.name}”. Move the cut to its edge.`);
+    if(left>epsilon)result.push({...c,duration:left,fadeOut:0});
+    if(right>epsilon)result.push({...c,id:left>epsilon?uid():c.id,name:left>epsilon?`${c.name} · B`:c.name,start:from,duration:right,sourceIn:['video','audio'].includes(c.type)?c.sourceIn+(to-c.start)*c.playbackRate:c.sourceIn,fadeIn:0});
+    changes.push({id:c.id,name:c.name,track:c.track,action:left>epsilon&&right>epsilon?'Split and close gap':left>epsilon||right>epsilon?'Trim':'Remove'});
+  }
+  p.clips=result;
+  if(scope==='all')p.duration=Math.max(p.duration-amount,...result.map(c=>c.start+c.duration),0);
+  if(p.duration<.1-epsilon)throw Error('The edit would leave an empty sequence duration. Keep at least 0.1 seconds.');
+  return {project:validateProject(p),from,to,amount,scope,track:selected.track,changes,playhead:Math.min(from,p.duration)};
+}
 export function toMotion(project) {
   const p=validateProject(project),motion=createBlankProject({name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background});
   motion.id=p.id;motion.assets=p.assets.map(a=>({...a}));if(p.brief)motion.brief=p.brief;

@@ -46,8 +46,8 @@ export function LayerList({layers, selected, onSelect, onToggle, onReorder}) {
       if (!state || state.pointerId !== event.pointerId) return;
       const target = locate(event.clientX, event.clientY);
       if (state.active && target && latest.current.layers === state.layers) {
-        latest.current.onReorder(state.id, target.id, target.edge);
-        latest.current.onSelect(state.id);
+        if(latest.current.onReorder(state.id, target.id, target.edge)===false){clear();return;}
+        latest.current.onSelect(state.id,{preserve:true});
         setAnnouncement(`${state.name} placed ${target.edge === 'before' ? 'above' : 'below'} ${state.layers.find(layer => layer.id === target.id)?.name}.`);
       }
       clear();
@@ -66,7 +66,7 @@ export function LayerList({layers, selected, onSelect, onToggle, onReorder}) {
   }, []);
   const start = (event, layer) => {
     suppressClick.current = false;
-    if (event.button !== 0 || layer.locked || !event.isPrimary) return;
+    if (event.button !== 0 || layer.locked || !event.isPrimary || event.ctrlKey || event.metaKey || event.shiftKey) return;
     drag.current = {id:layer.id, name:layer.name, layers, pointerId:event.pointerId, startX:event.clientX, startY:event.clientY, x:event.clientX, y:event.clientY, active:false};
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -76,13 +76,13 @@ export function LayerList({layers, selected, onSelect, onToggle, onReorder}) {
     const index = layers.indexOf(layer), target = layers[index + (event.key === 'ArrowUp' ? -1 : 1)];
     if (!layer.locked && target) {
       onReorder(layer.id, target.id, event.key === 'ArrowUp' ? 'before' : 'after');
-      onSelect(layer.id); setAnnouncement(`${layer.name} moved ${event.key === 'ArrowUp' ? 'up' : 'down'}.`);
+      onSelect(layer.id,{preserve:true}); setAnnouncement(`${layer.name} moved ${event.key === 'ArrowUp' ? 'up' : 'down'}.`);
     }
   };
   return <><div ref={list} className="oto-layer-list" aria-label="Layer stack">
-    {layers.map(layer => <div key={layer.id} data-layer-id={layer.id} className={`oto-layer-row ${selected === layer.id ? 'selected' : ''} ${!layer.visible ? 'hidden-layer' : ''} ${indicator?.source === layer.id ? 'is-dragging' : ''} ${indicator?.id === layer.id ? `drop-${indicator.edge}` : ''}`}>
-      <button className="oto-layer-grip" aria-label={`Reorder ${layer.name}`} title={layer.locked ? 'Unlock this layer to reorder it' : 'Drag to reorder · Alt + ↑ / ↓'} disabled={layer.locked} onPointerDown={event => start(event, layer)} onKeyDown={event => keyboard(event, layer)} onClick={() => {if (!suppressClick.current) onSelect(layer.id);}}><GripVertical size={12}/></button>
-      <button className={`oto-layer-select ${layer.type === 'text' ? 'text' : ''}`} aria-label={`Select ${layer.name}`} title={layer.locked ? layer.name : `${layer.name} · Drag to reorder`} onPointerDown={event => start(event, layer)} onKeyDown={event => keyboard(event, layer)} onClick={() => {if (!suppressClick.current) onSelect(layer.id); suppressClick.current = false;}}>
+    {layers.map(layer => <div key={layer.id} data-layer-id={layer.id} className={`oto-layer-row ${(Array.isArray(selected)?selected.includes(layer.id):selected===layer.id) ? 'selected' : ''} ${!layer.visible ? 'hidden-layer' : ''} ${indicator?.source === layer.id ? 'is-dragging' : ''} ${indicator?.id === layer.id ? `drop-${indicator.edge}` : ''}`}>
+      <button className="oto-layer-grip" aria-label={`Reorder ${layer.name}`} title={layer.locked ? 'Unlock this layer to reorder it' : 'Drag to reorder · Alt + ↑ / ↓'} disabled={layer.locked} onPointerDown={event => start(event, layer)} onKeyDown={event => keyboard(event, layer)} onClick={event => {if (!suppressClick.current) onSelect(layer.id,event);}}><GripVertical size={12}/></button>
+      <button className={`oto-layer-select ${layer.type === 'text' ? 'text' : ''}`} aria-pressed={Array.isArray(selected)?selected.includes(layer.id):selected===layer.id} aria-label={`Select ${layer.name}`} title={layer.locked ? layer.name : `${layer.name} · Drag to reorder`} onPointerDown={event => start(event, layer)} onKeyDown={event => keyboard(event, layer)} onClick={event => {if (!suppressClick.current) onSelect(layer.id,event); suppressClick.current = false;}}>
         <span className="oto-layer-thumb" style={{background:layer.type === 'shape' ? layer.gradient ? `linear-gradient(${layer.gradient.angle}deg,${layer.gradient.from},${layer.gradient.to})` : layer.fill : undefined, borderRadius:layer.shape === 'ellipse' && layer.type === 'shape' ? 50 : 5}}>{layer.type === 'text' ? <Type size={14}/> : layer.type === 'image' ? <ImagePlus size={14}/> : layer.type === 'stroke' ? <Brush size={14}/> : null}</span>
         <span>{layer.name}</span>
       </button>

@@ -80,3 +80,5 @@ For faithful procedural appearance, use Fluxini's PNG or WebM renderer, then imp
 ## Validation
 
 Run `node --test tests/*.test.mjs`. Tests exercise the shared format, both applications' actual native validators, bidirectional transfers, explicit original recovery, repeated round-trips, font preservation, unsupported simulation reports, resource limits, malformed fences, and prototype-key rejection. Application-validator tests expect the sibling `Fluxiffects` and `Haidini` directories.
+
+Custom Fluxiffects cubic Bézier controls remain exact in the native snapshot and explicit original restore. Converting motion to Fluxini uses linear interpolation with an explicit warning because its current animation model has preset easing only. A portable source snapshot is not a claim of identical destination motion.

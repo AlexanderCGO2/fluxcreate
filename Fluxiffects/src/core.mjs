@@ -54,8 +54,22 @@ export function createDemoProject() {
   return project;
 }
 
-export function ease(progress, easing = 'linear') {
+export const DEFAULT_BEZIER = Object.freeze([.25,.1,.25,1]);
+export function normalizeBezier(value){
+  if(!Array.isArray(value)||value.length!==4||value.some(n=>typeof n!=='number'||!Number.isFinite(n)||n<0||n>1))throw Error('Bezier curve controls must be four numbers between 0 and 1.');
+  return [...value];
+}
+export function ease(progress, easing = 'linear', bezier) {
   const t = clamp(progress, 0, 1);
+  if(easing==='cubic-bezier'){
+    const [x1,y1,x2,y2]=bezier??DEFAULT_BEZIER;
+    if(t===0||t===1)return t;
+    const point=(u,a,b)=>3*(1-u)*(1-u)*u*a+3*(1-u)*u*u*b+u*u*u;
+    // Invert the time coordinate; using the parameter directly changes timing.
+    let u=t,low=0,high=1;
+    for(let i=0;i<24;i++){const x=point(u,x1,x2),delta=x-t;if(Math.abs(delta)<1e-9)break;if(delta<0)low=u;else high=u;const derivative=3*(1-u)*(1-u)*x1+6*(1-u)*u*(x2-x1)+3*u*u*(1-x2),next=u-delta/derivative;u=derivative>1e-8&&next>low&&next<high?next:(low+high)/2;}
+    return clamp(point(u,y1,y2),0,1);
+  }
   if (easing === 'hold') return t < 1 ? 0 : 1;
   if (easing === 'ease-in') return t * t * t;
   if (easing === 'ease-out') return 1 - (1 - t) ** 3;
@@ -79,11 +93,11 @@ export function evaluateLayer(layer, time) {
     let low = 0, high = keys.length - 1;
     while (low + 1 < high) {const mid = (low + high) >>> 1; if (keys[mid].time <= time) low = mid; else high = mid;}
     const a = keys[low], b = keys[high];
-    result[property] = interpolate(a.value, b.value, ease((time - a.time) / (b.time - a.time), a.easing));
+    result[property] = interpolate(a.value, b.value, ease((time - a.time) / (b.time - a.time), a.easing, a.bezier));
   }
   return result;
 }
-export function setKeyframe(layer, property, time, value, easing = 'ease-in-out') {
+export function setKeyframe(layer, property, time, value, easing, bezier) {
   if (!ANIMATABLE_PROPERTIES.includes(property)) throw new Error(`Cannot animate property: ${property}`);
   if(property==='volume'&&(typeof value!=='number'||!Number.isFinite(value)||value<0||value>1))throw new Error('Volume keyframes must be between 0 and 1.');
   if (SCENE3D_ANIMATABLE.includes(property)) {
@@ -92,15 +106,21 @@ export function setKeyframe(layer, property, time, value, easing = 'ease-in-out'
     if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max) throw new Error(`3D keyframe ${property} must be between ${min} and ${max}.`);
   }
   if (!Number.isFinite(time) || time < -86400 || time > 172800) throw new Error('Keyframe time must be a finite number between -86400 and 172800 seconds.');
-  if (!own(EASINGS, easing)) throw new Error(`Unknown easing: ${easing}`);
   const validValue = property === 'fill' || property === 'stroke' ? typeof value === 'string' && COLOR.test(value) : typeof value === 'number' && Number.isFinite(value);
   if (!validValue) throw new Error(`Invalid keyframe value for ${property}.`);
   const track = [...(layer.keyframes?.[property] ?? [])];
   const index = track.findIndex(key => Math.abs(key.time - time) < 0.000001);
-  const key = {id: index < 0 ? uid() : track[index].id, time, value, easing};
+  easing??=track[index]?.easing??'ease-in-out';
+  if (!own(EASINGS, easing)&&easing!=='cubic-bezier') throw new Error(`Unknown easing: ${easing}`);
+  const key = {id: index < 0 ? uid() : track[index].id, time, value, easing,...(easing==='cubic-bezier'?{bezier:normalizeBezier(bezier??track[index]?.bezier??DEFAULT_BEZIER)}:{})};
   if (index < 0) track.push(key); else track[index] = key;
   track.sort((a, b) => a.time - b.time);
   return {...layer, keyframes: {...layer.keyframes, [property]: track}};
+}
+export function updateKeyframeEasing(layer,property,keyId,easing,bezier){
+  if(layer.locked)throw Error('Unlock the layer before changing its curve.');
+  const key=layer.keyframes?.[property]?.find(k=>k.id===keyId);if(!key)throw Error('This keyframe no longer exists.');
+  return setKeyframe(layer,property,key.time,key.value,easing,bezier);
 }
 export function removeKeyframe(layer, property, keyId) {
   if (!ANIMATABLE_PROPERTIES.includes(property)) return layer;
@@ -210,7 +230,7 @@ function normalizeLayer(input, comp, warnings, counters) {
       if (time === undefined) fail('keyframe time is required.');
       const value = property === 'fill' || property === 'stroke' ? color(key.value, undefined, 'keyframe color') : number(key.value, undefined, `${property} keyframe value`, ...(PROPERTY_RANGES[property] ?? [-1000000, 1000000]));
       if (value === undefined) fail('keyframe value is required.');
-      normalized.set(time, {id: identifier(key.id, uid(), 'keyframe id'), time, value, easing: own(EASINGS, key.easing) ? key.easing : 'linear'});
+      normalized.set(time, {id: identifier(key.id, uid(), 'keyframe id'), time, value, easing: key.easing==='cubic-bezier'?'cubic-bezier':own(EASINGS, key.easing) ? key.easing : 'linear',...(key.easing==='cubic-bezier'?{bezier:normalizeBezier(key.bezier)}:{})});
     }
     layer.keyframes[property] = [...normalized.values()].sort((a, b) => a.time - b.time);
   }

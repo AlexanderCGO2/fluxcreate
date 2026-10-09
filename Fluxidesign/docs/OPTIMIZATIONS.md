@@ -27,3 +27,9 @@ Updated 2026-10-09. This is an observed implementation worklist, not a claim tha
 | P3 | Source provenance is limited after IDML conversion | **Next:** optional original-source attachment with explicit file-size budget and download recovery; keep it out of AI context | Source hash roundtrip and provider-context privacy tests |
 
 Current quality boundary: IDML creates useful editable structures; PDF/compatible AI preserve rendered artwork. Neither claims native INDD, full Illustrator editing, exact InDesign typography, press preflight, or arbitrary Adobe plugin compatibility.
+
+## Completed typography subset — 2026-10-09
+
+Whole-frame reusable text styles materialize their resolved values, retaining version-1 native compatibility and portable appearance. Local direct and AI typography changes become explicit overrides. Global updates reject affected locked inherited frames before any mutation; style operations are one undo step. An all-page text-fit review includes hidden frames and downloads measurements with browser-layout limits. Reused wrapping metrics are invalidated when fonts load; empty frames do not produce false clipping.
+
+Validation: build, 27 unit checks, 19 editor browser checks, six typography browser groups, and six independent PDF groups pass. Rich character/paragraph ranges, threaded stories, broader font/glyph support, missing-font/media preflight, parent pages and professional print production remain open.

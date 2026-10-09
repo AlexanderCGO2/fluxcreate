@@ -14,6 +14,12 @@ Evidence: build passed; all 22 current unit/import/PDF tests passed; the 19-chec
 
 Remaining: PDF export cancellation; font embedding/subsetting and broader font/shaping coverage; fine glyph-rendering differences between standard PDF faces and installed fonts; editable vector SVG import/export conversion; reading order/tagging; page ranges, resolution choices, preflight/package, bleed, CMYK/ICC, spot colors and PDF/X. This increment is not press-ready or full D3 completion.
 
+## Implemented typography increment — 2026-10-09
+
+A bounded D2 slice is implemented: named reusable whole-text-frame styles for the existing seven typography/fill properties, explicit local overrides, reset/detach/delete, and one-action global restyling across pages with lock protection. Native version-1 documents retain optional style definitions and links; older style-free files remain unchanged. Portable exchange snapshots resolved appearance. The all-page text-fit review reports line/glyph clipping, includes hidden frames, navigates to each issue and downloads its report. Empty text is not falsely marked as clipped. Browser font loading invalidates wrap measurements.
+
+Verified: 27 unit checks, the existing 19-check editor suite, six independent PDF groups and six new typography browser groups. This is not rich text, paragraph ranges, threading, missing-font analysis or production preflight; those D2/D3 gaps remain.
+
 ## Evidence and comparison scope
 
 Inspected `src/main.jsx`, `model.mjs`, `render.mjs`, `import-idml.mjs`, `import-pdf.mjs`, the import/model fixtures, README and optimization backlog. The model has pages containing independent text, rectangle, ellipse and image frames; text is a single string with one style per frame. The renderer uses browser text measurement and Canvas/SVG; the PDF exporter now preserves supported shapes/text/images with explicit per-page visual fallback.
@@ -32,8 +38,8 @@ Priorities: **P0** protects work or prevents misleading deliverables; **P1** com
 | Object organization | Partial: per-page frame stack, visibility, locks, duplicate, forward/backward | P1: groups, named document layers, cross-page layer visibility and predictable group selection |
 | Reusable layout | Missing | P1: parent pages, reusable page templates, controlled overrides, automatic folios and running headers |
 | Text editing | Partial: plain text in an inspector; font, size, weight, tracking, line height and alignment per frame | P1: in-canvas caret editing, styled character ranges and paragraphs, useful paste behavior |
-| Text composition | Partial: basic word wrapping and an overflow notice | P1: stories threaded between frames/pages, reflow, columns/insets, overset inspector, keep-with-next/widow/orphan behavior |
-| Styles | Missing | P1: reusable paragraph, character and object styles, inheritance, overrides and one-action global restyling |
+| Text composition | Partial: basic word wrapping plus all-page text-fit review, hidden-frame reporting, navigation and downloadable report | P1: stories threaded between frames/pages, reflow, columns/insets, keep-with-next/widow/orphan behavior |
+| Styles | Partial: named whole-frame text styles with links, local overrides, reset/detach and one-action global restyling; locked inherited frames are protected | P1: paragraph/character ranges, based-on style inheritance and object styles |
 | Typographic detail | Missing beyond current basic controls | P2: tabs/indents, justified text, hyphenation, baseline grid, kerning controls, drop caps, lists and paragraph rules |
 | Fonts | Partial: browser/installed fonts; no packaged font management | P1: missing-font report and explicit substitutions. P2: local font import/embedding where licensing permits, fallback consistency and OpenType controls |
 | International typography | Partial: browser glyph rendering only | P2: explicit language/direction model and tested RTL/CJK shaping, punctuation and line-breaking. No professional language-composition parity claim |
@@ -55,7 +61,7 @@ Priorities: **P0** protects work or prevents misleading deliverables; **P1** com
 | PDF export | Partial: native vector shapes, searchable Latin text using standard PDF faces, original PNG/JPEG detail, physical page dimensions, clipping/rotation/transparency/alignment, explicit unsupported-font/glyph page fallback and report | P1: embedded/subset fonts with licensing, broader shaping/glyph coverage and page-range/resolution options. P2: tagged output and print features |
 | SVG/PNG export | Working: current-page SVG with text/shapes/images; PNG at 2× | P1: page-range/batch export, resolution choices, embedded-font or outlined-text options with clear font limits |
 | Print production | Missing | P2: bleed/trim boxes, crop marks, CMYK/ICC conversion, spot inks, overprint/separations and PDF/X validation. A color picker alone is not color management |
-| Preflight/package | Missing comprehensive workflow | P1: report overset text, missing fonts/media and image resolution. P2: package document/media/fonts when permitted; production profiles and downloadable reports |
+| Preflight/package | Partial: document-wide text-fit report with jump-to-frame and download | P1: missing fonts/media and image resolution. P2: package document/media/fonts when permitted; production profiles and downloadable reports |
 | Digital publications | Missing | P2: reflowable/fixed EPUB, HTML export, hyperlinks/bookmarks and reading order; P3: interactive forms/media and hosted publication workflows |
 | Accessibility | Partial: many editor controls are labelled; this is not an accessibility audit | P1: keyboard-only editing and dialog focus tests. P2: semantic document structure, alt text, language, tagged PDF/EPUB and screen-reader validation |
 | Collaboration | Missing shared document editing/version service | P2: explicit share/review snapshots and comments; P3: permissions, concurrent edits and conflict resolution. Hosted access protection is not document collaboration |

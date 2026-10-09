@@ -29,7 +29,9 @@ export function textLines(o) {
   }
   Object.freeze(lines);wrappedText.set(o,{key,lines});return lines;
 }
-export function hasOverflow(o) {return o.type === 'text' && textLines(o).length * o.fontSize * o.lineHeight > o.height + o.fontSize * (o.lineHeight - 1);}
+export function textFit(o){const lines=o.text?textLines(o):[],leading=o.fontSize*o.lineHeight,requiredHeight=lines.length?o.fontSize+(lines.length-1)*leading:0,visibleLines=Math.max(0,Math.floor((o.height-o.fontSize)/leading+1+1e-8));if(measure){measure.font=fontString(o);measure.letterSpacing=`${o.letterSpacing}px`;}let maxWidth=0;for(const line of lines)maxWidth=Math.max(maxWidth,measure?measure.measureText(line).width:line.length*o.fontSize*.53);return{lineCount:lines.length,visibleLines,hiddenLines:Math.max(0,lines.length-visibleLines),requiredHeight,maxWidth,vertical:requiredHeight>o.height+.01,horizontal:maxWidth>o.width+.01,overflow:requiredHeight>o.height+.01||maxWidth>o.width+.01};}
+export function hasOverflow(o) {return o.type==='text'&&textFit(o).overflow;}
+export function textFitReport(project){return project.pages.flatMap((page,index)=>page.objects.filter(o=>o.type==='text').map(o=>({pageId:page.id,pageNumber:index+1,pageName:page.name,frameId:o.id,frameName:o.name,visible:o.visible,locked:o.locked,width:o.width,height:o.height,...textFit(o)})));}
 function fitImage(ctx, image, o) {
   const factor = o.fit === 'contain' ? Math.min(o.width / image.width, o.height / image.height) : Math.max(o.width / image.width, o.height / image.height);
   const width = image.width * factor, height = image.height * factor; ctx.drawImage(image, (o.width - width) / 2, (o.height - height) / 2, width, height);

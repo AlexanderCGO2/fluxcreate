@@ -18,3 +18,21 @@ export function applyAICommands(raw,commands,{selection=[],scope='composition',t
 export function getAIContext(raw,{selection=[],scope='composition'}={}){const p=validateProject(raw);return{name:p.name,background:p.background,camera:p.camera,objects:p.objects.filter(o=>scope!=='selection'||selection.includes(o.id)).map(({geometry,studioObject,...o})=>({...o,...(studioObject?{studioObject:studioObjectSummary(studioObject)}:{}),...(o.type==='mesh'?{meshDescription:'Imported geometry; only transform and material are editable by AI.'}:{})}))};}
 export function toMotion(){throw Error('3D scenes require a PNG render for 2D studios, or GLB for 3D interchange.');}
 export const AI_SPEC={app:'Flux3D',description:'Editable 3D scenes in meters. Y is up. Rotation is XYZ Euler in degrees. Default primitives have unit size; sphere radius 1, torus major radius 1 and tube .28. Do not touch locked objects or invent imported meshes.',commands:[{type:'addObject',object:{type:'sphere',name:'Pearl',position:[0,1,0],scale:[1,1,1],color:'#e4dfee'}},{type:'updateObject',id:'object-id',values:{position:[0,2,0],rotation:[0,35,0],color:'#e1bda3'}},{type:'deleteObject',id:'object-id'},{type:'duplicateObject',id:'object-id'},{type:'updateScene',values:{background:'#efedf3'}}],primitives:PRIMITIVES,editableProperties:EDIT,limits:'Maximum 32 commands. No arbitrary geometry, shaders, media, or code. All changes are reviewed before applying.'};
+
+/** One document transaction for a complete selection. No partially edited scene escapes. */
+export function applyObjectBatch(raw,selection,action,{trustedGeometry=new Set()}={}){
+ const project=validateProject(raw,{trustedGeometry});
+ if(!Array.isArray(selection)||!selection.length||selection.some(id=>typeof id!=='string'))fail('Select one or more objects.');
+ const ids=[...new Set(selection)],chosen=ids.map(id=>project.objects.find(o=>o.id===id));
+ if(chosen.some(o=>!o))fail('A selected object was not found. Select the objects again.');
+ if(chosen.some(o=>o.locked))fail('Unlock every selected object before changing the selection.');
+ obj(action);let nextSelection=ids;
+ if(action.type==='translate'){
+  const delta=vector(action.delta,undefined,-20000,20000);
+  project.objects=project.objects.map(o=>ids.includes(o.id)?{...o,position:o.position.map((n,i)=>n+delta[i])}:o);
+ }else if(action.type==='duplicate'){
+  const copies=chosen.map(o=>({...duplicateObject(o),name:`${o.name.slice(0,235)} copy`}));project.objects.push(...copies);nextSelection=copies.map(o=>o.id);
+ }else if(action.type==='delete'){project.objects=project.objects.filter(o=>!ids.includes(o.id));nextSelection=[];}
+ else fail('Choose move, duplicate or delete for this selection.');
+ return{project:validateProject(project,{trustedGeometry:new Set([...trustedGeometry,...project.objects.map(o=>o.geometry).filter(Boolean)])}),selection:nextSelection};
+}

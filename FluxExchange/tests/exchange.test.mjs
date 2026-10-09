@@ -178,3 +178,13 @@ test('malformed exponentially shared graph branches hit a bounded work limit', (
   source.graph.edges.push(edge(previous, 'output', 'scene'));
   assert.throws(() => toFluxiffects(encoded('fluxini', source)), /too many connected branches/);
 });
+
+test('custom easing stays exact in native snapshots and warns when converted to Fluxini',()=>{
+ const source=ffx(),controls=[.2,.1,.8,.9];getComp(source).layers[0]=setKeyframe(getComp(source).layers[0],'x',0,960,'cubic-bezier',controls);
+ const envelope=encoded('fluxiffects',source),converted=toFluxini(envelope);parseFi(converted.package.project);
+ assert.equal(converted.package.project.animations[0].keys[0].easing,'linear');
+ assert.ok(converted.warnings.some(message=>/cubic-bezier.*linear.*source snapshot/i.test(message)));
+ const returning=encoded('fluxini',converted.package,{previous:envelope}),restored=toFluxiffects(returning,{restoreOriginal:true});
+ assert.deepEqual(getComp(restored.project).layers[0].keyframes.x[0].bezier,controls);
+ assert.deepEqual(parseFfx(JSON.stringify(restored.project)).project.compositions[0].layers[0].keyframes.x[0].bezier,controls);
+});

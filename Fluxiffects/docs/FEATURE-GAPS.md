@@ -6,7 +6,7 @@ The reference scope follows Adobe’s current [workflow overview](https://helpx.
 
 ## Current position
 
-Fluxiffects can create editable motion graphics, mix browser-supported footage, animate properties, import real animated 3D scene layers, and render PNG/WebM. It remains substantially narrower than After Effects. The biggest practical gaps are masks/mattes, nested compositions, curve editing, synchronized audio export, professional media/color workflows and a dependable render queue.
+Fluxiffects can create editable motion graphics, mix browser-supported footage, animate properties with bounded custom easing, import real animated 3D scene layers, and render PNG/WebM with sound. It remains substantially narrower than After Effects. The biggest practical gaps are masks/mattes, nested compositions, advanced animation tools, deterministic movie export, professional media/color workflows and a dependable render queue.
 
 Evidence reviewed: `src/core.mjs`, `main.jsx`, `renderer.mjs`, `storage.mjs`, `ai-commands.mjs`, `StudioAI.jsx`, `scene-import.mjs`, `Scene3DInspector.jsx`; shared Flux3D loader/compositor; `public/bridge/Export-to-Fluxiffects.jsx`; existing import, rendering, AI, exchange and recovery tests. Existing verification is recorded in the README; it was not all rerun for this audit.
 
@@ -18,7 +18,7 @@ Evidence reviewed: `src/core.mjs`, `main.jsx`, `renderer.mjs`, `storage.mjs`, `a
 | Layers and timing | Working: text, simple shapes, solid, null, image/video/audio and scene3d; reorder, lock, hide, duplicate, trim and split | Multi-selection edits, groups, solo/shy/guide semantics, adjustment layers, markers, slip/stretch tools | P1 |
 | Parenting | Partial: imported 2D affine parent transforms evaluate | Friendly parent picker, pick-whip, preserve-world reparenting and hierarchy tools | P1 |
 | Precompositions | Missing: a project may contain several compositions, but layers cannot render a nested comp | Nested reference type, recursion checks, timing/time remapping, shared dependency cache and precompose/unpack UI | P1 |
-| Keyframes | Working: numeric/color properties, five easing choices, draggable keyframes and value graph | Multi-key selection, copy/paste across layers, temporal/spatial Bézier handles, velocity graph, roving keys, motion paths | P1 |
+| Keyframes | Working: numeric/color properties, five presets plus bounded editable cubic Bézier easing, keyboard/drag handles, draggable keyframes and value graph; [verified scope](CUSTOM-EASING.md) | Multi-key selection, copy/paste across layers, overshoot/linked tangents, spatial Bézier paths, velocity graph, roving keys | P1 |
 | Retiming | Partial: source start, layer timing and playback rate | Animated time remapping, reverse controls, freeze-frame workflow, optical-flow/frame blending | P2 |
 | Text | Partial: editable text, font family/weight/size/tracking and alignment | Per-character/range selectors, text-on-path, paragraph layout, rich mixed styles, variable font axes and font packaging | P1/P2 |
 | Shape authoring | Partial: rectangles/ellipses, fill/stroke and rounded corners | Pen tool, Bézier paths, compound shapes, groups, trim/repeat/merge paths and gradient editing | P1 |

@@ -145,6 +145,7 @@ export function toFluxini(input, { restoreOriginal = false } = {}) {
     const normalized = new Map();
     for (const key of keys) {
       if (!Number.isFinite(key.time) || key.time < 0 || key.time > duration) { warn(`${label}: keys outside the scene duration were omitted.`); continue; }
+      if(key.easing&&!EASINGS.has(key.easing))warn(`${label}: ${text(key.easing).slice(0,80)} easing was approximated as linear in Fluxini; exact controls remain in the source snapshot.`);
       normalized.set(key.time, { time: key.time, value: convert(key.value), easing: EASINGS.has(key.easing) ? key.easing.replaceAll('-', ' ') : 'linear' });
     }
     if (normalized.size) project.animations.push({ nodeId, param, keys: [...normalized.values()].sort((a, b) => a.time - b.time) });
@@ -224,6 +225,7 @@ export function toFluxiffects(input, { restoreOriginal = false } = {}) {
     for (const key of track.keys ?? []) {
       if (!Number.isFinite(key.time) || key.time < 0 || key.time > duration) { warn(`${layer.name}: animation outside the composition duration was omitted.`); continue; }
       const easing = text(key.easing, 'linear').replaceAll(' ', '-');
+      if(!EASINGS.has(easing))warn(`${layer.name}: ${easing.slice(0,80)} easing was approximated as linear in Fluxiffects; exact controls remain in the source snapshot.`);
       keys.set(key.time, { id: id(), time: key.time, value: convert(key.value), easing: EASINGS.has(easing) ? easing : 'linear' });
     }
     if (keys.size) layer.keyframes[property] = [...keys.values()].sort((a, b) => a.time - b.time);

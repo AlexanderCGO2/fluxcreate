@@ -10,3 +10,5 @@
 @media(max-width:420px){.fc-header .fc-app-mark{display:none}.fc-header{gap:6px}.fc-header .fc-brand{min-width:0}.fc-header .fc-header-actions{gap:4px}}
 
 :root{--surface:var(--paper);--border:var(--line);--secondary:var(--muted);--field:var(--bg)}
+
+.start-recovery{padding:16px 24px;background:var(--surface,#fffaf1);border-bottom:1px solid var(--line,#d8dace);font-size:12px}.start-recovery p{line-height:1.6;margin:5px 0;overflow-wrap:anywhere}.start-recovery>div{display:flex;gap:8px;flex-wrap:wrap}.start-recovery button{border:1px solid var(--line,#d8dace);background:transparent;color:inherit;border-radius:6px;padding:8px;cursor:pointer;font:inherit}.start-recovery strong{font-size:13px}html[data-theme=dark] .start-recovery{background:#292d27}.modal details{font-size:12px;margin:16px 0}.modal details summary{cursor:pointer}.modal details p{font-size:12px}
