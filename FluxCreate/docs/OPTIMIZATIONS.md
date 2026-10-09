@@ -207,3 +207,9 @@ The requested per-app gap audits, integration review and detailed plan are index
 Implemented and checked in this continuation: Fluxfoto layer drag ordering and bounded layered raster PSD export; the FluxAgents local origin fix; FluxLab as a reviewed workflow prompt destination. Five real-local-origin browser routes now deliver output to Fluxfoto, FluxDesign, Fluximiére, Fluxiffects and FluxLab. The text is reviewed before insertion; prompt routing makes no model call.
 
 Verification before release: 409 suite unit/integration tests; complete nine-workspace hosted build; 36 hosted browser checks; 16 layer-ordering checks; 11 PSD round-trip checks; 25 existing Fluxfoto editor checks; five real-origin FluxAgents destination workflows. No paid generation calls.
+
+### Publication verification
+
+Runtime commit `813b18b` is pushed and deployed at https://fluxcreate.vercel.app. Deployment `dpl_2qKcZURFD7RkjXuHEfLsK8CQeETd` is Ready in the project’s current **Flux AI Inc** team; the local deployment link was corrected after detecting the existing project had moved teams. Vercel Authentication remains enabled for all deployments. All 43 production checks pass: suite pages/resources and AI availability, settings and workflow validation/simulation, anonymous-access rejection, and the published layer/PSD/prompt-routing features. No paid generations were made. Matching Fluxini commit: `1fabf7d`.
+
+Fluxini’s [design consistency review](../../Haidini/docs/DESIGN-CONSISTENCY.md) is complete; the visual redesign remains planned. Vercel’s broad function-tracing TypeScript pass still prints existing diagnostics in auxiliary Fluxini scripts (and a graph callback); the app’s dedicated typecheck/build passes and the deployment is Ready. Aligning those validation scopes is additional build-hygiene work.
