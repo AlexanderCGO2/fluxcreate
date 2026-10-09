@@ -131,6 +131,18 @@ The [live Gateway catalog](https://ai-gateway.vercel.sh/v1/models) has no standa
 
 The proposed FluxLab Music mode would provide instrumental/vocals and duration controls, preview, durable library storage, downloads and audio handoff. It is not implemented. Background recovery must not be claimed unless a documented provider job/status mechanism supports it. Research used no paid generation requests. Detailed notes are in `FluxLab/docs/OPTIMIZATIONS.md`.
 
+## FluxAgents — proposed workflow studio
+
+Comprehensive technology research is complete in [FLUXAGENTS_RESEARCH.md](FLUXAGENTS_RESEARCH.md), checked 2026-10-09. This is a planned separate app, not an implemented studio. The first candidate is a custom React Flow designer, portable graph format and AI SDK/Workflow execution, evaluating Eve for richer agent steps; Mastra/Inngest is the main alternative. Selection depends on the documented recovery, cost and usability evaluation.
+
+| Priority | Work and acceptance condition | State |
+|---|---|---|
+| P0 | Research agent frameworks, durable runtimes, visual platforms, licensing, integration and total cost | Research complete |
+| P0 | Prove crash recovery, duplicate-effect prevention, approval waits, deployment safety and spending reservations | Next |
+| P0 | Versioned workflow schema, durable run records and server-owned artifact storage | Next |
+| P1 | Guided visual designer, sample testing, run timeline and useful creative templates | Next |
+| P1 | FluxLab/editor integration, schedules, authenticated connectors and portable workflow files | Next |
+
 ## Release checks
 
 Build every editor from the complete repository. Exercise actual supported import files, undo, native save/reopen and exports. Inspect light/dark rendering. Test every hosted app prefix, simulation worker and downloadable bridge/example. Record the exact remaining format limitations. Previous tests are regression evidence, not proof of new behavior.
@@ -166,3 +178,7 @@ The remaining rows above continue to be a prioritized backlog. This continuation
 - Recovery checks cover 12 Fluxfoto, 19 FluxDesign/Fluximiére and 6 Fluxiffects browser groups. Existing editing and import browser regressions also pass.
 - The live Gateway catalog exposes 26 supported text-to-video models and 8 supported speech adapters to FluxLab. Other advertised provider capabilities are not assumed compatible.
 - No paid model generation was run. Playback, saved bytes, handoff and recovery use valid local media fixtures and controlled provider responses; provider latency, account credits and generation output quality remain unverified live.
+
+### Published media release — 2026-10-09
+
+Runtime commit `14e6519` is pushed and deployed to https://fluxcreate.vercel.app. Vercel deployment `dpl_4PvXfnaFDNChdpaCDe8orYmtdtRK` is Ready and retains Vercel Authentication for all deployments. All 20 live suite checks pass. Additional live checks verify 338 supported catalog entries (capabilities overlap), video/speech availability, signed media query preservation and the published MCP media interface. The local app servers are healthy. No paid generation requests were made.

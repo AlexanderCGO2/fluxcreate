@@ -26,3 +26,10 @@ The [live Vercel AI Gateway catalog](https://ai-gateway.vercel.sh/v1/models) con
 ElevenLabs directly supports `music_v2_5` through `POST /v1/music`, with a prompt or composition plan, instrumental or vocal music, and durations from 3 seconds to 10 minutes. Its Music API requires a paid ElevenLabs account and a separate server-side `ELEVENLABS_API_KEY`. See the official [compose API](https://elevenlabs.io/docs/api-reference/music/compose) and [Music quickstart](https://elevenlabs.io/docs/eleven-api/guides/cookbooks/music).
 
 Planned integration: a dedicated Music mode with an instrumental/vocals choice, duration control, decoded audio preview, durable library storage, download and audio handoff to Fluximiére and Fluxiffects. Provider settings and output limits must be validated before submission. Background recovery must only be offered if a documented provider job/status mechanism supports it; stopping a local request must not imply that provider work or charges were cancelled. This is a proposal, not an available feature. No paid generation was performed for this research.
+
+Additional candidates checked on the same date:
+
+- Google documents `lyria-3.5` for full songs and `lyria-3-clip-preview` for 30-second clips through its paid Gemini API, using a separate Gemini key. See [music generation](https://ai.google.dev/gemini-api/docs/music-generation) and [pricing](https://ai.google.dev/gemini-api/docs/pricing). Direct API support does not imply Gateway availability.
+- MiniMax documents `music-3.0`, `music-2.6` and `music-cover`, but its [Music API availability notice](https://platform.minimax.io/docs/api-reference/music-generation) says that paid Music/Lyrics access closed to new users on 2026-08-20; existing paying users retain access. Do not present it as generally available without confirming account eligibility.
+
+For a new connection, investigate ElevenLabs first and Google as the alternative. Neither connection is configured or implemented in FluxLab.

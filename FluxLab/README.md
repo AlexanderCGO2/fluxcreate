@@ -62,7 +62,7 @@ Primary references: [Gateway model discovery](https://vercel.com/docs/ai-gateway
 
 ## Video and audio
 
-The studio has Text, Image, Video and Audio modes. Video offers text-to-video models identified by the live catalog's supported operations, with each model's supported duration/aspect ratio settings. Audio produces speech from a script, with documented voices and MP3/WAV output for the supported Google, Microsoft and OpenAI models present in the live catalog. A catalog entry does not guarantee account eligibility or available credits. Music, sound effects, voice cloning, reference uploads and transcription are not included.
+The studio has Text, Image, Video and Speech modes. Video offers text-to-video models identified by the live catalog's supported operations, with each model's supported duration/aspect ratio settings. Speech reads a script aloud, with documented voices and MP3/WAV output for the supported Google, Microsoft and OpenAI models present in the live catalog. Saved speech remains an Audio asset. A catalog entry does not guarantee account eligibility or available credits. Music, sound effects, voice cloning, reference uploads and transcription are not included.
 
 Video uses Gateway's asynchronous start/status protocol. A request ID is saved before submission and reused after an uncertain response; Gateway idempotency prevents a retry of that submission from creating another paid job. Signed job tickets can be checked after a page reload or server restart. Pause stops checking, not the provider render. Ticket recovery lasts seven days and requires the same Gateway connection; rotating its key invalidates earlier tickets. Provider media may expire sooner. Download completed media promptly.
 
