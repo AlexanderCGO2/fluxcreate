@@ -67,7 +67,7 @@
 - [x] Package every studio into the suite repository with explicit source-only copying.
 - [x] Implement hosted paths and durable Fluxini browser persistence.
 - [x] Build from the repository alone and test app URLs, worker and downloads.
-- [ ] Commit, push, deploy to Vercel and verify the published URLs.
+- [x] Commit, push, deploy to Vercel and verify the published URLs.
 
 ## Execution record
 
@@ -84,3 +84,5 @@
 - [x] Official MCP App tools, self-contained UI resource and external stdio transport.
 - [x] Browser, service, protocol and malformed-image regression checks.
 
+
+- Published and verified https://fluxcreate.vercel.app with authenticated access, all seven studio AI configurations and the live FluxLab catalog. Runtime source commit b457475; no paid generations in verification.

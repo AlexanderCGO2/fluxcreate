@@ -9,7 +9,7 @@ Updated 2026-10-09. **Building** identifies the first implementation round; **Ne
 | P0 | Atomic imports: malformed or excessive files leave the current document unchanged; unsupported content produces useful notices | Building |
 | P0 | Reliable autosave: aborted IndexedDB transactions reject and handles close; Flux3D recovery pauses writes | Verified |
 | P0 | Adobe interoperability: real supported PSD/PSB, IDML, PDF-compatible AI/PDF and Premiere/FCP XML decoding | Verified |
-| P0 | Full-suite repository: all nine sibling dependencies versioned, with no credentials, user media caches or runtime data | Building |
+| P0 | Full-suite repository: all nine sibling dependencies versioned, with no credentials, user media caches or runtime data | Verified |
 | P0 | Hosted routing: direct app URLs, app switching, APIs, workers, fonts and downloads work on one Vercel origin | Verified |
 | P0 | Durable Fluxini cloud storage: replace dependence on a local SQLite file; never present temporary function storage as persistence | Verified |
 | P0 | Protected cloud AI: authenticate access before using the shared Gateway key; keep credentials server-side | Verified |
@@ -126,3 +126,16 @@ Updated 2026-10-09. **Building** identifies the first implementation round; **Ne
 ## Release checks
 
 Build every editor from the complete repository. Exercise actual supported import files, undo, native save/reopen and exports. Inspect light/dark rendering. Test every hosted app prefix, simulation worker and downloadable bridge/example. Record the exact remaining format limitations. Previous tests are regression evidence, not proof of new behavior.
+
+
+## Published release — 2026-10-09
+
+- Production: https://fluxcreate.vercel.app (Vercel Authentication required).
+- Complete source: https://github.com/AlexanderCGO2/fluxcreate — runtime commit `b457475`.
+- Fluxini source: https://github.com/AlexanderCGO2/fluxini — commit `1e6e59e`.
+- All nine package suites pass: 327 tests passed; one optional externally downloaded Premiere fixture is skipped in the clean release. Its independent Adobe fixture check passed in the source workspace.
+- All 34 hosted browser checks pass, including editable text and real pixel image handoffs.
+- All 20 live deployment checks pass: eight pages, required resources, seven protected AI connections, live model catalog (304 supported models) and rejected anonymous access.
+- Local ports 4318 and 4320–4326 are healthy; the home page shows all seven updated app names.
+- No paid model generation was performed during verification. Provider generation behavior and account credits remain unverified live.
+- Native AEP/INDD/BLEND require the documented bridges/exports. FluxLab MCP uses local stdio; remote authenticated MCP, audio/video generation and reference uploads remain later work.
