@@ -1,6 +1,6 @@
 # Floating AI helper implementation
 
-Implemented 2026-10-09 in the working source. This is a bounded Milestone 3 increment; no deployment or paid provider smoke test is implied.
+Implemented and published 2026-10-09 as a bounded Milestone 3 increment; see the [release record](RELEASE-2026-10-09.md). No paid provider smoke test is implied.
 
 ## Connected editor workflow
 
@@ -35,4 +35,4 @@ Mask editing, guaranteed region preservation, AI upscaling, fixed scale factors 
 - `FluxCreate/scripts/floating-ai-browser.mjs`: official SDK through a real local HTTP dispatcher with a mocked service; preview before Apply, single commit, selection/revision invalidation, cancellation, text/image insertion, original/result comparison, recovery blocking, dark/mobile layout and Escape focus.
 - `FluxCreate/scripts/floating-apps-browser.mjs`: actual Fluxini and Fluxiffects builds with mocked MCP responses and isolated project data; validated edits, read-only explanation, text/image insertion and one-step undo.
 
-Fluxini typechecking and the Fluxini/Fluxiffects release builds passed during this increment. Other concurrent suite changes require the normal final combined verification.
+Fluxini typechecking and the Fluxini/Fluxiffects release builds passed during this increment. Final combined suite and protected production verification passed as recorded in the release record.

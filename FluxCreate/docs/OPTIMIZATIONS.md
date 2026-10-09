@@ -2,7 +2,7 @@
 
 Current source-audited follow-up (2026-10-09): [per-app missing features](FEATURE-GAPS.md), [integration review](INTEGRATION-REVIEW.md), [detailed implementation plan](IMPLEMENTATION-PLAN.md), and [realtime audio / desktop assessment](AUDIO-DESKTOP-PLAN.md). These distinguish partial foundations from finished workflows and correct stale status labels below.
 
-Updated 2026-10-09. **Building** identifies the first implementation round; **Next** is the prioritized backlog, not a shipped feature. **Verified** requires actual editing, undo, save/reopen and rendering checks. Each studio’s detailed docs record findings and evidence. Tables below include the current locally verified subsets; dated publication sections retain historical results and do not certify deployment of this new batch.
+Updated 2026-10-09. **Building** identifies the first implementation round; **Next** is the prioritized backlog, not a shipped feature. **Verified** requires actual editing, undo, save/reopen and rendering checks. Each studio’s detailed docs record findings and evidence. Tables below include the current verified subsets; the [release record](RELEASE-2026-10-09.md) confirms their publication. Older dated sections retain historical results.
 
 ## Shared foundation
 
@@ -244,3 +244,7 @@ Native PDF shapes and searchable Latin text are implemented for Arial/Times New 
 Verified: 22 unit/import/PDF tests; 19 existing editor browser checks; six PDF browser groups with independent PDF.js extraction/rendering, JPEG compressed-byte preservation, frame clipping/rotation/transparency/alignment, Unicode/font fallback, EXIF mirroring, color conversion, report light/dark layouts and native document equality. The vector reference measured mean maximum-channel pixel delta 1.90/255 and 1.23% of pixels over 32; fallback pages matched exactly at 2×. Evidence is in Fluxidesign/artifacts/pdf-export. An independent Adobe RGB sample also matched the editor with PDF.js native image decoding disabled. No font-embedding, tagging, CMYK output or PDF/X compliance claim.
 
 PDF color fidelity: PNG files carrying ICC, gamma/chromaticity, orientation or animation metadata are normalized through the browser to RGB PNG with an explicit conversion notice; ordinary profile-free/sRGB PNG stays directly embedded. An independent Adobe RGB PNG fixture exposed and verified this correction.
+
+## Published feature-gap milestone — 2026-10-09
+
+The current implemented subsets above are now published in Flux AI: runtime commit `7815f25`, deployment `dpl_8So38G1KzyEgUeXhzyGBg21Yr3yF`, READY and protected by Vercel Authentication. All 454 source tests, nine builds, hosted browser checks and final live verification passed. See [the full verification record](RELEASE-2026-10-09.md). Remaining specialist editing, cloud assets and hosted autonomous execution stay open.

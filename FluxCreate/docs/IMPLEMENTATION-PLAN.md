@@ -2,7 +2,7 @@
 
 > Working-source update (2026-10-09): the approved batch now includes four-editor source-object controls, durable browser handoff/history, the floating MCP helper, bounded reference edits, Fluxfoto selection masks, Fluxini design alignment, Fluximiére audio/precise export, Fluxiffects real-time audio export and FluxAgents branching. The status notes below identify completed subsets and remaining acceptance work; no full milestone or native-product parity is implied.
 
-Prepared and updated 2026-10-09. The earlier review release published the plan; subsequent authorized implementation is recorded below. Current local verification is distinct from publication. Unfinished milestone items remain the backlog.
+Prepared and updated 2026-10-09. The earlier review release published the plan; subsequent authorized implementation is recorded below. The [release record](RELEASE-2026-10-09.md) records the published commit, tests and remaining boundaries. Unfinished milestone items remain the backlog.
 
 ## Outcome and boundaries
 

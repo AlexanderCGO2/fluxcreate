@@ -1,6 +1,6 @@
 # FluxCreate: what is still missing
 
-Source audit and implemented-subset update dated 2026-10-09. This is a practical comparison with the reference workflows, not an exhaustive list of every feature in the original products. Working means the inspected app implements the stated subset; partial means important behavior or fidelity remains absent; planned means not delivered. Detailed reports include source evidence, priorities and acceptance criteria. The current implementation batch is locally verified; historical deployment records do not imply this new source has been published.
+Source audit and implemented-subset update dated 2026-10-09. This is a practical comparison with the reference workflows, not an exhaustive list of every feature in the original products. Working means the inspected app implements the stated subset; partial means important behavior or fidelity remains absent; planned means not delivered. Detailed reports include source evidence, priorities and acceptance criteria. The current implementation batch is published and verified; see the [release record](RELEASE-2026-10-09.md). Historical records remain separate from this release.
 
 | App | Reference | Working foundation | Largest remaining gaps | Detailed audit |
 |---|---|---|---|---|
