@@ -2,6 +2,9 @@ import { build } from 'esbuild';
 import { mkdir, writeFile, copyFile } from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 const alias=Object.fromEntries(['react','react-dom','lucide-react'].map(name=>[name,fileURLToPath(new URL(`../../FluxCreate/node_modules/${name}`,import.meta.url))]));
+// Shared renderers and MCP use these same versions; resolve one physical copy
+// across sibling installs as well as the consolidated production workspace.
+Object.assign(alias,{three:fileURLToPath(new URL('../node_modules/three',import.meta.url)),'three/addons':fileURLToPath(new URL('../node_modules/three/examples/jsm',import.meta.url)),zod:fileURLToPath(new URL('../node_modules/zod',import.meta.url))});
 const out=process.argv.includes('--staging')?'.staging-dist':'dist';
 await mkdir(out,{recursive:true});
 await build({entryPoints:['src/main.tsx','src/engine/simulation.worker.ts'],bundle:true,outdir:out,format:'esm',target:'es2022',sourcemap:true,minify:!process.argv.includes('--debug'),loader:{'.woff2':'file'},alias,define:{'process.env.NODE_ENV':'"production"'}});
