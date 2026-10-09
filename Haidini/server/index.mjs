@@ -65,7 +65,7 @@ export async function createWorkbench({dataDir,webDir,port=4318,host='127.0.0.1'
           if(action==='memory')return reply(res,200,{events:memory.history(project),preferences:memory.preferences(project),context:memory.assemble(project,url.searchParams.get('q')||'scene particles text terrain',url.searchParams.getAll('node'))});
         }
         if(req.method==='POST'){
-          const input=await body(req);
+          const input=await body(req,['patch','preview'].includes(action)?16*1024*1024:128*1024);
           if(action==='exchange'){
             if(input.baseRevision!==project.revision)throw new ProjectError('The scene changed. Open Export again to include the latest edits.',409);
             const result=exportExchange(project,fonts,projects.exchange(id),input);projects.saveExchange(id,result.exchange);return reply(res,200,{markdown:result.markdown,summary:result.summary});

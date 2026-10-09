@@ -1,8 +1,8 @@
 import {appURL} from './registry.mjs';
 import {isHosted} from './hosting.mjs';
-const targets=new Set(['fluxoto','fluxidesign','fluximiere','fluxiffects']);
+const targets=new Set(['fluxoto','fluxidesign','fluximiere','fluxiffects','fluxlab']);
 export const LAB_VIDEO_LIMITS={bytes:64*1024*1024,dimension:8192,pixels:33554432,duration:86400};
-export function validateLabTarget(appId,result){if(!targets.has(appId))throw Error('Choose a compatible visual editor.');if(['video','audio'].includes(result.kind)&&!['fluximiere','fluxiffects'].includes(appId))throw Error('Send video and audio to Fluximiére or Fluxiffects.');return true;}
+export function validateLabTarget(appId,result){if(!targets.has(appId))throw Error('Choose a compatible FluxCreate workspace.');if(appId==='fluxlab'&&result.kind!=='text')throw Error('Send text to FluxLab as a prompt draft.');if(['video','audio'].includes(result.kind)&&!['fluximiere','fluxiffects'].includes(appId))throw Error('Send video and audio to Fluximiére or Fluxiffects.');return true;}
 export function validateLabResult(value){
  if(!value||!['text','image','video','audio'].includes(value.kind)||typeof value.id!=='string'||!value.id.length||value.id.length>200)throw Error('This FluxLab result is not supported.');
  const result={id:value.id,kind:value.kind,model:String(value.model||'').slice(0,160),prompt:String(value.prompt||'').slice(0,6000),createdAt:String(value.createdAt||'').slice(0,50)};
@@ -21,7 +21,7 @@ export function sendLabResult({targetApp,result}){
 }
 export function receiveLabResult(callback,{appId}={}){
  const params=new URLSearchParams(location.hash.slice(1)),nonce=params.get('fluxlab'),parent=window.opener;if(!nonce||!parent||!/^[\w-]{36}$/.test(nonce))return()=>{};
- const canonical=new URL(appURL('fluxlab'),location.href).origin,allowed=new Set(isHosted()?[canonical]:['http://localhost:4326','http://127.0.0.1:4326']),origin=params.get('from')||canonical;if(!allowed.has(origin))return()=>{};let received=false;
+ const canonical=new URL(appURL('fluxlab'),location.href).origin,allowed=new Set(isHosted()?[canonical]:['http://localhost:4326','http://127.0.0.1:4326','http://localhost:4327','http://127.0.0.1:4327']),origin=params.get('from')||canonical;if(!allowed.has(origin))return()=>{};let received=false;
  const ready=()=>parent.postMessage({type:'fluxlab-ready',nonce},origin);
  const listener=e=>{if(received||e.source!==parent||e.origin!==origin||e.data?.nonce!==nonce||e.data?.type!=='fluxlab-result')return;let result;try{result=validateLabResult(e.data.result);if(appId)validateLabTarget(appId,result);}catch(error){received=true;clearInterval(timer);parent.postMessage({type:'fluxlab-rejected',nonce,error:error.message},origin);return;}received=true;clearInterval(timer);callback(result);parent.postMessage({type:'fluxlab-received',nonce},origin);history.replaceState(null,'',location.pathname+location.search);};
  addEventListener('message',listener);const timer=setInterval(ready,400);ready();const expiry=setTimeout(()=>clearInterval(timer),26000);return()=>{removeEventListener('message',listener);clearInterval(timer);clearTimeout(expiry);};

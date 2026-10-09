@@ -53,7 +53,7 @@ function hashText(value) {
   for (let i = 0; i < value.length; i++) {const code = value.charCodeAt(i); a = Math.imul(a ^ code, 16777619); b = Math.imul(b ^ code, 2246822519);}
   return `${value.length.toString(36)}-${(a >>> 0).toString(16)}-${(b >>> 0).toString(16)}`;
 }
-const omitted = new Set(['aeMetadata', 'exchange', 'warnings']);
+const omitted = new Set(['aeMetadata', 'exchange', 'warnings', 'suiteSource']);
 function structural(value, depth = 0) {
   if (depth > 24) reject('Project metadata is too deeply nested.');
   if (Array.isArray(value)) return value.map(item => structural(item, depth + 1));

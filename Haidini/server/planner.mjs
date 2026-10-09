@@ -4,7 +4,8 @@ import { z } from 'zod';
 import { CommandSchema, validatePatch, ProjectError } from '../src/engine/project.ts';
 import { CATALOG } from '../src/engine/catalog.ts';
 
-const Answer = z.object({summary:z.string().max(400),commands:z.array(CommandSchema).max(32)});
+const PlannerCommandSchema=z.discriminatedUnion('op',CommandSchema.options.filter(schema=>schema.shape.op.value!=='studioObject'));
+const Answer = z.object({summary:z.string().max(400),commands:z.array(PlannerCommandSchema).max(32)});
 const snapshotConnection=value=>value===undefined?undefined:Object.freeze({apiKey:typeof value?.apiKey==='string'&&value.apiKey.length<=4096&&!/\s/.test(value.apiKey)?value.apiKey:'',model:typeof value?.model==='string'&&value.model.length<=200&&value.model?value.model:'anthropic/claude-sonnet-5',scopeId:typeof value?.scopeId==='string'?value.scopeId.slice(0,200):'',available:value?.available!==false});
 export function modelStatus(connection) {
   if(connection!==undefined){const value=snapshotConnection(connection);return {available:!!value.apiKey&&value.available,provider:'Flux / AI Gateway',model:value.model};}

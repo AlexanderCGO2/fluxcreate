@@ -1,0 +1,66 @@
+# Fluxini: feature gaps and delivery plan
+
+Audit date: **9 October 2026**. Reference product: **Houdini**. This report extends the existing [complete-toolset roadmap](FULL-TOOLSET-ROADMAP.md) with explicit status, gaps and acceptance criteria. It supersedes any reading of attractive templates as evidence of solver or production-feature parity.
+
+The current official [Houdini 22 documentation index](https://www.sidefx.com/docs/houdini/) separates geometry, animation, characters, simulation, rendering, compositing and pipeline tools. Fluxini has a functioning subset across graph-based motion design and bounded simulation; it does not implement the full Houdini operator ecosystem.
+
+Evidence inspected: `src/engine/catalog.ts`, `project.ts`, `evaluator.ts`, `animation.ts`, simulation engines/controllers, viewport/material tools, graph/inspector/timeline UI, local project/history/memory services, hosted browser API, exchange bridge, export code and the existing verification scripts. Existing test evidence is documented in the README and roadmap; this audit did not rerun every solver/browser suite.
+
+## Coverage and gaps
+
+| Area | Status and current behavior | Missing or incomplete work | Priority |
+| --- | --- | --- | --- |
+| Graph foundations | Working: typed acyclic nodes, port checks, incremental evaluation, protected parameters and atomic patches | General attributes/groups, reusable subgraphs, node assets with exposed controls, feedback/solver contexts, loops and versioned custom operators | P1 |
+| Graph UX | Working subset: full-screen graph, search/add picker, inspector, wires and connections | Multi-node selections/edits, box selection, notes/backdrops, encapsulation, favorites/searchable values, richer diagnostics and graph profiling | P1 |
+| Modeling | Partial: six primitives, shape sources, transforms, text extrusion, terrain/mask curve and scatter | Editable points/edges/faces, extrude/bevel/inset, booleans, subdivision, remeshing, topology selections, normals, deformers and arbitrary curve authoring | P1/P2 |
+| Geometry representation | Partial: specialized geometry descriptions and render items | Shared indexed geometry with stable attribute domains, groups, IDs, packed instances and explicit conversions usable by solvers | P1 foundation |
+| Asset import | Partial: native projects/fonts and supported exchange text/shapes | General mesh/texture import and relink; glTF hierarchy/animation; USD/Alembic/OpenVDB bridges and dependency packaging | P1/P2 |
+| Terrain | Partial: seeded height/noise, mask path, scatter and instances | Erosion/sediment, sculpt/paint masks, roads/rivers, biome assets, terrain tiles and LOD | P2 |
+| Procedural particles | Working subset: seeded analytic motion, lifetime style and instancing | General attributes/events, spawn networks, field-driven motion, trails, exportable persistent caches | P1/P2 |
+| Stateful particles | Partial: bounded GPU ballistic solver, sources, forces, sphere/axis-aligned-box collision | Arbitrary mesh/SDF collision, particle contacts, robust continuous collision, adhesion, richer constraints and coupled solvers | P1/P2 |
+| Water | Partial: bounded CPU position-based water | Production FLIP/APIC free surfaces, larger sparse domains, general boundaries, robust meshing and coupled foam/spray/bubbles | P2 |
+| Paint basin | Working subset: GPU depth-averaged waves and pigment transport, continuous preview, twelve-color palette and recirculation | Overturning sheets, detached drops, volumetric filling, true viscous folds and physical 3D fluid contacts | P1/P2 |
+| Smoke/fire/clouds | Partial: advected artistic parcels, GPU density rendering and flame/smoke sprites | Pressure-projected grid velocity, temperature/fuel/combustion, buoyancy coupling, sparse simulation and physically meaningful volumetric shadows | P2 |
+| Cloth | Partial: constrained grid with wind/gravity/pins and simple collisions | Self-collision, sewing, tearing, pressure, hair/strand contacts and robust arbitrary mesh cloth | P2 |
+| Rigid bodies/destruction | Missing physics; debris/shatter presets provide designed movement only | Contact solver, sleeping, joints/glue, physical fracture thresholds and secondary events | P2 |
+| Grains/MPM/FEM | Missing | Frictional grain contacts, elastoplastic materials, snow/mud models, volumetric elasticity and validated material calibration | P3 |
+| Animation | Working subset: property keys, easing, key retiming/delete, camera/material/light tracks and timeline | Tangent curves, multi-key tools, dope sheet, clip/layer blending, retime, expressions, constraints and channel/audio processing | P1/P2 |
+| Characters/KineFX/APEX equivalent | Missing | Skeletons, skin weights, FK/IK, rig components, retargeting, pose library, animation clips and procedural rig graphs | P3 |
+| Groom/feathers/crowds/tissue | Missing; strand-looking presets are only procedural appearance | Groom guides/interpolation, dynamics, feathers, agent state/avoidance, muscle/tissue coupling | P3 |
+| Shading | Partial: PBR surface override, optical/emission controls, presets | Texture assets, UV tools, shader graph, displacement, baking, subsurface shading and material interchange | P1/P2 |
+| Lighting/cameras | Working subset: three light types, shadows, saved animated perspective cameras, view presets and gizmos | Area lights, HDR environments, physical exposure/lenses, depth of field, motion blur and multi-shot camera management | P2 |
+| Rendering | Partial: real-time Three.js appearance, PNG and exact-frame WebM | Offline/path-traced backend, managed color, HDR/EXR, render passes, image sequences, audio mixing, denoising and farm queue | P1/P2 |
+| Solaris/USD equivalent | Missing | USD scene composition/layers/variants, asset resolution and MaterialX/USD rendering bridges | P3 |
+| Copernicus/compositing equivalent | Missing | Image graph, masks, color operations, keying and GPU image dependencies; Fluxiffects integration is the practical near-term route | P2 |
+| PDG/TOPs/HQueue equivalent | Missing | Headless cooking, task dependency scheduler, cache publishing, batch/farm execution and artifact versioning | P3 |
+| Scripting/Houdini Engine equivalent | Missing | Supported custom operators, sandboxed expressions, scripting API and DCC/game engine integrations; arbitrary VEX/Python/HDA execution is absent | P3 |
+| Interchange | Working subset: `.flux.md`, native JSON/font package, current-frame GLB, PNG/WebM | Lossless Houdini `.hip`/HDA reading is absent; full animation exports, editable cross-app object adapters and relinkable assets remain incomplete | P0/P1 |
+| New source objects | Partial engineering: bounded `studioImage` preview-plane schema, rendering branch and source inspector | Reviewed source-file rendering/import/refresh UI is paused; no browser verification of the new plane yet | P0 |
+| AI and memory | Working subset: scoped gateway proposals, validated review, parameter locks, persisted events/preferences | General floating helper, visual evidence, costs per action, multi-step recovery, typed tools for future features | P1/P2 |
+| Persistence | Working: SQLite WAL projects/history/memory locally; hosted local-browser editing and recovery paths | Backup management, asset-deduplicated history, quota indicators, verified database restore UX and collaborative revisions | P0/P1 |
+| Performance | Partial: cached graph evaluation, worker/GPU simulation and protected budgets | Heavy geometry still rebuilds on UI thread; progressive cooking, disk caches, per-node timing, cancellation and hardware-adaptive quality need work | P1 |
+| Desktop/operations | Partial: Windows launcher and browser studio; Tauri source only | Built/signed installer, WebView2/GPU matrix, crash telemetry opt-in, updater and cross-platform packaging | P2/P3 |
+
+The official [geometry](https://www.sidefx.com/docs/houdini/model/index.html), [character](https://www.sidefx.com/docs/houdini/character/index.html), [Solaris/Karma](https://www.sidefx.com/docs/houdini/solaris/index.html), [Copernicus](https://www.sidefx.com/docs/houdini/copernicus/index.html) and [task graph](https://www.sidefx.com/docs/houdini/tops/index.html) references identify distinct domains. A single Three.js scene, motion preset or task API is not an implementation of all those domains.
+
+## Detailed delivery sequence
+
+| Stage | Concrete work and prerequisites | Acceptance gate |
+| --- | --- | --- |
+| H0 — reliable existing workflows | Finish scoped snapshot work after planning approval; source/fidelity report, bounded previews, source download/reopen, refresh and AI exclusion. Add backup/storage/cancel feedback before raising budgets. | Native save/reload and undo retain source; failed decode, stale imports and locked replacement are atomic; local and hosted paths agree; PNG/GLB exports contain actual pixels and never leak source JSON into AI. |
+| H1 — shared geometry/field foundation | Introduce versioned indexed meshes, point/vertex/face attributes, groups, source/collider adapters and dependency-aware job/cache keys. | One mesh renders, emits and collides through explicit conversions; edits invalidate only dependent jobs; units and coordinate conventions survive interchange; invalid topology fails before GPU allocation. |
+| H2 — useful modeling | Add selection and transform, then extrude/bevel/subdivision/boolean; import basic packaged glTF; expose reusable node groups. Start with a product pedestal/lettering task. | Upstream edits preserve documented selection rules; topology fixtures check manifoldness and normals; three-level groups reopen and export; every direct/AI edit uses the same undoable commands. |
+| H3 — animation and assets | Add curve tangents, key multi-selection, clips, constraints, source relink and glTF motion export after hierarchy rules exist. | An animated source can be reopened, retimed and exported at reference timestamps; motion survives independent loader comparison; locked tracks and stale previews remain protected. |
+| H4 — physical fluid prototypes | Prototype a bounded 3D liquid tank and pressure-projected smoke volume outside the preset library. Choose CPU/WASM/WebGPU backend from measured accuracy and device support. | Liquid mass drift and penetration stay within published tolerances; pouring fills/settles; smoke projection lowers divergence; deterministic/replay tolerances are measured; cached backward seeks reproduce frames. |
+| H5 — solver products | Build ordinary controls, cache management and source/collider tools around proven prototypes; then rigid contacts/fracture, cloth self-contact, strands and one material model at a time. | Resting stack remains at rest, fracture responds to thresholds, cloth self-contact reduces penetration, granular slope tests are repeatable; bounded jobs can pause/cancel without corrupting caches. |
+| H6 — production appearance/output | Texture/UV workflow, shader graph, controlled color pipeline, offline render adapter, image sequences and render queue. Share image/compositor infrastructure with other studios. | Known texture/material scenes roundtrip; color patches are consistent; output timing and decoded frames match expected state; missing dependencies and resumed render jobs are explicit. |
+| H7 — characters/environments | Rig/skin/retargeting foundations first; then groom, terrain erosion, crowds and tissue in separate milestones. | Real rig fixture retargets and scrubs; saved guides reconstruct groom; erosion tracks material; agents use valid animation transitions; each feature has its own tested example and limitations. |
+| H8 — production integration | Evaluate USD/Alembic/OpenVDB adapters, headless cooking, farm/task service and custom operator API. Define licensing/runtime/deployment constraints before integration. | Interoperability checked with independent tools; recoverable task states and idempotent publishing; untrusted scripts/assets cannot bypass budgets or read arbitrary local files. |
+
+H1 is the dependency gate for H2/H4/H5, while H0 can ship independently. H3 requires stable hierarchy; H6 requires stable geometry/material assets. H7/H8 are separate long-term programs, not hidden tasks inside “finish the clone.” Detailed dates need prototypes, benchmark hardware and reviewed scope first.
+
+## Verification and implementation freeze
+
+During this audit, unfinished cross-app import controls were removed because their shared renderer was not ready. Existing native/exchange workflows stay in place. The new source-object foundation has **three passing Node tests**, **a passing TypeScript check** and **a passing staging build**. The affected core, animation, planner-cancellation and scene-tool regression run passed **32 tests including those three**. These prove source retention, AI exclusion, bounded/atomic patch behavior and basic evaluator output, not pixel fidelity or an end-to-end import workflow. Its textured-plane browser verification and floating-helper integration remain deferred. No Flux3D implementation was added in this batch.
+
+Every future milestone must include source migration, failure recovery, undo/locks, keyboard handling, export verification and measured performance. Existing protective budgets remain in force until evidence justifies a change; a larger configured limit alone is not an optimization.

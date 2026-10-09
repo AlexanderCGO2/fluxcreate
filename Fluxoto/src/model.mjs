@@ -1,4 +1,5 @@
 import {normalizeMask} from './masks.mjs';
+import {normalizeSuiteSource,suiteSourceSummary,suiteSourceBytes,validateSuitePreview,SUITE_SOURCE_LIMITS} from '../../FluxCreate/shared/suite-source.mjs';
 import { createBlankProject, createLayer, parseProject, evaluateLayer } from '../../Fluxiffects/src/core.mjs';
 
 export const uid=()=>globalThis.crypto?.randomUUID?.()??`oto-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -25,12 +26,14 @@ function normalizeLayer(raw) {
   if(layer.src&&!/^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml)[;,]/i.test(layer.src))fail('Import local images; remote or executable image sources are not supported.');
   if(raw.gradient!==undefined&&raw.gradient!==null){obj(raw.gradient);layer.gradient={from:color(raw.gradient.from,layer.fill),to:color(raw.gradient.to,layer.fill),angle:num(raw.gradient.angle,90,-36000,36000)};}
   layer.mask=normalizeMask(raw.mask);
+  if(raw.suiteSource!==undefined&&raw.suiteSource!==null){if(layer.type!=='image')fail('Embedded objects require an image layer.');layer.suiteSource=normalizeSuiteSource(raw.suiteSource);validateSuitePreview(layer.src);}
   return layer;
 }
 
 export function validateProject(raw) {
   obj(raw);if(raw.format!=='fluxoto-project'||raw.version!==1)fail('Choose a Fluxfoto project or compatible FluxCreate file.');
   const layers=list(raw.layers,[],400).map(normalizeLayer),seen=new Set();for(const l of layers){if(seen.has(l.id))fail('Duplicate layer ids.');seen.add(l.id);}
+  if(layers.reduce((sum,l)=>sum+suiteSourceBytes(l.suiteSource),0)>SUITE_SOURCE_LIMITS.projectBytes)fail('Embedded source documents in one canvas must total at most 32 MiB.');
   return {format:'fluxoto-project',version:1,id:str(raw.id,uid(),100),name:str(raw.name,'Untitled canvas',240),width:num(raw.width,1200,1,8192),height:num(raw.height,1500,1,8192),background:color(raw.background,'#f4efe6'),layers};
 }
 
@@ -66,6 +69,7 @@ export function toMotion(raw) {
   });
   if(project.layers.some(l=>l.eraser))motion.warnings=['Eraser strokes stay editable in Fluxfoto native projects. Export a PNG to preserve their composite appearance in other apps.'];
   if(project.layers.some(l=>l.mask?.enabled))motion.warnings=[...(motion.warnings||[]),'Layer masks remain editable in Fluxfoto. Use the rendered portable export to preserve them in other apps.'];
+  if(project.layers.some(l=>l.suiteSource))motion.warnings=[...(motion.warnings||[]),'Embedded suite objects are rendered snapshots in the portable scene. Save the native Fluxfoto project to retain their original source documents.'];
   return parseProject(JSON.stringify(motion)).project;
 }
 function stillTransform(layer){
@@ -103,6 +107,6 @@ export function applyAICommands(raw,commands,{selection=[],scope='composition'}=
   return validateProject(project);
 }
 export function getAIContext(raw,{selection=[],scope='composition'}={}) {
-  const p=validateProject(raw);return {name:p.name,width:p.width,height:p.height,background:p.background,layers:p.layers.filter(l=>scope!=='selection'||selection.includes(l.id)).map(l=>Object.fromEntries(Object.entries(l).filter(([key])=>!['src','points','mask'].includes(key))))};
+  const p=validateProject(raw);return {name:p.name,width:p.width,height:p.height,background:p.background,layers:p.layers.filter(l=>scope!=='selection'||selection.includes(l.id)).map(l=>({...Object.fromEntries(Object.entries(l).filter(([key])=>!['src','points','mask','suiteSource'].includes(key))),...(l.suiteSource?{suiteSource:suiteSourceSummary(l.suiteSource)}:{})}))};
 }
 export const AI_SPEC={app:'Fluxfoto',description:'A layered image and graphic design editor. Coordinates are top-left pixels; layers are ordered topmost first. Keep compositions attractive and editable. Do not invent photo assets.',commands:[{type:'updateLayer',id:'existing-layer-id',values:{x:100,fill:'#316ee8'}},{type:'addLayer',layer:{type:'text',name:'Headline',text:'Create something beautiful',x:80,y:100,width:900,height:180,fontSize:80,fill:'#203c32'}},{type:'deleteLayer',id:'existing-layer-id'},{type:'duplicateLayer',id:'existing-layer-id'},{type:'updateCanvas',values:{background:'#f5f2e9',width:1200,height:1500}}],editableProperties:EDITABLE,limits:'Maximum 32 commands. No unlocking, media sources, code, or network. Selection scope edits only selected unlocked existing layers.'};

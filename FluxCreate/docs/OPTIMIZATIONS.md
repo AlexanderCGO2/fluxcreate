@@ -1,5 +1,7 @@
 # FluxCreate optimization audit
 
+Current source-audited follow-up (2026-10-09): [per-app missing features](FEATURE-GAPS.md), [integration review](INTEGRATION-REVIEW.md), [detailed implementation plan](IMPLEMENTATION-PLAN.md), and [realtime audio / desktop assessment](AUDIO-DESKTOP-PLAN.md). These distinguish partial foundations from finished workflows and correct stale status labels below.
+
 Updated 2026-10-09. **Building** identifies the first implementation round; **Next** is the prioritized backlog, not a shipped feature. **Verified** requires actual editing, undo, save/reopen and rendering checks. Each studio's `docs/OPTIMIZATIONS.md` records detailed findings and evidence.
 
 ## Shared foundation
@@ -197,3 +199,11 @@ The remaining rows above continue to be a prioritized backlog. This continuation
 ### Published media release — 2026-10-09
 
 Runtime commit `14e6519` is pushed and deployed to https://fluxcreate.vercel.app. Vercel deployment `dpl_4PvXfnaFDNChdpaCDe8orYmtdtRK` is Ready and retains Vercel Authentication for all deployments. All 20 live suite checks pass. Additional live checks verify 338 supported catalog entries (capabilities overlap), video/speech availability, signed media query preservation and the published MCP media interface. The local app servers are healthy. No paid generation requests were made.
+
+## Integration review and bounded release — 2026-10-09
+
+The requested per-app gap audits, integration review and detailed plan are indexed in [FEATURE-GAPS.md](FEATURE-GAPS.md). New feature expansion was paused while those plans were prepared. Cross-app placement, the floating MCP helper, realtime scratching and a desktop media engine remain partial/planned; their existence is not implied by foundation modules.
+
+Implemented and checked in this continuation: Fluxfoto layer drag ordering and bounded layered raster PSD export; the FluxAgents local origin fix; FluxLab as a reviewed workflow prompt destination. Five real-local-origin browser routes now deliver output to Fluxfoto, FluxDesign, Fluximiére, Fluxiffects and FluxLab. The text is reviewed before insertion; prompt routing makes no model call.
+
+Verification before release: 409 suite unit/integration tests; complete nine-workspace hosted build; 36 hosted browser checks; 16 layer-ordering checks; 11 PSD round-trip checks; 25 existing Fluxfoto editor checks; five real-origin FluxAgents destination workflows. No paid generation calls.

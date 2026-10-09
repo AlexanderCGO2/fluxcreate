@@ -1,3 +1,7 @@
+import { suiteSourceDownload } from '../../../FluxCreate/shared/suite-source.mjs';
+import '../studio-object.css';
+import { appURL } from '../../../FluxCreate/shared/registry.mjs';
+import { download } from './Viewport';
 import { MATERIAL_PRESETS, materialPresetCommands } from '../engine/materialControls.ts';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import PaintPalette from './PaintPalette';
@@ -56,7 +60,7 @@ export default function Inspector({project,node,stats,disabled,onCommands,onLock
 
   const rename=()=>{const next=label.trim();if(next&&next!==node.label)onCommands([{op:'rename',nodeId:node.id,label:next}],'Rename '+node.label);else setLabel(node.label);};
   return <><div className="node-title" ref={heading}><div className={'node-icon category-'+definition.category.toLowerCase()}><SlidersHorizontal size={21}/></div><div><div className="section-label">{definition.category}</div><input className="node-name" aria-label="Object name" value={label} maxLength={48} disabled={disabled} onChange={e=>setLabel(e.target.value)} onBlur={rename} onKeyDown={e=>{if(e.key==='Enter')e.currentTarget.blur();}}/></div><VisibilityToggle node={node} disabled={disabled} onCommands={onCommands} selected/></div>
-    <p className="node-description">{CREATIVE_DESCRIPTION[node.type]||definition.description}</p>{node.visible===false&&<p className="visibility-note">Appearance hidden. Connections and simulation stay active.</p>}
+    {node.studioObject&&<div className="studio-source-card"><img src={node.studioObject.preview.src} alt="Imported studio snapshot"/><strong>{node.studioObject.suiteSource.name}</strong><small>Rendered snapshot · {node.studioObject.suiteSource.app}</small><p>Source edits are not live. Download the retained source to edit in its original studio. Snapshot refresh controls are planned.</p><button disabled={disabled} onClick={()=>{const file=suiteSourceDownload(node.studioObject!.suiteSource);download(file.blob,file.filename);}}>Download source</button><a href={appURL(node.studioObject.suiteSource.app)} target="_blank" rel="noreferrer">Open source studio ↗</a></div>}<p className="node-description">{CREATIVE_DESCRIPTION[node.type]||definition.description}</p>{node.visible===false&&<p className="visibility-note">Appearance hidden. Connections and simulation stay active.</p>}
     {stats.diagnostics[node.id]&&<div className="node-warning">{stats.diagnostics[node.id]}</div>}
     {animatedParams(node.type).length>0&&<div className="inspector-mode" aria-label="Object controls"><button aria-pressed={mode==='look'} onClick={()=>setMode('look')}>Look</button><button aria-label="Animate" aria-pressed={mode==='animate'} onClick={()=>setMode('animate')}>Animate{tracks.length>0&&<span>{tracks.length}</span>}</button></div>}
     {mode==='animate'?<AnimationPanel project={project} node={node} time={time} disabled={disabled} onCommands={onCommands} onTime={onTime} onPreview={onPreview}/>:<>

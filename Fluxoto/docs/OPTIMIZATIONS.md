@@ -30,3 +30,11 @@ Validation: 17 Node tests, 10 Photoshop/photo browser workflows, 3 portable mask
 Invalid autosaves and read errors now pause autosave and show explicit recovery actions. Preview edits, malformed recovery files and FluxLab handoffs cannot overwrite the original stored data. When the raw record is readable, Download saved data preserves it for recovery. A successful native project open or explicit New resumes saving. Async imports capture document identity/revision and reject late results after edits.
 
 Verified with 12 isolated browser recovery checks and the 25 existing editing/import/export browser checks. The actual user's browser data was not touched.
+
+## Layer ordering and PSD export — 2026-10-09
+
+Drag ordering now supports mouse/touch, insertion markers, keyboard alternatives, long-list scrolling, locked-layer protection, cancel, undo/redo and persistence. All 16 focused browser checks pass; the existing 25 editor browser checks also pass.
+
+Layered PSD export writes RGB/8-bit rendered pixel layers with names/order, visibility, opacity, supported blending and lock metadata. Text, shapes, masks and filters are baked into each layer; source controls remain editable in native Fluxfoto files. Content outside the canvas is clipped. Canvas-wide erasers use a visible merged appearance plus a hidden group of original rendered layers. Exports are bounded to 200 layers, 48 megapixels of retained raster surfaces and 64 MB. All 11 PSD decode/reimport/pixel browser checks pass. This verifies the generated file with the installed PSD reader and Fluxfoto, not a manual Photoshop desktop opening.
+
+See [the full Photoshop gap audit](PHOTOSHOP-FEATURE-GAPS.md) for remaining selections, painting, retouching, groups, adjustment layers, editable PSD fidelity and other tools.

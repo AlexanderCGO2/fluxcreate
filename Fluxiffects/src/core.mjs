@@ -1,3 +1,4 @@
+import {normalizeSuiteSource} from '../../FluxCreate/shared/suite-source.mjs';
 import { validateExchange } from '@flux-studio/exchange';
 /** The serializable, renderer-independent Fluxiffects project model. */
 export const EASINGS = Object.freeze({linear: 'Linear', 'ease-in': 'Ease in', 'ease-out': 'Ease out', 'ease-in-out': 'Easy ease', hold: 'Hold'});
@@ -211,6 +212,7 @@ function normalizeLayer(input, comp, warnings, counters) {
     }
     layer.keyframes[property] = [...normalized.values()].sort((a, b) => a.time - b.time);
   }
+  if(input.suiteSource!=null){layer.suiteSource=normalizeSuiteSource(input.suiteSource);counters.suiteSourceBytes=(counters.suiteSourceBytes||0)+new TextEncoder().encode(layer.suiteSource.text).length;if(counters.suiteSourceBytes>32*1024*1024)fail('Studio object sources exceed the 32 MB project budget.');}
   return preserveInterchange(input, layer, warnings, counters);
 }
 

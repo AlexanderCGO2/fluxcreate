@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateProject,newLayer,applyAICommands,getAIContext,toMotion} from '../src/model.mjs';
+const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==';
+const source=()=>({format:'fluxcreate-object-source',version:1,app:'fluxidesign',name:'A source page',filename:'source.fluxidesign.json',kind:'native',text:'{"format":"fluxidesign","version":1,"privateText":"SOURCE-PAYLOAD-NEVER-IN-AI"}',view:{pageId:'page-1',time:0},warnings:['Static page snapshot.']});
+const project=()=>({format:'fluxoto-project',version:1,id:'embedded-test',name:'Embedded art',width:200,height:200,background:'transparent',layers:[newLayer('image',{id:'placed',name:'Placed page',src:png,suiteSource:source(),x:10,y:10,width:100,height:100})]});
+test('native validation and edits retain the exact embedded source text',()=>{const p=validateProject(project());assert.equal(p.layers[0].suiteSource.text,source().text);const edited=applyAICommands(p,[{type:'updateLayer',id:'placed',values:{x:40,opacity:.5}}]);assert.equal(edited.layers[0].suiteSource.text,source().text);assert.equal(edited.layers[0].x,40);});
+test('AI context excludes source bytes and private embedded content',()=>{const context=getAIContext(project());assert.ok(!JSON.stringify(context).includes('SOURCE-PAYLOAD'));assert.ok(!JSON.stringify(context).includes('data:image'));assert.equal(context.layers[0].suiteSource.app,'fluxidesign');assert.equal(context.layers[0].suiteSource.text,undefined);});
+test('unsupported source apps and non-image attachment reject atomically',()=>{const p=project();p.layers[0].suiteSource.app='unknown';assert.throws(()=>validateProject(p),/source app/i);p.layers[0].suiteSource=source();p.layers[0].type='shape';assert.throws(()=>validateProject(p),/image layer/i);});
+test('embedded object preview must be a bounded PNG',()=>{const p=project();p.layers[0].src='data:image/svg+xml,<svg/>';assert.throws(()=>validateProject(p),/PNG/i);p.layers[0].src='';assert.throws(()=>validateProject(p),/preview/i);});
+test('AI cannot rewrite or forge embedded source metadata',()=>{assert.throws(()=>applyAICommands(project(),[{type:'updateLayer',id:'placed',values:{suiteSource:source()}}]),/cannot change suiteSource/);});
+test('portable scene uses the real snapshot without leaking or recursively nesting source bytes',()=>{const p=toMotion(project());assert.equal(p.assets[0].src,png);assert.ok(!JSON.stringify(p).includes('SOURCE-PAYLOAD'));});

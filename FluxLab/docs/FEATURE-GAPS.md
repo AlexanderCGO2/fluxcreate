@@ -1,0 +1,95 @@
+# FluxLab feature gaps and implementation plan
+
+Source audit: 2026-10-09. This document compares FluxLab with the capabilities expected of a capable AI creation studio and generation hub. There is no single original application being cloned. A feature shown in a provider's catalog is not automatically an implemented FluxLab workflow.
+
+**Working** means an implemented application path exists, with the important limitations stated. **Partial** means the useful core exists but does not cover the whole category. **Missing** means no usable path was found. **In progress** is separate from working and requires the acceptance checks below before release. Priorities describe the next work, not a claim that every advanced feature must be built.
+
+## Current baseline
+
+FluxLab already generates text, images, asynchronous video and speech through the configured Vercel AI Gateway connection. Its browser library retains original generated assets; videos and audio are saved as Blobs after media validation. It offers model discovery, light/dark appearances, playback, downloads and reviewed handoff to suitable creative editors. It also has a real external MCP server and MCP App.
+
+The main gaps are reference-based image editing, complete reusable generation recipes, a stronger asset library, cost visibility, additional audio workflows and an actual editor-integrated floating assistant. Hosted generation is available; this does not make the browser library a cloud asset store.
+
+## Feature inventory
+
+| Area | Current state | Missing or restricted behavior | Priority |
+| --- | --- | --- | --- |
+| Text generation | Working | A single prompt and result, with output-token control. No multi-turn conversation, streamed tokens, document attachments, citations or retrieval. | P1 |
+| Image generation | Working / partial | One generated image per request. No image-reference input, variation sets, edit masks, inpainting, outpainting, relighting, background removal or genuine AI upscaling. A larger output size is not an upscale workflow. | P1 |
+| Video generation | Working / partial | Text-to-video with supported duration/aspect choices. No image-to-video, video references, extension, first/last frame, motion controls, video-to-video or storyboard sequencing. | P2 |
+| Speech | Working / partial | Script-to-speech with catalogued voices and output formats. The mode is explicitly Speech. No transcription, translation/dubbing, voice cloning, pronunciation dictionary, speaker timeline or subtitle alignment. | P2 |
+| Music and sound effects | Missing | No music model or separate music-provider connection is wired. A generated video's soundtrack is not standalone music generation. Existing research identifies candidates, not working integrations. | P2 |
+| Live model catalog | Working / partial | Capability-filtered live catalog and stale-cache notices. No model search/ranking, favourites, side-by-side comparison, accessibility/performance filters or user-defined provider adapters. | P1 |
+| Model-specific controls | Partial | Text token allowance, selected image sizes, video duration/aspect and speech voice/format. No general capability schema for seeds, negative prompts, reference limits or provider-specific advanced settings. | P1 |
+| Prompt workspace | Partial | Starter prompts and reuse of a saved result's prompt/model/kind. The in-progress prompt is not independently persisted; no named prompt collections, variables, prompt history or reusable presets. | P1 |
+| Generation recipe | Partial | Model, prompt, time, usage and warnings are saved. The library does not retain a complete request recipe such as voice, format, image size and video settings for faithful reruns. | P1 |
+| Result comparison and iteration | Missing | No variant grid, before/after compare, ratings, pinned alternatives, branch history or linked source/result lineage. | P1 |
+| Video job recovery | Working / bounded | Request ID is saved before submission; signed tickets survive reload; pause/resume checks do not resubmit; failed downloads remain retryable. Ticket expiry, credential changes and provider retention still limit recovery. Pausing is not provider cancellation. | Preserve |
+| Text/image/speech recovery | Partial | Cancellation and stale-result guards prevent accidental UI replacement. These are synchronous requests without durable provider job tickets; an uncertain result cannot be silently recovered or retried without possible extra charges. | P1 |
+| Batch generation and queues | Missing | No batch prompt import, bounded batch queue, per-item retry policy, bulk variant requests or queue-wide spend preview. Video jobs are recoverable individual requests, not a general job system. | P2 |
+| Library persistence | Working / partial | Atomic IndexedDB records, no silent overwrite, save-failure retry/download and result-specific saving state. Browser/origin scoped; clearing browser data can remove the library. No cloud backup or cross-device synchronization. | P1 |
+| Library browsing | Partial | Metadata-only listing/search and on-demand full asset loading. No paged queries, generated thumbnails, folders, tags, favourites, bulk selection or asset usage tracking. | P1 |
+| Library portability | Partial | Individual originals can be downloaded. No validated bulk archive export/import, conflict review or complete recipe/lineage backup. | P1 |
+| Media preview and editing | Partial | Image viewing, video/audio playback and original downloads work. No waveform editing, trim/transcode, contact sheets, captions, playback quality variants or accessible transcript workflow. Editing belongs primarily in the suite editors. | P2 |
+| Output formats | Partial | Current bounded text/image, MP4/WebM video and MP3/WAV speech paths. No universal transcoder, selectable image colour profiles, alpha-generation guarantees or production export presets. | P2 |
+| Suite handoff | Working / partial | Text/image can be reviewed and added in four creative editors; audio/video go to the two motion editors. This transfers an asset rather than maintaining a live linked generation. No destination-layer replacement or source/result relationship. | P1 |
+| FluxAgents output to FluxLab | Working | The real-origin popup handshake delivers editable text for review as a prompt. Applying does not generate or bill; long output can be shortened in the review, and unsaved generated results block replacement. The new destination passed the five-target browser handoff checks. | Preserve |
+| Floating context-aware assistant | Planned, not implemented | No shipped floating UI, editor selection adapter, authenticated HTTP MCP route or selection-safe preview/apply path. A small optional MCP planner hook exists in source; that alone is not an integrated feature. | P1 |
+| MCP | Working / partial | Real external stdio server with five generation/catalog/video/speech tools and an MCP App. No general remote HTTP MCP service, editor-aware tool connection, external connector browser or asset-management tools. | P1 |
+| Credentials | Working / partial | Shared settings support personal request-scoped Gateway credentials and explicit suite connection behavior. No account vault, team workspace, multiple named provider profiles or dedicated music-provider settings. | P1 |
+| Cost and usage | Partial | Provider token usage and available catalog prices are exposed. No reliable all-modality preflight estimate, paid-run ledger, per-project budgets, actual charge reconciliation or batch spend approval. | P1 |
+| Collaboration and governance | Missing | No shared cloud library, permissions, comments, approval assignments, organization quotas, usage audit export or asset retention policy. | P3 |
+| Evaluation and provenance | Partial | Model/prompt/time are retained. No systematic model-quality comparisons, output checks, prompt test sets, license/provenance registry or content-credential workflow. | P2 |
+
+## Important boundaries to preserve
+
+- A model catalogue entry does not prove account access, a supported endpoint, reference-image compatibility or a particular output format. Controls must come from verified adapters and fail before billing when unsupported.
+- Text/image/speech cancellation stops local waiting and propagates an abort; it cannot promise cancellation or refund of accepted provider work. Video pause stops checking while retaining the existing job.
+- Saved media must contain validated permanent bytes, not only a provider URL that expires. Current video download and job retention behavior already follows this rule.
+- Reusing a result must never silently replace unsaved work. New editing features must preserve original assets and distinguish a proposed result from an applied change.
+- Speech reads the submitted script. Music, sound effects, transcription and voice cloning are separate capabilities, each requiring its own supported provider path.
+- Local 2× resampling, if introduced, must be labelled a local resize. Do not present it as AI detail reconstruction.
+
+## Detailed implementation plan
+
+### Phase 0 — finish the current integration safely
+
+The reviewed FluxAgents-to-FluxLab handoff and local-origin correction are implemented and verified. Preserve this path, the existing media job invariants and the five external MCP tools before starting a new assistant subsystem.
+
+Regression gate: the real local separate-port, five-target browser handoff test already verifies review and insertion, including FluxLab prompt use without generation. Retain broader shared handoff tests and add hosted same-origin, rejected-origin, cancellation, unsaved-work and stale-destination coverage as new paths are introduced. Existing MCP tests use injected services without paid calls. The optional editor tool requires its own connection-isolation, validation and cancellation tests before a route exposes it.
+
+### Phase 1 — make every creation repeatable and portable
+
+Add a versioned recipe object containing the exact normalized request, provider/model identity and relevant settings. Store prompt drafts separately from generated outputs; restore them without overwriting incoming reviewed drafts. Add named presets only after draft recovery is reliable. Introduce a library archive containing validated records, recipes and original bytes with a manifest and explicit duplicate handling.
+
+Acceptance: a result reopens with all settings intact; switching modes preserves appropriate drafts; reload and quota failures retain work; an imported archive cannot overwrite an existing identifier silently; malformed, excessive and partially missing assets produce a recoverable report. No credentials or signed provider job tickets belong in a shareable recipe archive.
+
+### Phase 2 — implement the selected-object assistant and image editing
+
+Use the shared editor selection adapters and a real MCP dispatcher. Start with bounded existing edit planners and generation tools; then add reference-image editing through an explicitly supported provider adapter. Each request captures the document revision and selected IDs. The assistant offers a preview, an explicit Apply and undo. Source bytes remain intact. Missing capability is a clear disabled action, not a generic prompt sent to a text-only route.
+
+Acceptance: Fluxfoto, Fluxiffects, Fluxini and Flux3D each demonstrate one supported selected-object operation; locked selections, selection changes, document changes, cancellation and two concurrent personal connections cannot apply a stale/wrong result. Image edits validate input/output dimensions and bytes, preserve the original and show before/after. Actual AI upscale is enabled only after an appropriate endpoint and account capability are verified.
+
+### Phase 3 — improve discovery, cost clarity and library scale
+
+Add searchable model choices with capability details and a normalized adapter registry. Persist an honest per-request estimate when meaningful, together with assumptions, currency and whether actual provider usage is available. Add thumbnails and indexed/paged library queries, then folders/tags and comparison views. Keep full originals out of list rendering.
+
+Acceptance: large fixture libraries browse without decoding all assets; changing a model removes incompatible settings; unknown pricing is labelled unknown; estimates are never called a guaranteed bill cap. Cancelling or retrying an uncertain request explains whether another paid call may occur. Cost controls are enforced before a submission, not merely displayed afterward.
+
+### Phase 4 — expand media deliberately
+
+Implement reference-conditioned video and richer speech controls only for documented account-supported models. Treat music as a separate connection and mode; begin with the existing research note and verify the chosen provider before enabling it. Add batch work only after idempotency, per-item persistence and spend policies exist. Reuse Fluximiére/Fluxiffects for detailed timeline editing rather than duplicating their editors inside FluxLab.
+
+Acceptance: fixtures cover successful output, unsupported settings, expired assets, oversized/invalid media, uncertain submission, interrupted download and reload. Provider-dependent background recovery is offered only where a real status mechanism exists. Tests never substitute generated-looking sample output for an actual generation.
+
+### Phase 5 — optional cloud/team foundation
+
+Add authenticated accounts, a durable application database and private object storage before claiming shared or multi-device libraries. Define ownership, quotas, deletion/export and connector permissions before exposing a remote MCP endpoint. Keep browser-only mode usable.
+
+Acceptance: account isolation, revoked access, concurrent edits, interrupted uploads, export/delete and signed asset expiry are tested end-to-end. Cloud storage and generation costs are reported separately. This phase is not required to make the current single-user studio useful.
+
+## Evidence and verification scope
+
+This is a source audit, not a claim that every provider or paid generation was tested. Primary local evidence: [main UI](../src/main.jsx), [client](../src/client.mjs), [library](../src/library.mjs), [video jobs](../src/VideoJobs.jsx), [generation service](../server/service.mjs), [video service](../server/video.mjs), [speech service](../server/audio.mjs), [MCP server](../server/mcp.mjs), [frontend behavior](FRONTEND.md) and [optimization review](OPTIMIZATIONS.md). Existing test coverage is in [tests](../tests), with real-browser library, media, jobs and MCP harnesses in [scripts](../scripts).
+
+For provider/protocol scope, consult the official [Gateway model catalog documentation](https://vercel.com/docs/ai-gateway/models-and-providers), [video generation documentation](https://vercel.com/docs/ai-gateway/modalities/video-generation), [speech documentation](https://vercel.com/docs/ai-gateway/modalities/text-to-speech) and [MCP Apps project](https://github.com/modelcontextprotocol/ext-apps). These describe available building blocks; they do not establish that every feature is wired into FluxLab. Music-provider research and its date are recorded in [OPTIMIZATIONS.md](OPTIMIZATIONS.md).
