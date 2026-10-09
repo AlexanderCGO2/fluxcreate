@@ -9,7 +9,7 @@ Updated 2026-10-09. **Building** identifies the first implementation round; **Ne
 | P0 | Atomic imports: malformed or excessive files leave the current document unchanged; unsupported content produces useful notices | Building |
 | P0 | Reliable autosave: aborted IndexedDB transactions reject and handles close; Flux3D recovery pauses writes | Verified |
 | P0 | Adobe interoperability: real supported PSD/PSB, IDML, PDF-compatible AI/PDF and Premiere/FCP XML decoding | Verified |
-| P0 | Full-suite repository: all nine sibling dependencies versioned, with no credentials, user media caches or runtime data | Verified |
+| P0 | Full-suite repository: all ten sibling projects versioned, with no credentials, user media caches or runtime data | Verified |
 | P0 | Hosted routing: direct app URLs, app switching, APIs, workers, fonts and downloads work on one Vercel origin | Verified |
 | P0 | Durable Fluxini cloud storage: replace dependence on a local SQLite file; never present temporary function storage as persistence | Verified |
 | P0 | Protected cloud AI: authenticate access before using the shared Gateway key; keep credentials server-side | Verified |
@@ -155,6 +155,8 @@ Personal connection behavior and deployment configuration are documented in [CON
 - FluxAgents passes 15 schema, HTTP and local-run tests plus 11 browser groups for editing, billing choice, simulation, approvals, reload/recovery, cancellation, import safety, blocked storage and editable text handoff.
 - Local servers are available on 4318 and 4320–4327. FluxAgents opens at `http://localhost:4327/`.
 - Verification invokes no paid generation. Provider responses for workflow execution are injected fixtures; live model quality and latency are not claimed tested. Cloud unattended workflows, account-linked credential storage and music generation remain outstanding.
+
+Runtime commit `e63baa5` is pushed and deployed at https://fluxcreate.vercel.app. Deployment `dpl_6MxARdo6APD93GiT9ZcGQ1iePW63` is Ready with Vercel Authentication retained. All 35 live checks pass: the existing suite, settings in all nine workspaces, an actual non-inference Gateway key check, hosted workflow validation/simulation, and rejection of anonymous settings/workflow access. Fluxini's matching integration is pushed as `39c87e4`.
 
 ## Release checks
 
