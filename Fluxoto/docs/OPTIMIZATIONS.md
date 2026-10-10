@@ -42,3 +42,7 @@ See [the full Photoshop gap audit](PHOTOSHOP-FEATURE-GAPS.md) for remaining sele
 ### Parallel gap continuation (2026-10-09)
 
 Combined selection algebra, source-preserving cut/hide, isolated copy/paste and separate fill now have actual pixel/undo checks. Flat multi-selection and atomic batch operations have lock/order/reload coverage. Detailed boundaries and evidence are in PHOTOSHOP-FEATURE-GAPS.md; the shared release record determines deployment status.
+
+### Photo Levels and histogram
+
+[Levels](LEVELS.md) now preserves the original source, rejects invalid input ranges, applies as one undo step and matches native/portable/PSD output. Sampling is bounded and independent of document dimensions; the histogram does not decode again on unrelated document edits. Full-resolution interactive raster performance remains open.

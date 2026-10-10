@@ -24,13 +24,23 @@ Selection and numeric drafts are view state; committed scene edits survive autos
 
 Fresh verification: **43 Node tests**, **26 existing editor browser checks**, **4 retained-source browser groups**, and **10 new multi-selection browser groups** pass. The new browser suite uses real viewport picks and gizmo drags, literal transform expectations, native download/reload and actual PNG/GLB output. A mid-drag deselection regression compares pixels before/after an independent geometry resync; the failing test drove rollback of every originally dragged mesh. Independent review reran the same 10 groups. Evidence: artifacts/multi-selection/report.json, selection-light.png, selection-dark-1280.png, selection.png, and selection.glb. No paid inference or deployment was performed.
 
+## Bounded vertex editing increment — 9 October 2026
+
+One visible, unlocked imported triangle mesh can now enter vertex editing. Ordinary primitives expose an explicit **Convert to mesh** action, which snapshots the exact rendered geometry without baking object transforms. Source snapshot planes remain planes. Conversion and each numeric move form one undo action; native reload and geometry export preserve the result. This adds vertex translation, not face/edge topology modeling or a general Blender edit mode.
+
+The viewport shows X-ray vertex markers and supports click or Shift/Ctrl/⌘ toggles. Picks group exactly coincident seam vertices by default; the checkbox makes this optional. The index/range field always selects exact stored indices (including distinct hard-edge/UV seam vertices). Offsets use local mesh coordinates. Object position/rotation/scale, UVs and triangle indices are retained. Normals are regenerated only for vertices belonging to affected triangles; untouched custom normals stay exact, and split edges remain split. The original immutable geometry and duplicate mesh references are not modified. New triangle collapse after Float32 conversion is rejected atomically.
+
+The editor limit is 10,000 stored vertices and 50,000 triangles per editable mesh, with at most 4,096 selected vertices. Larger supported imports remain renderable/exportable and explicitly show why vertex editing is unavailable. Invalid/missing indices, locked/hidden objects, nonfinite/out-of-bounds coordinates and stale geometry cannot commit. Vertex markers are excluded from PNG output. Modeling tools such as extrude, bevel, topology selection, merge/weld and UV authoring remain future work.
+
+Fresh evidence: **51 Node tests** (8 mesh-specific), **6 vertex browser groups**, existing **26 editor browser checks**, **10 multi-object groups** and **4 retained-source groups** pass. Tests check frozen pre-edit geometry, untouched custom normals, real viewport seam picks, literal position/normal/UV expectations, actual changed pixels for imported geometry, one-step undo/redo, native reopening, explicit large-mesh refusal without source loss, and independent GLTFLoader recovery of exported positions/normals/UVs. PNG bytes match exactly with vertex editing on/off. Browser evidence is in artifacts/mesh-edit/report.json, vertex-light.png, vertex-dark-1280.png, edited.glb and the native snapshots. No provider calls or deployment occurred.
+
 ## Coverage and gaps
 
 | Area | Status and current behavior | Missing or incomplete work | Priority |
 | --- | --- | --- | --- |
 | Scene arrangement | Working: primitives/imported meshes, multi-selection, atomic batch translate/duplicate/delete, numeric offsets, lock guards and selection-aware undo | Collections, parenting, hierarchy editing, reusable linked instances, search/filter and object grouping | P1 |
 | Direct manipulation | Working subset: move/rotate/scale for one object, shared translation for selections, orbit/pan/zoom and combined selection framing | Group rotation/scale, snap modes, transform origins/pivots, constraints, align/distribute, local/custom orientations and precision tools | P1 |
-| Basic modeling | Partial: six procedural primitives and imported triangle meshes | Vertex/edge/face selection and editing, extrude, inset, loop cuts, bevel, merge/dissolve/fill and topology tools | P1 |
+| Basic modeling | Partial: six primitives, explicit mesh conversion and bounded vertex selection/local translation with affected normals | Edge/face selection and topology editing, extrude, inset, loop cuts, bevel, merge/dissolve/fill and topology tools | P1 |
 | Modifier stack | Missing | Non-destructive mirror/array/subdivision/boolean/deformers with editable order and apply/bake semantics | P1/P2 |
 | Curves/surfaces/text | Missing authoring workflow | Bézier/NURBS editing, curve extrusion, editable 3D text, metaballs and volumes | P2 |
 | Sculpting/retopology | Missing | Brushes, symmetry, multiresolution/dynamic topology, masks, remesh and retopology aids | P3 |
@@ -79,4 +89,4 @@ B0/B1 are the recommended first practical slice. B2 and B3 share geometry/asset 
 
 ## Verification and freeze record
 
-The latest scene-assembly increment above supersedes this earlier freeze for multi-object editing. The original planning audit changed no source. The implemented increment above supersedes that freeze for retained source planes: 38 Node tests and 26 editor browser checks now pass, with a dedicated real-pixel source workflow. Prior document-reliability evidence remains separate. Modeling, general texture authoring, animation editing and full Blender compatibility remain unimplemented; the source-plane feature is not evidence for those broader capabilities.
+The vertex-editing and scene-assembly increments above supersede this earlier freeze for their bounded mesh and multi-object editing workflows. The original planning audit changed no source. The implemented increment above supersedes that freeze for retained source planes: 38 Node tests and 26 editor browser checks now pass, with a dedicated real-pixel source workflow. Prior document-reliability evidence remains separate. General topology modeling, texture authoring, animation editing and full Blender compatibility remain unimplemented; the source-plane feature is not evidence for those broader capabilities.

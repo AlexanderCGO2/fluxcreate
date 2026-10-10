@@ -86,6 +86,29 @@ export function planRippleEdit(project,{clipId,operation='delete',scope='track',
   if(p.duration<.1-epsilon)throw Error('The edit would leave an empty sequence duration. Keep at least 0.1 seconds.');
   return {project:validateProject(p),from,to,amount,scope,track:selected.track,changes,playhead:Math.min(from,p.duration)};
 }
+/** Source seconds; one sequence-frame slip advances playbackRate / fps seconds. */
+export function slipBounds(project,clipId,{sourceDuration}={}) {
+  const clip=project.clips.find(c=>c.id===clipId);
+  if(!clip||!['video','audio'].includes(clip.type))throw Error('Select a video or audio clip to slip its source.');
+  if(clip.locked)throw Error('Unlock this clip before slipping its source.');
+  const asset=project.assets.find(a=>a.id===clip.assetId);
+  if(!asset?.src)throw Error('Relink the offline source before slipping this clip.');
+  if(clip.type==='video'&&asset.type!=='video'||clip.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Relink this clip to a matching timed media source.');
+  const duration=sourceDuration===undefined?asset.duration:sourceDuration;
+  if(!Number.isFinite(duration)||duration<=0)throw Error('The source duration is unknown. Relink a file with a readable duration before slipping.');
+  const span=clip.duration*clip.playbackRate,max=duration-span;
+  if(max< -1e-8)throw Error('The source is shorter than this clip at its current speed. Shorten the clip or reduce its speed first.');
+  return {min:0,max:Math.max(0,max),sourceDuration:duration,sourceSpan:span,frameStep:clip.playbackRate/project.fps};
+}
+export function planSlipEdit(project,{clipId,sourceIn,deltaFrames,sourceDuration}={}) {
+  const p=validateProject(project),bounds=slipBounds(p,clipId,{sourceDuration}),clip=p.clips.find(c=>c.id===clipId);
+  if((sourceIn===undefined)===(deltaFrames===undefined))throw Error('Choose a source-in time or a whole-frame slip.');
+  if(deltaFrames!==undefined&&!Number.isInteger(deltaFrames))throw Error('Slip by a whole number of sequence frames.');
+  const next=sourceIn===undefined?clip.sourceIn+deltaFrames*bounds.frameStep:sourceIn;
+  if(!Number.isFinite(next)||next<bounds.min-1e-8||next>bounds.max+1e-8)throw Error(`Source in must be between 0 and ${bounds.max.toFixed(6)} seconds to retain the whole clip.`);
+  const offset=Math.max(bounds.min,Math.min(bounds.max,next)),delta=offset-clip.sourceIn;clip.sourceIn=offset;
+  return {project:validateProject(p),sourceIn:offset,sourceOut:offset+bounds.sourceSpan,delta,...bounds};
+}
 export function toMotion(project) {
   const p=validateProject(project),motion=createBlankProject({name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background});
   motion.id=p.id;motion.assets=p.assets.map(a=>({...a}));if(p.brief)motion.brief=p.brief;

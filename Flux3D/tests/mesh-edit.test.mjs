@@ -1,0 +1,31 @@
+import test from 'node:test';import assert from 'node:assert/strict';import * as THREE from 'three';
+import {newObject,validateProject,createDemoProject} from '../src/model.mjs';import {objectGeometry} from '../src/geometry.mjs';import {exportGLTF} from '../src/formats.mjs';
+const api=await import('../src/mesh-edit.mjs').catch(()=>({}));const fn=name=>{assert.equal(typeof api[name],'function',name+' must implement the mesh operation');return api[name];};
+const scene=()=>validateProject({...createDemoProject(),objects:[newObject('mesh',{id:'mesh',geometry:{positions:[0,0,0,2,0,0,0,2,0],indices:[0,1,2],uvs:[0,0,1,0,0,1],normals:[0,0,1,0,0,1,0,0,1]},position:[3,1,2],rotation:[0,30,0],scale:[2,1,3]}),newObject('box',{id:'other'})]});
+test('numeric vertex moves are atomic local-coordinate edits and preserve topology, UVs, transforms and original geometry',()=>{
+ const p=scene(),before=JSON.stringify(p),next=fn('moveMeshVertices')(p,'mesh',[2],[0,0,1]);assert.deepEqual(next.objects[0].geometry.positions,[0,0,0,2,0,0,0,2,1]);assert.deepEqual(next.objects[0].geometry.uvs,p.objects[0].geometry.uvs);assert.deepEqual(next.objects[0].geometry.indices,[0,1,2]);for(const key of ['position','rotation','scale'])assert.deepEqual(next.objects[0][key],p.objects[0][key]);assert.deepEqual(next.objects[1],p.objects[1]);assert.equal(JSON.stringify(p),before);assert.notEqual(next.objects[0].geometry,p.objects[0].geometry);
+ const expected=new THREE.Vector3(0,-1,2).normalize();for(let i=0;i<9;i+=3)assert.ok(new THREE.Vector3(...next.objects[0].geometry.normals.slice(i,i+3)).distanceTo(expected)<1e-6);const g=objectGeometry(next.objects[0]);g.computeBoundingBox();assert.deepEqual(g.boundingBox.max.toArray(),[2,2,1]);g.dispose();
+});
+test('locks, stale/missing vertices, invalid deltas and collapsed triangles reject a whole edit without input mutation',()=>{
+ const p=scene(),before=JSON.stringify(p),move=fn('moveMeshVertices');for(const ids of [[],[3],[-1],[1.5]])assert.throws(()=>move(p,'mesh',ids,[1,0,0]));assert.throws(()=>move(p,'mesh',[0],[NaN,0,0]));assert.throws(()=>move(p,'mesh',[1],[-2,0,0]),/collapse/i);assert.throws(()=>move(p,'other',[0],[1,0,0]),/mesh/i);assert.throws(()=>move({...p,objects:p.objects.map(o=>({...o,locked:true}))},'mesh',[0],[1,0,0]),/unlock/i);assert.equal(JSON.stringify(p),before);
+});
+test('explicit primitive conversion matches rendered local geometry and leaves transform/material identity intact',()=>{
+ const p=validateProject({...createDemoProject(),objects:[newObject('box',{id:'box',name:'Box',position:[3,2,1],color:'#123456'})]}),before=JSON.stringify(p),next=fn('convertPrimitiveToMesh')(p,'box');assert.equal(next.objects[0].type,'mesh');assert.equal(next.objects[0].id,'box');assert.equal(next.objects[0].color,'#123456');assert.deepEqual(next.objects[0].position,[3,2,1]);const g=objectGeometry(p.objects[0]);assert.deepEqual(next.objects[0].geometry.positions,Array.from(g.attributes.position.array));assert.deepEqual(next.objects[0].geometry.indices,Array.from(g.index.array));g.dispose();assert.equal(JSON.stringify(p),before);assert.throws(()=>fn('convertPrimitiveToMesh')({...p,objects:[{...p.objects[0],locked:true}]},'box'),/unlock/i);
+});
+test('index ranges and coincident seam selection are bounded and reject ambiguous or out-of-range input',()=>{
+ const parse=fn('parseVertexSelection');assert.deepEqual(parse('0, 2-4, 3',8),[0,2,3,4]);assert.deepEqual(parse('',8),[]);for(const value of ['-1','1.5','4-2','1,foo','8','0-999999999'])assert.throws(()=>parse(value,8));assert.throws(()=>parse('0-4096',10000),/4096|4,096/);
+ const coincident=fn('coincidentVertices');assert.deepEqual(coincident({positions:[1,2,3,0,0,0,1,2,3,1,2,3.0001]},0),[0,2]);
+});
+test('mesh edit cap preserves large imports; edited geometry survives native validation and portable GLTF',()=>{
+ const p=scene(),many=Array.from({length:10002*3},(_,i)=>i%3);assert.throws(()=>fn('moveMeshVertices')({...p,objects:[{...p.objects[0],geometry:{positions:many}}]},'mesh',[0],[1,0,0]),/10,000|10000/);const moved=fn('moveMeshVertices')(p,'mesh',[2],[0,0,1]),reopened=validateProject(JSON.parse(JSON.stringify(moved)));assert.deepEqual(reopened,moved);const gltf=JSON.parse(exportGLTF(reopened)),mesh=gltf.meshes[0],accessor=gltf.accessors[mesh.primitives[0].attributes.POSITION];assert.deepEqual(accessor.max,[2,2,1]);assert.deepEqual(accessor.min,[0,0,0]);
+});
+
+test('unaffected custom normals and split vertices stay intact, including duplicate geometry references',()=>{
+ const p=scene(),g=p.objects[0].geometry;g.positions.push(5,0,0,7,0,0,5,2,0);g.indices.push(3,4,5);g.uvs.push(0,0,1,0,0,1);g.normals.push(0,1,0,0,1,0,0,1,0);p.objects.push({...p.objects[0],id:'duplicate'});const before=JSON.stringify(p);Object.freeze(g.positions);Object.freeze(g.normals);Object.freeze(g.uvs);Object.freeze(g.indices);Object.freeze(g);const next=fn('moveMeshVertices')(p,'mesh',[2],[0,0,1]);assert.deepEqual(next.objects[0].geometry.normals.slice(9),[0,1,0,0,1,0,0,1,0]);assert.deepEqual(next.objects[2].geometry,p.objects[2].geometry);assert.equal(JSON.stringify(p),before);
+});
+test('moves cannot collapse a triangle after GPU float32 coordinate conversion',()=>{
+ const p=scene();p.objects[0].geometry={positions:[10000000,0,0,10000002,0,0,10000000,2,0],indices:[0,1,2]};assert.throws(()=>fn('moveMeshVertices')(p,'mesh',[1],[-1.6,0,0]),/collapse/i);
+});
+test('edited native geometry loads independently from exported GLB with matching positions, normals and UVs',async()=>{
+ const {GLTFLoader}=await import('three/addons/loaders/GLTFLoader.js'),{exportGLB}=await import('../src/formats.mjs');const p=fn('moveMeshVertices')(scene(),'mesh',[2],[0,0,1]),data=exportGLB(p),source=data instanceof ArrayBuffer?data:data.buffer.slice(data.byteOffset,data.byteOffset+data.byteLength),loaded=await new GLTFLoader().parseAsync(source,''),mesh=loaded.scene.children.find(o=>o.name===p.objects[0].name);assert.ok(mesh?.geometry);for(const [name,key]of [['position','positions'],['normal','normals'],['uv','uvs']]){const actual=Array.from(mesh.geometry.attributes[name].array),expected=p.objects[0].geometry[key];assert.equal(actual.length,expected.length);assert.ok(actual.every((n,i)=>Math.abs(n-expected[i])<1e-6));}loaded.scene.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});
+});

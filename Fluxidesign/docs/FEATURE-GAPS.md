@@ -33,8 +33,8 @@ Priorities: **P0** protects work or prevents misleading deliverables; **P1** com
 | Area | State today | Remaining gap and priority |
 | --- | --- | --- |
 | Multipage documents | Working: add, duplicate, delete, reorder; active-page navigation | P1: facing-page spreads, binding direction, page sections and page labels |
-| Page setup | Working: presets/custom sizes, page background, margin/column/gutter guides in points | P1: independent edge margins, mm/in conversion, bleed/slug settings; guides currently do not provide a full snapping system |
-| Precision placement | Partial: drag, one resize handle, inspector geometry, rotation, keyboard nudging | P1: multi-selection, marquee, proportional resize, alignment/distribution and smart snapping |
+| Page setup | Working: presets/custom sizes, page background, margin/column/gutter guides in points | Independent edge margins and column/gutter guides now work. P1: mm/in conversion, bleed/slug settings and facing-page binding |
+| Precision placement | Partial: drag/resize, inspector geometry, rotated-bound alignment to margins/columns, visible page/column/frame snapping with Alt bypass, keyboard nudging | P1: multi-selection, marquee, proportional resize, distribution and richer snapping policies |
 | Object organization | Partial: per-page frame stack, visibility, locks, duplicate, forward/backward | P1: groups, named document layers, cross-page layer visibility and predictable group selection |
 | Reusable layout | Missing | P1: parent pages, reusable page templates, controlled overrides, automatic folios and running headers |
 | Text editing | Partial: plain text in an inspector; font, size, weight, tracking, line height and alignment per frame | P1: in-canvas caret editing, styled character ranges and paragraphs, useful paste behavior |
@@ -134,3 +134,7 @@ Acceptance: benchmark reports include machine/browser, document size, timings, m
 Start with D0, then implement multi-selection/alignment plus the initial preflight report. Design the story/style schema before broadening IDML fidelity or adding large amounts of AI functionality. PDF font embedding/coverage and text flow remain large practical gaps after the bounded vector/searchable PDF increment. The cross-app object work is paused/in progress and must not be reported as a finished FluxDesign feature.
 
 PDF color fidelity: PNG files carrying ICC, gamma/chromaticity, orientation or animation metadata are normalized through the browser to RGB PNG with an explicit conversion notice; ordinary profile-free/sRGB PNG stays directly embedded. An independent Adobe RGB PNG fixture exposed and verified this correction.
+
+## Completed layout-guides increment — 2026-10-09
+
+Optional native per-edge margins, validated usable column guides, selected-frame margin/column alignment and visible six-screen-pixel snapping are implemented. Moving rotated frames uses their visible frame bounds; resize snapping is limited to unrotated frames. Rotated resizing now retains its fixed world corner. Locks, one-gesture undo, Escape/pointer-cancel rollback and nonprinting export behavior are tested. Build + 33 unit + five new layout browser groups + 19 existing editor + six PDF groups pass. No print preflight, bleed or facing-page parity is claimed.

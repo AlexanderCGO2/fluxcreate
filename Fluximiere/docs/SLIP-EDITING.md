@@ -1,0 +1,13 @@
+# Slip editing
+
+Select an unlocked video or audio clip. **Slip source** in the inspector accepts a source-in time and offers one-frame earlier/later controls. Enable **Slip** above the timeline to drag the clip body: dragging right shows later source content. The clip's timeline start, duration and track stay fixed. Separate picture and sound clips remain independent; this does not introduce linked selection.
+
+The program monitor and waveform preview the source change during dragging. Release applies one Undo step. Escape, pointer cancellation, window blur, changing the selection or changing the document discards that preview. Events from another pointer cannot alter or finish the active drag; a browser regression verifies this during a real gesture. Autosave and export read the committed document. If the playhead is outside the selected clip, starting a slip brings it into that clip for a useful preview.
+
+The inspector reads duration from the actual embedded media. A retained duration in an imported project is not trusted for this interaction. Offline, undecodable or unknown-duration media cannot be slipped; a source shorter than `clip duration × playback rate` requires a shorter clip or slower rate first. A slip never reads before source zero or beyond the measured end. Numeric values outside the valid range reject the edit; dragging stops at the available handles. One sequence-frame step advances `playback rate / sequence fps` source seconds, including fractional sequence rates. Numeric source-in values remain precise seconds.
+
+Only `sourceIn` changes. Original media bytes, source speed, gain/mute, opacity and timeline-relative fades are retained. Existing native save/recovery and portable timing fields preserve repeated slips without a schema change. This slice does not add rolling trim, slide, linked picture/sound or source-range enforcement for every older trim/AI path.
+
+Verification: 40 unit/import tests and 16 existing browser checks pass. The new browser workflow exercises numeric edits, measured bounds against deliberately incorrect native metadata, frame nudges, actual dragging, cancellation, Undo during a drag, locks, reload and native save. Generated four-color footage and stereo cues verify preview and decoded WebM export at 1.5× speed. After a 0.9-second source slip, decoded cues occur at 0.400083 and 1.000063 seconds (expected 0.4 and 1.0); sampled video frames are green and blue. The 1.6-second edit decodes to 1.6135 seconds including the Opus tail. Offline and a short recording with unknown stored duration are rejected with explicit guidance.
+
+Run `node scripts/slip-smoke.mjs`; ignored `artifacts/slip/` contains the native file, movie, screenshot and measured results.

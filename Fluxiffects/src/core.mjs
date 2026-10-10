@@ -130,6 +130,28 @@ export function removeKeyframe(layer, property, keyId) {
   return {...layer, keyframes};
 }
 
+export function editKeyframes(layer, property, keyIds, action, {duration} = {}) {
+  if (layer.locked) throw Error('Unlock the layer before editing keyframes.');
+  if (!ANIMATABLE_PROPERTIES.includes(property)) throw Error('Choose an animated property.');
+  const track = layer.keyframes?.[property] ?? [];
+  if (!Array.isArray(keyIds) || !keyIds.length || keyIds.some(id => typeof id !== 'string')) throw Error('Select keyframes in this property first.');
+  const ids = new Set(keyIds), existing = new Set(track.map(key => key.id));
+  if (existing.size !== track.length) throw Error('Keyframe IDs must be unique; this track has ambiguous keys.');
+  if (ids.size !== keyIds.length || keyIds.some(id => !existing.has(id))) throw Error('The keyframe selection changed. Select the keys again.');
+  let next;
+  if (action?.type === 'delete') next = track.filter(key => !ids.has(key.id));
+  else if (action?.type === 'move') {
+    if (!Number.isFinite(action.delta) || !Number.isFinite(duration) || duration <= 0) throw Error('Enter a finite time change within this composition.');
+    for (const key of track) if (ids.has(key.id) && (key.time + action.delta < -1e-9 || key.time + action.delta > duration + 1e-9)) throw Error(`All selected keys must stay between 0 and ${duration} seconds.`);
+    if (action.delta === 0) return layer;
+    next = track.map(key => ids.has(key.id) ? {...key, time: clamp(key.time + action.delta, 0, duration)} : key).sort((a,b) => a.time-b.time);
+    for (let i=1; i<next.length; i++) if (ids.has(next[i].id) !== ids.has(next[i-1].id) && Math.abs(next[i].time-next[i-1].time) < .000001) throw Error('A selected key would collide with another key. Choose a different time change.');
+  } else throw Error('Choose move or delete keyframes.');
+  const keyframes = {...layer.keyframes};
+  if (next.length) keyframes[property] = next; else delete keyframes[property];
+  return {...layer, keyframes};
+}
+
 const fail = message => {throw new Error(`Invalid project: ${message}`);};
 function object(value, label) {if (!value || typeof value !== 'object' || Array.isArray(value)) fail(`${label} must be an object.`); return value;}
 function string(value, fallback, label, limit = 2000) {

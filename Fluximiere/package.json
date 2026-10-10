@@ -10,6 +10,7 @@
     "test:browser": "node scripts/browser-smoke.mjs",
     "test:audio": "node scripts/audio-smoke.mjs",
     "test:ripple": "node scripts/ripple-smoke.mjs",
+    "test:slip": "node scripts/slip-smoke.mjs",
     "test:premiere": "node scripts/premiere-smoke.mjs"
   },
   "dependencies": {

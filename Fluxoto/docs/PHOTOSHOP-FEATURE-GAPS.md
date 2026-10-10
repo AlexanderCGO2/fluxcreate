@@ -91,10 +91,10 @@ These categories correspond to Photoshop layer/group management and continuous t
 
 | Capability | Status | What remains |
 |---|---|---|
-| Levels and Curves | Missing | Histogram-backed black/white/midtone and curve controls, channel handling, reset/presets and undoable nondestructive output. |
+| Levels and Curves | Partial, locally verified | Per-photo RGB input black/white/gamma controls with reset/bypass, one-step Apply/undo and original source retention now work. Per-channel/output Levels, Curves, presets and separate adjustment layers remain open. |
 | Core photographic color corrections | Partial | Brightness/contrast/saturation exist. Add exposure, white balance/temperature/tint, highlights/shadows, hue, vibrance, color balance, black-and-white controls and selective correction. |
 | Adjustment layers | Missing | Separate masked, reorderable adjustments with defined lower-layer/group/clipping scope. The current CSS filters are attached to one layer and use a fixed rendering order. |
-| Histogram and pixel/channel inspection | Missing | RGB/luminance histograms, sample readouts and visible clipping warnings for reliable tonal editing. |
+| Histogram and pixel/channel inspection | Partial, locally verified | Source-photo RGB histogram sampled up to 512 px per side, before adjustments/masks, weighted by transparency. Full-document/full-resolution histogram, luminance, sample readouts and clipping warnings remain open. |
 | Clone Stamp, healing and patch repair | Missing | Sampled-source clone, spot/healing brush and patch operations on a separate editable retouch layer or reversible raster history. |
 | Local dodge/burn/sharpen/blur/smudge | Missing | Selection-aware localized tools. The existing blur slider affects the entire selected layer. |
 | Text formatting controls | Partial | Model/renderer support whole-layer font weight, alignment and line height, but the inspected inspector exposes only content/family/size plus general color/transforms. Add the missing controls first, then italic, underline, tracking, kerning and baseline shift. |
@@ -151,7 +151,7 @@ These are implementation priorities, separate from Photoshop feature parity:
 |---|---|---|
 | P1 | Full document preview dimensions and per-edit rendering; hard limits mitigate some large allocations | Profile real 24/32 MP photos and multi-layer PSDs; add reduced-resolution interactive previews, incremental/tiled mask painting, then full-resolution final output. Record frame-time and peak-memory measurements. |
 | P1 | 40-state history; full normalization, cloning in functional commits, and JSON comparisons include embedded sources | Share immutable media and unchanged masks; use revisions rather than repeated full serialization; verify undo, save/reopen and stale AI/import rejection. |
-| P1 | Images are cached by source with an entry-count bound | Add a decoded-pixel/memory budget and project-aware pruning; show missing/broken-image diagnostics with a real replacement/relink workflow. The placeholder text “Relink image” is not itself a relink control. |
+| P1 | Images are cached by source with an entry-count bound | Add a decoded-pixel/memory budget and project-aware pruning; expand missing/broken-image diagnostics. Ordinary photos now have actual replacement/relink controls, original downloads and stale/cancel protection; decoded-pixel memory budgeting remains open. |
 | P1 | PSD checks precede deferred bitmap decoding, but parsing is synchronous; ordinary photos check dimensions after browser decode | Move expensive parsing/decoding off the UI thread with progress/cancel; inspect ordinary-photo dimensions before large decoding where feasible; preserve existing bounds and source-generation guards. |
 | P1 | Individual files commit after preparation; a multi-file selection is processed one file at a time | Decide and expose batch semantics. If the batch should be atomic, stage all candidates before one commit; if partial success is intended, present a complete result report rather than only transient per-file notices. |
 | P1 | Basic focus outlines/shortcuts and responsive widths exist | Verify keyboard-only selection/editing/dialog return focus, touch/pen input and small-window layouts; provide accessible alternatives for every drag-only action. |
@@ -184,3 +184,11 @@ Combined rectangle/ellipse/lasso areas support replace/add/subtract/intersect an
 Flat multi-selection supports Ctrl/Cmd toggle, Shift range and atomic movement, duplication, deletion and ordering. A locked member blocks the complete mutation. Nested groups, aggregate rotation/scaling and Photoshop Smart Objects remain open.
 
 Evidence: 8 new end-to-end groups in `scripts/editing-smoke.mjs`, layer-operation and selection-validation unit tests, existing 6 selection groups, expanded delayed-image cancellation checks, 16 drag-order checks and 11 PSD export/reopen checks. Final hosted release status is tracked centrally.
+
+## Photo Levels continuation
+
+See [Levels scope and evidence](LEVELS.md): source-preserving per-photo RGB Levels and sampled source histogram are locally verified, with native/portable/PSD pixel checks. Separate adjustment layers, Curves and managed-color processing remain open.
+
+## Source replacement continuation
+
+[Photo-source replacement and relink](PHOTO-SOURCES.md) now preserve the exact frame, mask and adjustments and retain undo originals. Missing ordinary photos can be repaired; studio-object replacement stays in its dedicated source-preserving flow. Five browser groups and three unit checks pass locally.

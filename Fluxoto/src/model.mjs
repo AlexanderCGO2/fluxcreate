@@ -1,3 +1,4 @@
+import {normalizeLevels,hasActiveLevels} from './levels.mjs';
 import {normalizeMask} from './masks.mjs';
 import {normalizeSuiteSource,suiteSourceSummary,suiteSourceBytes,validateSuitePreview,SUITE_SOURCE_LIMITS} from '../../FluxCreate/shared/suite-source.mjs';
 import { createBlankProject, createLayer, parseProject, evaluateLayer } from '../../Fluxiffects/src/core.mjs';
@@ -26,6 +27,7 @@ function normalizeLayer(raw) {
   if(layer.src&&!/^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml)[;,]/i.test(layer.src))fail('Import local images; remote or executable image sources are not supported.');
   if(raw.gradient!==undefined&&raw.gradient!==null){obj(raw.gradient);layer.gradient={from:color(raw.gradient.from,layer.fill),to:color(raw.gradient.to,layer.fill),angle:num(raw.gradient.angle,90,-36000,36000)};}
   layer.mask=normalizeMask(raw.mask);
+  layer.levels=normalizeLevels(raw.levels);if(layer.levels&&layer.type!=='image')fail('Levels are supported on photo image layers only.');
   if(raw.suiteSource!==undefined&&raw.suiteSource!==null){if(layer.type!=='image')fail('Embedded objects require an image layer.');layer.suiteSource=normalizeSuiteSource(raw.suiteSource);validateSuitePreview(layer.src);}
   return layer;
 }
@@ -68,6 +70,7 @@ export function toMotion(raw) {
     return createLayer(type,{id:l.id,name:l.name,x:l.x+l.width/2,y:l.y+l.height/2,anchorX:l.width/2,anchorY:l.height/2,width:l.width,height:l.height,rotation:l.rotation,opacity:l.opacity,visible:l.visible,locked:l.locked,fill:l.fill,gradient:l.gradient??undefined,cornerRadius:l.radius,text:l.text,fontSize:l.fontSize,fontWeight:l.fontWeight,fontFamily:l.fontFamily,textAlign:l.textAlign,letterSpacing:0,blendMode:l.blend,assetId,end:8,effects:[['brightness',l.brightness],['contrast',l.contrast],['saturate',l.saturation],['blur',l.blur]].filter(([type,a])=>a!==(type==='blur'?0:100)).map(([type,amount])=>({id:uid(),type,amount,enabled:true}))});
   });
   if(project.layers.some(l=>l.eraser))motion.warnings=['Eraser strokes stay editable in Fluxfoto native projects. Export a PNG to preserve their composite appearance in other apps.'];
+  if(project.layers.some(l=>hasActiveLevels(l.levels)))motion.warnings=[...(motion.warnings||[]),'Levels remain editable in Fluxfoto. Use the rendered portable export to preserve their appearance in other apps.'];
   if(project.layers.some(l=>l.mask?.enabled))motion.warnings=[...(motion.warnings||[]),'Layer masks remain editable in Fluxfoto. Use the rendered portable export to preserve them in other apps.'];
   if(project.layers.some(l=>l.suiteSource))motion.warnings=[...(motion.warnings||[]),'Embedded suite objects are rendered snapshots in the portable scene. Save the native Fluxfoto project to retain their original source documents.'];
   return parseProject(JSON.stringify(motion)).project;
@@ -94,7 +97,7 @@ export function fromMotion(raw) {
   return {project:validateProject({format:'fluxoto-project',version:1,id:uid(),name:motion.name,width:Math.min(c.width,8192),height:Math.min(c.height,8192),background:c.background,layers}),warnings:[...new Set(warnings)]};
 }
 
-const EDITABLE=['name','x','y','width','height','rotation','opacity','visible','blend','fill','shape','radius','gradient','text','fontSize','fontWeight','fontFamily','textAlign','lineHeight','brightness','contrast','saturation','blur'];
+const EDITABLE=['name','x','y','width','height','rotation','opacity','visible','blend','fill','shape','radius','gradient','text','fontSize','fontWeight','fontFamily','textAlign','lineHeight','brightness','contrast','saturation','blur','levels'];
 function values(raw,allowed){obj(raw);for(const key of Object.keys(raw))if(!allowed.includes(key))fail(`AI cannot change ${key}.`);return raw;}
 export function applyAICommands(raw,commands,{selection=[],scope='composition'}={}) {
   const project=validateProject(raw);if(!Array.isArray(commands)||commands.length>32)fail('AI proposals support at most 32 edits.');
@@ -109,4 +112,4 @@ export function applyAICommands(raw,commands,{selection=[],scope='composition'}=
 export function getAIContext(raw,{selection=[],scope='composition'}={}) {
   const p=validateProject(raw);return {name:p.name,width:p.width,height:p.height,background:p.background,layers:p.layers.filter(l=>scope!=='selection'||selection.includes(l.id)).map(l=>({...Object.fromEntries(Object.entries(l).filter(([key])=>!['src','points','mask','suiteSource'].includes(key))),...(l.suiteSource?{suiteSource:suiteSourceSummary(l.suiteSource)}:{})}))};
 }
-export const AI_SPEC={app:'Fluxfoto',description:'A layered image and graphic design editor. Coordinates are top-left pixels; layers are ordered topmost first. Keep compositions attractive and editable. Do not invent photo assets.',commands:[{type:'updateLayer',id:'existing-layer-id',values:{x:100,fill:'#316ee8'}},{type:'addLayer',layer:{type:'text',name:'Headline',text:'Create something beautiful',x:80,y:100,width:900,height:180,fontSize:80,fill:'#203c32'}},{type:'deleteLayer',id:'existing-layer-id'},{type:'duplicateLayer',id:'existing-layer-id'},{type:'updateCanvas',values:{background:'#f5f2e9',width:1200,height:1500}}],editableProperties:EDITABLE,limits:'Maximum 32 commands. No unlocking, media sources, code, or network. Selection scope edits only selected unlocked existing layers.'};
+export const AI_SPEC={app:'Fluxfoto',description:'A layered image and graphic design editor. Coordinates are top-left pixels; layers are ordered topmost first. Keep compositions attractive and editable. Do not invent photo assets.',commands:[{type:'updateLayer',id:'existing-layer-id',values:{x:100,fill:'#316ee8'}},{type:'addLayer',layer:{type:'text',name:'Headline',text:'Create something beautiful',x:80,y:100,width:900,height:180,fontSize:80,fill:'#203c32'}},{type:'deleteLayer',id:'existing-layer-id'},{type:'duplicateLayer',id:'existing-layer-id'},{type:'updateCanvas',values:{background:'#f5f2e9',width:1200,height:1500}}],editableProperties:EDITABLE,limits:'Maximum 32 commands. No unlocking, media sources, code, or network. Selection scope edits only selected unlocked existing layers. Levels are for image layers only: {enabled:true,black:0,white:255,gamma:1}, black and white 0–255 with black below white, gamma 0.1–10. Levels alter RGB, not alpha; source pixels are not included in this context.'};

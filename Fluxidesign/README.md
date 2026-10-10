@@ -71,3 +71,11 @@ Native, IDML, PDF and exchange imports are prepared before one complete replacem
 PDF color fidelity: PNG files carrying ICC, gamma/chromaticity, orientation or animation metadata are normalized through the browser to RGB PNG with an explicit conversion notice; ordinary profile-free/sRGB PNG stays directly embedded. An independent Adobe RGB PNG fixture exposed and verified this correction.
 
 Typography verification: 27 unit checks, 19 existing editor checks, six PDF groups and six typography browser groups pass. Typography fixtures cover cross-page restyling, local overrides, atomic lock protection, one-step undo, native/autosave round trips, all-page/hidden overset navigation and detach appearance. Evidence is in `artifacts/typography`.
+
+## Precise layout guides and snapping
+
+Page setup supports independent top/right/bottom/left margins; Margin sets all four edges together. Columns and gutters must leave usable space. These non-printing guides are native document metadata and do not alter existing artwork, SVG or PDF output. New native files retain optional per-edge values; older uniform-margin files remain readable. Portable exchange carries artwork only, with guides remaining app-specific. This is not bleed, CMYK or print preflight.
+
+The frame inspector aligns visible rotated frame bounds to page margins or a chosen column. Snap is an explicit toolbar toggle: move to page, margin, column or other visible-frame edges/centers within six screen pixels, with active guide lines. Hold Alt to bypass. Unrotated resize snaps the trailing edges; rotated resize keeps the original world-space corner fixed but does not snap. Locked frames cannot be moved/aligned; they can serve as visible alignment references. Each gesture is one undo step. Escape and pointer cancellation restore the pre-gesture document; transient previews are excluded from autosave.
+
+Verification: build, 33 unit checks, five `scripts/layout-browser.mjs` groups, the existing 19 editor checks and six PDF groups pass. Geometry fixtures prove guide-only changes leave SVG and portable artwork unchanged. Independent PDF reference deltas remain unchanged. Evidence is in `artifacts/layout`. Multi-selection, distribution, parent pages, facing-page binding and professional print production remain open.
