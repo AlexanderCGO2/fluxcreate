@@ -1,8 +1,9 @@
-import React, {useEffect, useId, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {Settings2, X, KeyRound, ShieldCheck, ArrowUpRight, Eye, EyeOff, Check, LoaderCircle, CircleAlert, Sparkles, Monitor} from 'lucide-react';
 import {apiURL} from './hosting.mjs';
 import {notifyConnectionChanged, subscribeConnectionChanges} from './connection-events.mjs';
+import {CloudflareConnection} from './CloudflareConnection.jsx';
 import './settings.css';
 
 export function SettingsButton({appId, className = '', theme}) {
@@ -16,7 +17,9 @@ export function SettingsDialog({appId, onClose, theme}) {
   const [busy, setBusy] = useState('loading'), [error, setError] = useState(''), [message, setMessage] = useState('');
   const dialog = useRef(null), input = useRef(null), request = useRef(null), mounted = useRef(false), busyRef = useRef(busy), closeRef = useRef(onClose);
   busyRef.current = busy; closeRef.current = onClose;
-  const id = useId(), saving = busy === 'save' || busy === 'remove';
+  const [cloudflareSaving,setCloudflareSaving]=useState(false),cloudflareSavingRef=useRef(false);
+  const onCloudflareSaving=useCallback(value=>{cloudflareSavingRef.current=value;setCloudflareSaving(value);},[]);
+  const id = useId(), saving = busy === 'save' || busy === 'remove' || cloudflareSaving;
   const personal = status?.mode === 'personal', invalid = status?.mode === 'invalid';
 
   useEffect(() => {
@@ -32,7 +35,7 @@ export function SettingsDialog({appId, onClose, theme}) {
     const keys = event => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        if (!['save', 'remove'].includes(busyRef.current)) closeRef.current();
+        if (!['save', 'remove'].includes(busyRef.current) && !cloudflareSavingRef.current) closeRef.current();
       }
       if (event.key === 'Tab') {
         const items = [...(dialog.current?.querySelectorAll('button:not([disabled]),input:not([disabled]),a[href],[tabindex="0"]') || [])].filter(node => node.getClientRects().length);
@@ -118,6 +121,7 @@ export function SettingsDialog({appId, onClose, theme}) {
           <div className="fc-settings-privacy"><Monitor size={17}/><div><strong>Private to this browser</strong><p>Your key is encrypted and saved in a secure browser cookie. It is sent to the server for AI requests and is never included in your projects or exports. This does not change the workspace’s shared connection.</p></div></div>
           {(personal || invalid) && <div className="fc-settings-remove"><div><strong>Remove personal connection</strong><p>The suite connection will be used if one is available.</p></div><button type="button" disabled={!!busy} onClick={() => perform('remove')}>{busy === 'remove' ? 'Removing…' : 'Remove key'}</button></div>}
           <p className="fc-settings-video-note">Changing or removing a key may interrupt checking or downloading videos started with that key. Saved media stays in your library.</p>
+          <CloudflareConnection appId={appId} onSavingChange={onCloudflareSaving}/>
         </div><footer><ShieldCheck size={13}/><span>Shared across FluxCreate in this browser</span><button type="button" disabled={saving} onClick={onClose}>Done</button></footer>
       </div>
     </section>

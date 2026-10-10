@@ -23,23 +23,24 @@ export async function serve(port=Number(process.env.PORT||4326),{service=createL
   if(pathname==='/api/health'&&req.method==='GET')return send(res,200,{ok:true,app:'fluxlab'});
   if(pathname==='/api/session'&&req.method==='GET')return send(res,200,{token});
   if(pathname==='/api/status'&&req.method==='GET')return send(res,200,await service.status(connection));
+  if(pathname==='/api/music/status'&&req.method==='GET')return send(res,200,await service.musicStatus(connection));
   if(pathname==='/api/models'&&req.method==='GET')return send(res,200,await service.models());
   if(pathname==='/api/video/content'&&req.method==='GET'){
    const controller=new AbortController(),abort=()=>{if(!res.writableEnded)controller.abort();};req.once('aborted',abort);res.once('close',abort);
    try{return await sendVideoContent(res,await service.videoContent({ticket:url.searchParams.get('ticket')},{signal:controller.signal,connection}));}finally{req.removeListener('aborted',abort);res.removeListener('close',abort);}
   }
-  if(['/api/generate','/api/video/start','/api/video/status','/api/audio/generate'].includes(pathname)&&req.method==='POST'){
+  if(['/api/generate','/api/video/start','/api/video/status','/api/audio/generate','/api/music/generate'].includes(pathname)&&req.method==='POST'){
    const given=Buffer.from(String(req.headers['x-flux-token']||'')),expected=Buffer.from(token);if(given.length!==expected.length||!timingSafeEqual(given,expected))throw new LabError('Refresh FluxLab to reconnect this local session.',403);
    if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))throw new LabError('Send JSON content.',415);
    const controller=new AbortController(),abort=()=>{if(!res.writableEnded)controller.abort();};req.once('aborted',abort);res.once('close',abort);
-   try{const method=pathname==='/api/generate'?'generate':pathname==='/api/audio/generate'?'generateAudio':pathname.endsWith('/start')?'startVideo':'videoStatus',result=await service[method](await body(req,method==='videoStatus'?80000:65536),{signal:controller.signal,connection});if(!res.destroyed)return send(res,200,result);}finally{req.removeListener('aborted',abort);res.removeListener('close',abort);}return;
+   try{const method=pathname==='/api/generate'?'generate':pathname==='/api/music/generate'?'generateMusic':pathname==='/api/audio/generate'?'generateAudio':pathname.endsWith('/start')?'startVideo':'videoStatus',result=await service[method](await body(req,method==='videoStatus'?80000:65536),{signal:controller.signal,connection});if(!res.destroyed)return send(res,200,result);}finally{req.removeListener('aborted',abort);res.removeListener('close',abort);}return;
   }
   if(pathname.startsWith('/api/'))return send(res,404,{error:'Unknown FluxLab endpoint.'});
   if(req.method!=='GET'&&req.method!=='HEAD')return send(res,405,{error:'Method not allowed.'});
   const name=decodeURIComponent(pathname==='/'?'/index.html':pathname),file=path.resolve(root,'.'+name);if(!file.startsWith(root))throw new LabError('File not found.',404);
   let data;try{data=await readFile(file);}catch{return send(res,404,{error:'FluxLab is not built yet, or this file does not exist.'});}
   const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.map':'application/json','.svg':'image/svg+xml'}[path.extname(file)]||'application/octet-stream';res.writeHead(200,{'content-type':mime,'x-content-type-options':'nosniff','cache-control':'no-store'});res.end(req.method==='HEAD'?undefined:data);
- }catch(error){if(!res.destroyed&&!res.headersSent)send(res,error instanceof LabError?error.status:500,{error:error instanceof LabError?error.message:'FluxLab could not complete the request.'});}});
+ }catch(error){if(!res.destroyed&&!res.headersSent)send(res,error instanceof LabError?error.status:500,{error:error instanceof LabError?error.message:'FluxLab could not complete the request.',...(['rejected','uncertain'].includes(error?.outcome)?{outcome:error.outcome}:{})});}});
  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});return server;
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){const server=await serve();console.log(`FluxLab is ready at http://localhost:${server.address().port}`);}

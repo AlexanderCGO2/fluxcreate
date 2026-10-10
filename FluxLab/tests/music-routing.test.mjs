@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createLabService} from '../server/service.mjs';
+const cf={mode:'personal',accountId:'a'.repeat(32),gatewayId:'default',apiToken:'test-cloudflare-token',available:true,allowTextFallback:true,allowMusic:true};
+test('Lab text fallback reports Cloudflare while malformed primary output never retries',async()=>{
+ const old=process.env.FLUX_CLOUDFLARE_TEXT_MODELS;process.env.FLUX_CLOUDFLARE_TEXT_MODELS=JSON.stringify({'test/text':'test/text'});
+ try{for(const malformed of [false,true]){const calls=[],service=createLabService({fetchImpl:async(url,init)=>{calls.push(url);if(url.endsWith('/models'))return Response.json({data:[{id:'test/text',type:'language',modalities:{output:['text']}}]});if(url.includes('vercel'))return malformed?Response.json({choices:[{message:{content:''}}]}):new Response('',{status:429});assert.equal(init.headers.authorization,'Bearer test-cloudflare-token');return Response.json({choices:[{message:{content:'Fallback text'}}],model:'test/text'});}}),pending=service.generate({kind:'text',model:'test/text',prompt:'Idea'},{connection:{apiKey:'vercel-test',mode:'personal',cloudflare:cf}});if(malformed){await assert.rejects(pending,/no text/);assert.equal(calls.length,2);}else{const result=await pending;assert.equal(result.text,'Fallback text');assert.equal(result.routing.gateway,'Cloudflare AI Gateway');assert.equal(result.routing.attempts.length,2);assert.equal(calls.length,3);}}}finally{if(old===undefined)delete process.env.FLUX_CLOUDFLARE_TEXT_MODELS;else process.env.FLUX_CLOUDFLARE_TEXT_MODELS=old;}
+});

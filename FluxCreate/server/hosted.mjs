@@ -28,6 +28,7 @@ export function createHostedHandler({services={},lab=createLabService(),agents=c
  if(appId==='fluxagents'&&req.method==='GET'&&route==='/models')return answer(res,200,await lab.models());
  if(req.method==='GET'&&route==='/ai/status'&&appId!=='fluxlab')return answer(res,200,editors.has(appId)?await editors.get(appId).status(connection):await status(connection));
  if(appId==='fluxini'&&req.method==='GET'&&route==='/status')return answer(res,200,{model:await status(connection)});
+ if(appId==='fluxlab'&&req.method==='GET'&&route==='/music/status')return answer(res,200,await lab.musicStatus(connection));
  if(appId==='fluxlab'&&req.method==='GET'&&route==='/status')return answer(res,200,await lab.status(connection));
  if(appId==='fluxlab'&&req.method==='GET'&&route==='/models')return answer(res,200,await lab.models());
  if(appId==='fluxlab'&&req.method==='GET'&&route==='/video/content'){const controller=new AbortController();req.once('aborted',()=>controller.abort());res.once('close',()=>{if(!res.writableEnded)controller.abort();});return await sendVideoContent(res,await lab.videoContent({ticket:url.searchParams.get('ticket')},{signal:controller.signal,connection}));}
@@ -38,10 +39,11 @@ export function createHostedHandler({services={},lab=createLabService(),agents=c
  if(appId==='fluxlab'&&route==='/generate')return answer(res,200,await lab.generate(await bodyFor(req,64000),{signal:controller.signal,connection}));
  if(appId==='fluxlab'&&route==='/video/start')return answer(res,200,await lab.startVideo(await bodyFor(req,64000),{signal:controller.signal,connection}));
  if(appId==='fluxlab'&&route==='/video/status')return answer(res,200,await lab.videoStatus(await bodyFor(req,80000),{signal:controller.signal,connection}));
+ if(appId==='fluxlab'&&route==='/music/generate')return answer(res,200,await lab.generateMusic(await bodyFor(req,16000),{signal:controller.signal,connection}));
  if(appId==='fluxlab'&&route==='/audio/generate')return answer(res,200,await lab.generateAudio(await bodyFor(req,64000),{signal:controller.signal,connection}));
  if(editors.has(appId)&&route==='/ai/plan')return answer(res,200,await editors.get(appId).plan(await bodyFor(req,1100000),{signal:controller.signal,connection}));
  if(appId==='fluxini'&&route==='/plan'){const input=prepareSceneRequest(await bodyFor(req,1100000));return answer(res,200,await scenePlanner(input.project,input.intent,input.memory,undefined,input.selection,controller.signal,{connection}));}
  fail('Unknown service endpoint.',404);
- }catch(e){const known=Number.isInteger(e?.status)&&e.status>=400&&e.status<=599;answer(res,known?e.status:500,{error:known?e.message:'The request could not be completed. Try again.'});}};
+ }catch(e){const known=Number.isInteger(e?.status)&&e.status>=400&&e.status<=599;answer(res,known?e.status:500,{error:known?e.message:'The request could not be completed. Try again.',...(known&&['rejected','uncertain'].includes(e.outcome)?{outcome:e.outcome}:{})});}};
 }
 export default createHostedHandler();

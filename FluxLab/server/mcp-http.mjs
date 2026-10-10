@@ -2,6 +2,7 @@ import {createMcpHandler} from '@modelcontextprotocol/server';
 import {createHash} from 'node:crypto';
 import {createMcpServer} from './mcp.mjs';
 import {createLabService,LabError} from './service.mjs';
+import {snapshotCloudflare,cloudflareFor} from '../../FluxCreate/server/cloudflare-connection.mjs';
 
 const LIMIT=4*1024*1024;
 const hash=value=>createHash('sha256').update(value).digest('hex');
@@ -30,6 +31,7 @@ export function createRequestLedger({now=Date.now,maxEntries=128,maxBytes=32*102
 export function createEditorMcpHandler({appId,service=createLabService(),editor,ledger=createRequestLedger(),hosted=false}={}){
  return async function handle(req,res,{connection}={}){
   let handler;const aborter=new AbortController(),abort=()=>{if(!res.writableEnded)aborter.abort();};
+  const saved=connection===undefined?undefined:Object.freeze({...connection,cloudflare:snapshotCloudflare(connection?.cloudflare)}),cloudflare=cloudflareFor(saved);
   req.once('aborted',abort);res.once('close',abort);
   try{
    const expected=(hosted?'https://':'http://')+req.headers.host;
@@ -38,14 +40,13 @@ export function createEditorMcpHandler({appId,service=createLabService(),editor,
    if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))throw new LabError('Send a JSON MCP request.',415);
    const encoded=await readBody(req);let body;try{body=JSON.parse(encoded);}catch{throw new LabError('Send a valid MCP request.');}
    if(!body||Array.isArray(body)||typeof body!=='object')throw new LabError('Send one MCP request.');
-   const saved=connection===undefined?undefined:Object.freeze({...connection});
-   const scope=hash(saved===undefined?'suite\0'+(process.env.AI_GATEWAY_API_KEY||''):JSON.stringify([saved.apiKey,saved.scopeId,saved.mode]));
+   const scope=hash(JSON.stringify([saved===undefined?'suite\0'+(process.env.AI_GATEWAY_API_KEY||''):[saved.apiKey,saved.scopeId,saved.mode],cloudflare?.scopeId||'']));
    const requestId=body.params?._meta?.['fluxcreate/requestId'];
-   const paid=body.method==='tools/call'&&body.params?.name!=='fluxlab_catalog';
+   const paid=body.method==='tools/call'&&!['fluxlab_catalog','fluxlab_music_status'].includes(body.params?.name);
    if(paid&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId||''))throw new LabError('Include a unique AI request ID.');
    const once=(name,input,operation)=>ledger(`${appId}:${scope}:${requestId}`,{name,input},operation);
    const guarded={...service};
-   for(const name of ['generate','editImage','startVideo','generateAudio'])if(typeof service[name]==='function')guarded[name]=(input,options)=>once(name,input,()=>service[name](input,options));
+   for(const name of ['generate','editImage','startVideo','generateAudio','generateMusic'])if(typeof service[name]==='function')guarded[name]=(input,options)=>once(name,input,()=>service[name](input,options));
    const edit=editor?{...editor,plan:(input,options)=>once('edit',input,()=>editor.plan(input,options))}:undefined;
    handler=createMcpHandler(()=>createMcpServer({service:guarded,connection:saved,signal:aborter.signal,editor:edit}),{legacy:'stateless',responseMode:'auto',maxRequestBodySize:LIMIT});
    const headers=new Headers();for(const[k,v]of Object.entries(req.headers))if(typeof v==='string')headers.set(k,v);

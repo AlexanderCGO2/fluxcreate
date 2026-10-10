@@ -168,6 +168,6 @@ The eight increments in [PARALLEL-GAP-BATCH-2.md](PARALLEL-GAP-BATCH-2.md) are i
 
 Sources are frozen and assembled. The complete matrix passed all 536 checks (470 across the eight apps, plus 18 Exchange and 48 shared suite checks), with zero failures or skips. All nine app builds plus MCP/server, 36 hosted browser checks and six packaged MCP checks pass. Publication, deployment and protected production verification remain pending in the [release record](RELEASE-PARALLEL-2026-10-10.md). Production remains suite 2f0d045 until that deployment is completed. No full milestone or original-product parity is claimed.
 
-## Next provider integration — Cloudflare
+## Cloudflare provider integration — bounded implementation
 
-The [Cloudflare fallback and music plan](superpowers/plans/2026-10-10-cloudflare-ai.md) is the next scoped provider workstream. Shared connection/routing contracts precede parallel text-adapter and music-studio work. Keep Vercel hosting and the current primary connection. Cloudflare Music v2 replaces a mandatory direct ElevenLabs connection as the preferred first candidate; production activation still needs secure account configuration and actual-provider evidence.
+The [Cloudflare fallback and music plan](superpowers/plans/2026-10-10-cloudflare-ai.md) now has independent settings, the shared text router and the music studio implemented; account activation remains open. Shared connection/routing contracts precede parallel text-adapter and music-studio work. Keep Vercel hosting and the current primary connection. Cloudflare Music v2 replaces a mandatory direct ElevenLabs connection as the preferred first candidate; production activation still needs secure account configuration and actual-provider evidence.

@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {connectionStatus} from './ai.mjs';
 import {loadConnection} from '../../Haidini/server/connection.mjs';
+import {cloudflareFor,cloudflareCookieName,resolveCloudflareConnection,publicCloudflareStatus,validateCloudflare,sealCloudflareConnection,checkCloudflareToken,CLOUDFLARE_TTL} from './cloudflare-connection.mjs';
 
 const LOCAL_COOKIE='fluxcreate_connection',HOSTED_COOKIE='__Host-fluxcreate_connection';
 const TTL=30*24*60*60*1000,AAD=Buffer.from('fluxcreate:gateway-connection:v1');
@@ -39,18 +40,29 @@ export function openConnection(value,key,now=Date.now()){
 }
 function cookieValue(req,name){const matches=(req.headers.cookie||'').split(';').map(v=>v.trim()).filter(v=>v.startsWith(name+'='));return matches.length===1?matches[0].slice(name.length+1):matches.length?'invalid':undefined;}
 function validateKey(value){if(typeof value!=='string'||value.length<16||value.length>1024||!/^[\x21-\x7e]+$/.test(value))throw fail('Enter a valid Vercel AI Gateway key.');return value;}
-export async function resolveRequestConnection(req,{hosted=false,key:injectedKey,now=Date.now()}={}){
+async function resolveVercelConnection(req,{hosted=false,key:injectedKey,now=Date.now()}={}){
  const cookie=cookieValue(req,hosted?HOSTED_COOKIE:LOCAL_COOKIE);if(cookie===undefined)return undefined;
  let key;try{key=injectedKey||await secretFor(hosted);}catch{return invalid('Private connection settings are unavailable. Reconnect in General settings.');}
  const value=openConnection(cookie,key,now);if(!value)return invalid('Your personal connection expired or could not be read. Reconnect in General settings.');
  return Object.freeze({apiKey:value.apiKey,model:process.env.FLUXINI_MODEL||'anthropic/claude-sonnet-5',scopeId:fingerprint(value.apiKey),available:true,mode:'personal',expiresAt:value.expiresAt});
 }
+export async function resolveRequestConnection(req,options={}){
+ // Capture the suite billing account before any asynchronous request work.
+ const suiteCloudflare=cloudflareFor(undefined);
+ const base=await resolveVercelConnection(req,options),personalCloudflare=await resolveCloudflareConnection(req,{...options,getKey:secretFor});
+ const cloudflare=personalCloudflare??(base===undefined||base.mode==='suite'?suiteCloudflare:undefined);
+ if(cloudflare===undefined)return base;
+ if(base!==undefined)return Object.freeze({...base,cloudflare});
+ let reason;try{await loadConnection(fileURLToPath(new URL('../../Haidini/.data/',import.meta.url)));}catch{reason='The suite AI connection is unavailable.';}
+ const apiKey=reason?'':process.env.AI_GATEWAY_API_KEY||'';
+ return Object.freeze({apiKey,model:process.env.FLUXINI_MODEL||'anthropic/claude-sonnet-5',scopeId:apiKey?fingerprint(apiKey):'suite:unavailable',mode:'suite',available:!!apiKey,...(reason?{reason}:{}),cloudflare});
+}
 function send(res,status,body){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});res.end(JSON.stringify(body));}
-async function safeBody(req){
+async function safeBody(req,fields=['apiKey']){
  if(!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))throw fail('Send JSON content.',415);
  let value;if(req.body!==undefined){const encoded=typeof req.body==='string'?req.body:JSON.stringify(req.body);if(Buffer.byteLength(encoded)>4096)throw fail('The settings request is too large.',413);try{value=JSON.parse(encoded);}catch{throw fail('Send a valid settings request.');}}
  else{if(Number(req.headers['content-length'])>4096){req.resume();throw fail('The settings request is too large.',413);}const chunks=[];let size=0;for await(const part of req){size+=part.length;if(size>4096)throw fail('The settings request is too large.',413);chunks.push(part);}try{value=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw fail('Send a valid settings request.');}}
- if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>k!=='apiKey'))throw fail('Unsupported connection settings.');if(value.apiKey!==undefined&&typeof value.apiKey!=='string')throw fail('Enter a valid Vercel AI Gateway key.');return value;
+ if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).some(k=>!fields.includes(k)))throw fail('Unsupported connection settings.');if(value.apiKey!==undefined&&typeof value.apiKey!=='string')throw fail('Enter a valid Vercel AI Gateway key.');return value;
 }
 export async function checkGatewayKey(apiKey,{fetchImpl=fetch}={}){
  validateKey(apiKey);
@@ -75,17 +87,18 @@ async function publicStatus(connection,status=connectionStatus){
  if(connection!==undefined)return {mode:connection.mode,available:connection.available,configured:connection.mode==='personal',storage:'browser',...(connection.expiresAt?{expiresAt:connection.expiresAt}:{}),...(connection.reason?{reason:connection.reason}:{})};
  const suite=await status();return{mode:suite.available?'suite':'none',available:!!suite.available,configured:false,storage:'browser',...(suite.reason?{reason:suite.reason}:{})};
 }
-export async function handleSettings(req,res,route,{hosted=false,key,validate=checkGatewayKey,status=connectionStatus}={}){
+export async function handleSettings(req,res,route,{hosted=false,key,validate=checkGatewayKey,status=connectionStatus,validateCloudflare:checkCloudflare=checkCloudflareToken}={}){
+ if(['/settings/cloudflare','/settings/cloudflare/check'].includes(route))return handleCloudflareSettings(req,res,route,{hosted,key,checkCloudflare});
  if(!['/settings/connection','/settings/connection/check'].includes(route))return false;
  try{
   if(req.headers['sec-fetch-site']==='cross-site'||(req.headers.origin&&!sameOrigin(req,hosted)))throw fail('Open settings from your FluxCreate workspace.',403);
-  if(req.method==='GET'&&route==='/settings/connection'){send(res,200,await publicStatus(await resolveRequestConnection(req,{hosted,key}),status));return true;}
+  if(req.method==='GET'&&route==='/settings/connection'){send(res,200,await publicStatus(await resolveVercelConnection(req,{hosted,key}),status));return true;}
   if(!['POST','DELETE'].includes(req.method)||(req.method==='DELETE'&&route.endsWith('/check')))throw fail('Method not allowed.',405);
   if(!sameOrigin(req,hosted))throw fail('Save connection settings from your FluxCreate workspace.',403);
   const name=hosted?HOSTED_COOKIE:LOCAL_COOKIE,attributes=`; Path=/; HttpOnly; SameSite=Strict${hosted?'; Secure':''}`;
   if(req.method==='DELETE'){res.setHeader('Set-Cookie',`${name}=${attributes}; Max-Age=0`);send(res,200,await publicStatus(undefined,status));return true;}
   limitChecks(req);const input=await safeBody(req);let apiKey=input.apiKey?.trim();
-  if(route.endsWith('/check')&&!apiKey){const current=await resolveRequestConnection(req,{hosted,key});if(current!==undefined){if(!current.available)throw fail(current.reason,401);apiKey=current.apiKey;}else{await loadConnection(fileURLToPath(new URL('../../Haidini/.data/',import.meta.url)));apiKey=process.env.AI_GATEWAY_API_KEY;}}
+  if(route.endsWith('/check')&&!apiKey){const current=await resolveVercelConnection(req,{hosted,key});if(current!==undefined){if(!current.available)throw fail(current.reason,401);apiKey=current.apiKey;}else{await loadConnection(fileURLToPath(new URL('../../Haidini/.data/',import.meta.url)));apiKey=process.env.AI_GATEWAY_API_KEY;}}
   validateKey(apiKey);
   // Check storage readiness before a network call. Failed checks never replace a cookie.
   const wrappingKey=route.endsWith('/check')?undefined:key||await secretFor(hosted);
@@ -97,5 +110,25 @@ export async function handleSettings(req,res,route,{hosted=false,key,validate=ch
   res.setHeader('Set-Cookie',`${name}=${sealConnection({v:1,apiKey,expiresAt},wrappingKey)}${attributes}; Max-Age=31536000`);
   send(res,200,{mode:'personal',available:true,configured:true,storage:'browser',expiresAt,credits:result.credits});
  }catch(error){send(res,error.status||500,{error:error.status?error.message:'Connection settings could not be updated.'});}
+ return true;
+}
+async function handleCloudflareSettings(req,res,route,{hosted,key,checkCloudflare}){
+ try{
+  if(req.headers['sec-fetch-site']==='cross-site'||(req.headers.origin&&!sameOrigin(req,hosted)))throw fail('Open settings from your FluxCreate workspace.',403);
+  const active=async()=>cloudflareFor(await resolveRequestConnection(req,{hosted,key}));
+  if(req.method==='GET'&&!route.endsWith('/check')){send(res,200,publicCloudflareStatus(await active()));return true;}
+  if(!['POST','DELETE'].includes(req.method)||(req.method==='DELETE'&&route.endsWith('/check')))throw fail('Method not allowed.',405);
+  if(!sameOrigin(req,hosted))throw fail('Save connection settings from your FluxCreate workspace.',403);
+  const name=cloudflareCookieName(hosted),attributes=`; Path=/; HttpOnly; SameSite=Strict${hosted?'; Secure':''}`;
+  if(req.method==='DELETE'){res.setHeader('Set-Cookie',`${name}=${attributes}; Max-Age=0`);send(res,200,publicCloudflareStatus(cloudflareFor(await resolveVercelConnection(req,{hosted,key}))));return true;}
+  limitChecks(req);const input=await safeBody(req,['accountId','gatewayId','apiToken','allowMusic','allowTextFallback']);
+  let value;
+  if(route.endsWith('/check')&&Object.keys(input).length===0){value=await active();if(!value?.available)throw fail('Add a Cloudflare connection before checking its token.',401);}
+  else{const trim=v=>typeof v==='string'?v.trim():v;value={...input,accountId:trim(input.accountId),gatewayId:trim(input.gatewayId)??'default',apiToken:trim(input.apiToken)};validateCloudflare(value);}
+  if(route.endsWith('/check')){const result=await checkCloudflare(value);send(res,200,{valid:result.valid===true,verified:result.verified===true,accessVerified:false,creditsVerified:false,checkedAt:result.checkedAt,message:'Token is active. Account access, Workers AI Read permission, model access and billing credits are not verified.'});return true;}
+  const secret=key||await secretFor(hosted),expiresAt=Date.now()+CLOUDFLARE_TTL;
+  res.setHeader('Set-Cookie',`${name}=${sealCloudflareConnection({...value,v:1,expiresAt},secret)}${attributes}; Max-Age=31536000`);
+  send(res,200,publicCloudflareStatus({...value,mode:'personal',expiresAt}));
+ }catch(error){send(res,error.status||500,{error:error.status?error.message:'Cloudflare settings could not be updated.'});}
  return true;
 }

@@ -1,6 +1,6 @@
 # Cloudflare AI Gateway: fallback and music
 
-Research and proposed design, checked 2026-10-10. This is not a deployed integration or a successful account/provider test. Production remains the verified Vercel-hosted suite. The supplied Cloudflare dashboard is authenticated and was not accessible through public browsing; account credits, token permissions, stored provider keys and gateway settings are unverified.
+Research checked 2026-10-10; the settings, guarded text router and bounded music implementation are now in source and undergoing protected release verification. This is not a successful account/provider test. The supplied Cloudflare dashboard is authenticated and was not accessible through public browsing; account credits, token permissions, stored provider keys and gateway settings are unverified.
 
 ## Confirmed capability and revised music direction
 

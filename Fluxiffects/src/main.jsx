@@ -118,7 +118,7 @@ function App() {
       const prepared=applyProposal(before,choice.proposal);
       return {label:typeof choice.label==='string'?choice.label.slice(0,80):`Direction ${index+1}`,proposal:choice.proposal,after:prepared.project,changes:prepared.changes,warnings:[...(choice.warnings||[]),...(prepared.warnings||[])],explanation:choice.explanation};
     });
-    setAiReview({before,alternatives,selectedIndex:0,...alternatives[0]});setPlaying(false);setModal('ai-review');
+    setAiReview({before,alternatives,selectedIndex:0,...alternatives[0],routing:result.routing});setPlaying(false);setModal('ai-review');
   } catch(e){notice(e.message);} };
   const selectAIDirection = index => setAiReview(review=>review?.alternatives[index]?{...review,...review.alternatives[index],selectedIndex:index}:review);
   const applyAI = () => { try { const result=applyProposal(projectRef.current,aiReview.proposal);commit(result.project);setModal(null);if(aiReview.proposal.mode==='create'){setTime(Math.min(1.4,getComp(result.project).duration/2));setSelectedId(null);}notice('Flux changes applied. You can undo the whole edit.'); } catch(e){notice(e.message);} };

@@ -1,3 +1,4 @@
+import {snapshotCloudflare,cloudflareFor} from '../../FluxCreate/server/cloudflare-connection.mjs';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 import {fileURLToPath, pathToFileURL} from 'node:url';
@@ -14,7 +15,7 @@ const shortText = (value, label, max, optional = false) => {
 };
 
 /** Reuse the user-authorized Fluxini connection read-only. Never expose credentials or local paths. */
-const snapshotConnection=value=>value===undefined?undefined:Object.freeze({apiKey:typeof value?.apiKey==='string'&&value.apiKey.length<=4096&&!/\s/.test(value.apiKey)?value.apiKey:'',model:typeof value?.model==='string'&&value.model.length<=200&&value.model?value.model:'anthropic/claude-sonnet-5',scopeId:typeof value?.scopeId==='string'?value.scopeId.slice(0,200):'',available:value?.available!==false});
+const snapshotConnection=value=>value===undefined?undefined:Object.freeze({apiKey:typeof value?.apiKey==='string'&&value.apiKey.length<=4096&&!/\s/.test(value.apiKey)?value.apiKey:'',model:typeof value?.model==='string'&&value.model.length<=200&&value.model?value.model:'anthropic/claude-sonnet-5',scopeId:typeof value?.scopeId==='string'?value.scopeId.slice(0,200):'',available:value?.available!==false,cloudflare:snapshotCloudflare(value?.cloudflare)});
 const connectionScope=value=>value===undefined?'suite':createHash('sha256').update(value.apiKey+'\0'+value.scopeId).digest('hex');
 export async function connectionStatus(connection) {
   if(connection!==undefined){const value=snapshotConnection(connection);return {available:!!value.apiKey&&value.available,provider:'Flux / AI Gateway',model:value.model,...(!value.apiKey||!value.available?{reason:'Connect your AI Gateway account in Settings to enable AI.'}:{})};}
@@ -88,7 +89,7 @@ export function createAIService({planner} = {}) {
       return {...await connectionStatus(connection), busy};
     },
     async plan(body, {signal,connection} = {}) {
-      connection=snapshotConnection(connection);const scope=connectionScope(connection);
+      connection=snapshotConnection(connection);const cloudflare=cloudflareFor(connection),scope=connectionScope(connection);
       const request = buildAIContext(body);
       if(connection!==undefined&&(!connection.apiKey||!connection.available))fail('Connect your AI Gateway account in Settings to enable AI.',503);
       if (inFlight.has(scope)) fail('Another AI request is already running. Cancel it or wait for it to finish.', 409);
@@ -105,7 +106,7 @@ export function createAIService({planner} = {}) {
           if (planner) return await planner({intent: request.intent, context: request.context, mode: request.mode, scope: request.scope, selection: request.selection, variations: request.variations, signal: controller.signal});
           const status = await connectionStatus(connection); if (!status.available) fail(status.reason, 503);
           const {planWithGateway} = await import('./ai-provider.mjs');
-          return await planWithGateway({intent: request.intent, context: request.context, variations: request.variations, model: status.model, apiKey:connection===undefined?process.env.AI_GATEWAY_API_KEY:connection.apiKey, signal: controller.signal});
+          return await planWithGateway({intent: request.intent, context: request.context, variations: request.variations, model: status.model, connection:{cloudflare}, apiKey:connection===undefined?process.env.AI_GATEWAY_API_KEY:connection.apiKey, signal: controller.signal});
         };
         let answer;
         try {answer = await Promise.race([run(), abort]);}
@@ -117,8 +118,10 @@ export function createAIService({planner} = {}) {
           fail(`The AI Gateway request failed${detail}. Check the selected Claude model and the existing Flux connection.`, 502);
         }
         if (controller.signal.aborted) fail('AI request cancelled.', 499);
+        const routing=answer?.routing;
+        if(routing){const {routing:metadata,...proposal}=answer;answer=proposal;}
         const baseFingerprint = fingerprintProject(request.project);
-        if (request.variations === 1) return validateAnswer(answer, request, baseFingerprint);
+        if (request.variations === 1) return {...validateAnswer(answer, request, baseFingerprint),...(routing?{routing}:{})};
         if (!answer || typeof answer !== 'object' || Array.isArray(answer) || Object.keys(answer).some(key => key !== 'alternatives') || !Array.isArray(answer.alternatives) || answer.alternatives.length !== 3) fail('The model must return exactly three directions. No changes were applied.', 502);
         const labels = new Set();
         // Validate each choice against the same immutable source. Nothing is returned until
@@ -130,7 +133,7 @@ export function createAIService({planner} = {}) {
           return {label, ...validateAnswer(alternative, request, baseFingerprint, {multiple: true})};
         });
         const {label, ...first} = alternatives[0];
-        return {...first, alternatives};
+        return {...first, alternatives,...(routing?{routing}:{})};
       } finally {
         clearTimeout(timeout); signal?.removeEventListener('abort', onAbort);
         if (abortListener) controller.signal.removeEventListener('abort', abortListener);

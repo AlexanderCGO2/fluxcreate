@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import http from 'node:http';
+import {randomUUID} from 'node:crypto';
+import {Client,StreamableHTTPClientTransport} from '@modelcontextprotocol/client';
+import {createEditorMcpHandler} from '../server/mcp-http.mjs';
+import {serve} from '../server/index.mjs';
+import {LabError} from '../server/service.mjs';
+test('MCP music status is read-only and music requests deduplicate per Cloudflare account scope',async t=>{
+ let calls=0;const handler=createEditorMcpHandler({appId:'fluxlab',service:{musicStatus:()=>({available:true,model:'elevenlabs/music-v2'}),generateMusic:async(_body,{connection})=>{calls++;return {kind:'audio',model:'elevenlabs/music-v2',audios:[],scope:connection.cloudflare.apiToken};}}});
+ const server=http.createServer((req,res)=>handler(req,res,{connection:{apiKey:'same-vercel-key',mode:'personal',scopeId:'same',cloudflare:{mode:'personal',accountId:'a'.repeat(32),gatewayId:'default',apiToken:req.headers['x-test-cf'],available:true,allowMusic:true}}}));await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>{server.closeAllConnections();server.close(r);}));const origin=`http://127.0.0.1:${server.address().port}`;
+ const clients=[];for(const key of ['cloudflare-user-a','cloudflare-user-b']){const client=new Client({name:'Music HTTP test',version:'1'});await client.connect(new StreamableHTTPClientTransport(new URL(origin+'/api/mcp'),{requestInit:{headers:{origin,'x-fluxcreate-mcp':'1','x-test-cf':key}}}));clients.push(client);t.after(()=>client.close());}
+ const status=await clients[0].callTool({name:'fluxlab_music_status',arguments:{}});assert.equal(status.structuredContent.available,true);assert.equal(calls,0);
+ const params={name:'fluxlab_generate_music',arguments:{model:'elevenlabs/music-v2',prompt:'Piano',durationSeconds:3,instrumental:true,requestId:randomUUID()},_meta:{'fluxcreate/requestId':randomUUID()}},first=await clients[0].callTool(params),again=await clients[0].callTool(params),other=await clients[1].callTool(params);assert.equal(calls,2);assert.equal(first.structuredContent.scope,again.structuredContent.scope);assert.notEqual(first.structuredContent.scope,other.structuredContent.scope);
+});
+test('local music routes preserve errors and require session authorization only for generation',async t=>{let calls=0;const server=await serve(0,{service:{musicStatus:()=>({available:true,model:'elevenlabs/music-v2'}),generateMusic:async()=>{calls++;throw Object.assign(new LabError('Already submitted.',409),{outcome:'uncertain'});}}});t.after(()=>new Promise(r=>server.close(r)));const base=`http://127.0.0.1:${server.address().port}`;assert.equal((await fetch(base+'/api/music/status')).status,200);assert.equal((await fetch(base+'/api/music/generate',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})).status,403);assert.equal(calls,0);const {token}=await fetch(base+'/api/session').then(r=>r.json()),response=await fetch(base+'/api/music/generate',{method:'POST',headers:{'content-type':'application/json','x-flux-token':token},body:'{}'});assert.equal(response.status,409);assert.equal((await response.json()).outcome,'uncertain');assert.equal(calls,1);});

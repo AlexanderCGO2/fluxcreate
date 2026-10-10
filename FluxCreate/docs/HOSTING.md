@@ -46,3 +46,14 @@ FluxLab video jobs are held by AI Gateway; signed job references are saved in th
 Downloaded video and speech are saved as browser Blobs. They do not become cloud-synchronized assets. Job tickets last seven days, provider media can expire earlier, and changing the Gateway key invalidates existing job tickets. Export media needed on another device or origin.
 
 The video route writes response chunks directly instead of buffering one JSON body. See [Vercel's response-size and streaming guidance](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions).
+
+
+## Optional Cloudflare music and text fallback
+
+General settings accepts a separate Cloudflare account ID, gateway ID and API token in an encrypted HttpOnly cookie. Saving marks it configured, not verified. Check token verifies only token activity; account scope, Workers AI Read permission, model access, stored BYOK keys and credits require separate verification. Enable Music and Text fallback independently. Existing Vercel personal credentials remain unchanged; missing/invalid personal settings never silently charge workspace Cloudflare.
+
+Workspace configuration uses server-only `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_GATEWAY_ID` (default `default`), `CLOUDFLARE_API_TOKEN`, `FLUXCREATE_CLOUDFLARE_MUSIC=true` and/or `FLUXCREATE_CLOUDFLARE_FALLBACK=true`. Do not commit secrets. Automatic text fallback additionally requires `FLUX_CLOUDFLARE_TEXT_MODELS`, an explicit JSON object mapping approved identical model IDs, for example `{"anthropic/claude-sonnet-4":"anthropic/claude-sonnet-4"}`. This example is not an activation instruction: verify the model under the actual account first. There are no implicit defaults or dynamic routes.
+
+Vercel remains primary. Only a definitive initial HTTP 429 with no output can make one Cloudflare attempt under the original deadline. Credential, credit, cancellation, timeout, partial-output and validation failures never auto-repeat. Proposal/result details show the gateway and actual model. Hosted Agents live execution remains disabled.
+
+Music uses one bounded synchronous request and browser-owned recovery, not a cloud queue. An uncertain outcome never auto-resubmits; check Cloudflare history before explicitly starting another. Its server ledger is process-local for 24 hours and cannot guarantee exactly-once charges across instances. Music and text provider access are unverified until account activation is recorded.

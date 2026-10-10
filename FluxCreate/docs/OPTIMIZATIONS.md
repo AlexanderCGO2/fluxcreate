@@ -251,4 +251,4 @@ The current implemented subsets above are now published in Flux AI: runtime comm
 
 ## Music research update — 2026-10-10
 
-The earlier music finding applied to Vercel’s catalog and the direct ElevenLabs API. Cloudflare now documents a separate `elevenlabs/music-v2` account-API route with Unified Billing. Prefer this path for the next integration; a separate direct ElevenLabs key is not the only option. See [verified references and design](CLOUDFLARE-AI-GATEWAY.md). This updates the plan, not the implementation status.
+The earlier music finding applied to Vercel’s catalog and the direct ElevenLabs API. Cloudflare now documents a separate `elevenlabs/music-v2` account-API route with Unified Billing. Prefer this path for the next integration; a separate direct ElevenLabs key is not the only option. See [verified references and design](CLOUDFLARE-AI-GATEWAY.md). Independent Cloudflare settings, guarded text routing and bounded Music v2 generation are now implemented. Actual account access/output and durable cross-instance music recovery remain open.

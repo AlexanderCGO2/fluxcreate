@@ -1,3 +1,4 @@
+import {RoutingProvenance} from './RoutingProvenance.jsx';
 import React,{useEffect,useRef,useState} from 'react';
 import {Sparkles,X,Square,ArrowUp,Check} from 'lucide-react';
 import {connectEditorMcp} from '../../FluxLab/src/mcp-client.mjs';
@@ -66,7 +67,7 @@ export function FloatingAIHelper({appId,adapter,disabledReason=''}){
     {mode==='image-edit'&&chosen?.imageEdit&&<p className="fc-floating-ai-fine">{chosen.imageEdit.limits} {chosen.imageEdit.priceBasis}</p>}
     {busy?<button className="fc-floating-ai-primary" disabled={applying.current} onClick={()=>{cancel();setNotice('Request cancelled. Provider work may already have started; no retry was sent.');}}><Square size={14}/>{applying.current?'Applying…':'Cancel request'}</button>:<button className="fc-floating-ai-primary" onClick={prepare} disabled={!catalog?.status?.available||!actions.length||!prompt.trim()||!!disabledReason||!context||generating&&!chosen||mode==='image-edit'&&selection.length!==1}><ArrowUp size={15}/>Prepare for review</button>}
     {disabledReason&&<p role="status">{disabledReason}</p>}{error&&<p role="alert" className="fc-floating-ai-error">{error}</p>}{notice&&<p role="status">{notice}</p>}
-    {review&&<section aria-label="AI proposal review" className="fc-floating-ai-review"><h3>{summary}</h3>{review.result?.explanation&&<p>{review.result.explanation}</p>}
+    {review&&<section aria-label="AI proposal review" className="fc-floating-ai-review"><h3>{summary}</h3><RoutingProvenance routing={review.result?.routing||review.result?.structuredContent?.routing} className="fc-floating-ai-fine"/>{review.result?.explanation&&<p>{review.result.explanation}</p>}
      {review.reference&&<figure><img src={review.reference} alt="Original selected image"/><figcaption>Original</figcaption></figure>}
      {review.asset?.kind==='image'&&<figure><img src={review.asset.images[0].src} alt="Generated image for review"/><figcaption>Generated result</figcaption><a href={review.asset.images[0].src} download={'flux-ai-'+review.asset.id+'.'+(review.asset.images[0].mimeType==='image/jpeg'?'jpg':review.asset.images[0].mimeType==='image/webp'?'webp':'png')}>Download image</a></figure>}
      {review.asset?.kind==='text'&&<textarea aria-label="Review generated text" rows={6} value={text} onChange={e=>setText(e.target.value)}/>}
