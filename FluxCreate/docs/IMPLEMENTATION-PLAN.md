@@ -2,7 +2,7 @@
 
 > Working-source update (2026-10-10): the approved batch now includes four-editor source-object controls, durable browser handoff/history, the floating MCP helper, bounded reference edits, Fluxfoto selection masks, Fluxini design alignment, Fluximiére audio/precise export, Fluxiffects real-time audio export and FluxAgents branching. The status notes below identify completed subsets and remaining acceptance work; no full milestone or native-product parity is implied.
 
-Prepared 2026-10-09; updated 2026-10-10. The earlier review release published the plan; subsequent authorized implementation is recorded below. The [release record](RELEASE-2026-10-09.md) records the published commit, tests and remaining boundaries. Unfinished milestone items remain the backlog. The first [parallel workstreams](PARALLEL-GAP-PLAN.md) are published in suite 2f0d045. The [second batch](PARALLEL-GAP-BATCH-2.md) is assembled and verified; [publication and deployment](RELEASE-PARALLEL-2026-10-10.md) are pending.
+Prepared 2026-10-09; updated 2026-10-10. The earlier review release published the plan; subsequent authorized implementation is recorded below. The [release record](RELEASE-2026-10-09.md) records the published commit, tests and remaining boundaries. Unfinished milestone items remain the backlog. The first [parallel workstreams](PARALLEL-GAP-PLAN.md) are published in suite 2f0d045. The [second batch](PARALLEL-GAP-BATCH-2.md) is published as suite 090d81d; its [production record](RELEASE-PARALLEL-2026-10-10.md) includes 67 protected live checks.
 
 ## Outcome and boundaries
 

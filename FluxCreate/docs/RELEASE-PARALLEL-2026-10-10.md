@@ -1,6 +1,6 @@
 # Second parallel gap continuation — 2026-10-10
 
-Baseline production: suite 2f0d045, documented in [the first parallel release](RELEASE-PARALLEL-2026-10-09.md). **Status: scoped app sources implemented, frozen, assembled and verified; publication and deployment pending.** The first production release remains active. No new production commit, deployment ID or live pass count is claimed here.
+Baseline production: suite 2f0d045, documented in [the first parallel release](RELEASE-PARALLEL-2026-10-09.md). **Status: committed, pushed, deployed and verified.** Suite runtime commit: 090d81d. Production: https://fluxcreate.vercel.app. Deployment: dpl_3L4rdAGQnkeKZbEdRYohWTsupTbn under Flux AI (flux-ai-inc).
 
 ## Delivered source slices
 
@@ -15,11 +15,11 @@ Baseline production: suite 2f0d045, documented in [the first parallel release](R
 | FluxLab | Protected independent unsent draft and reviewed bounded recipe JSON import | 69 | 9 draft/import |
 | FluxAgents | Named local library, immutable versions and optimistic revision checks | 29 | 10 library |
 
-The app source counts sum to 470. With 18 Exchange and 48 shared-suite checks, the assembled matrix passed **all 536 tests, with zero failures or skips**. All nine browser app builds plus MCP/server pass. All 36 assembled hosted browser checks and six packaged official MCP checks pass, with no browser runtime errors or missing resources. Fluxini standalone source is committed as 83c13d0; this does not identify a new assembled or deployed suite version.
+The app source counts sum to 470. With 18 Exchange and 48 shared-suite checks, the assembled matrix passed **all 536 tests, with zero failures or skips**. All nine browser app builds plus MCP/server pass. All 36 assembled hosted browser checks and six packaged official MCP checks pass, with no browser runtime errors or missing resources. Fluxini standalone source is committed as 83c13d0; the assembled and deployed suite runtime is 090d81d.
 
 ## Source review and evidence
 
-- Fluxfoto: nine Levels groups include exact fresh exported-PNG comparison for neutral/disabled adjustments. The earlier discrepancy was isolated to Canvas readback backend behavior; export evidence verifies the actual output. Source/alpha preservation, explicit Apply, native/portable/PSD output and five photo-source checks pass.
+- Fluxfoto: nine Levels groups include exact fresh exported-PNG comparison for neutral adjustments. The earlier discrepancy was isolated to Canvas readback backend behavior; export evidence verifies the actual output. Source/alpha preservation, explicit Apply, native/portable/PSD output and five photo-source checks pass.
 - Design: all 33 units, five layout groups, 19 existing editor checks and six independent PDF groups pass. Tiny fit zoom retains six screen pixels of snap tolerance; clamped bounds do not show unreached guides. Arrow shortcuts during a pointer gesture cannot commit preview geometry; Escape restores the original. Guide-only edits leave artwork/PDF unchanged.
 - Miére: source ranges use actual measured duration and playback rate. Six slip groups and existing editing checks include pointer isolation/cancellation, locks, undo/reload and independently decoded synchronized stereo/video export.
 - Effects: eight key-selection groups include collision/lock validation, one-step history, pointer cancellation and native/PNG/WebM output. Duplicate/split and exports during an active drag read committed state. Existing editor and custom-curve/export checks pass; real-time recording is not represented as deterministic encoding.
@@ -30,12 +30,12 @@ The app source counts sum to 470. With 18 Exchange and 48 shared-suite checks, t
 
 Tests used local fixtures and injected services. **No paid provider generation was performed.** Detailed limits and app evidence are linked from [the batch plan](PARALLEL-GAP-BATCH-2.md) and [feature-gap index](FEATURE-GAPS.md). Advanced editing, full native-product fidelity, cloud ownership and hosted durable execution remain open.
 
-## Remaining release gates
+## Published production verification
 
-Assembly, all builds, the combined 536-test matrix, 36 hosted browser checks and six packaged MCP checks are complete. The remaining steps are:
+Verified 2026-10-10T08:21:16.455Z. All 67 live checks pass: 32 exact-bundle/MCP/deployment/authentication checks, 20 published-page/resource/AI-configuration/catalog checks and 15 settings/Agents checks. All nine deployed browser bundles exactly match the tested assembly. Five live MCP endpoints provide the tested UI resource. Vercel Authentication protects all deployments and anonymous app/API requests are denied. Hosted FluxAgents remains design/simulation only; no paid generation was run.
 
-1. Commit/push the assembled release and record its revision.
-2. Deploy under the existing protected production configuration.
-3. Record deployment identity/URL and protected live verification, including exact deployed bundle matches and continued disabled hosted-live workflow execution.
+Deployment URL: https://fluxcreate-hprfe96kz-flux-ai-inc.vercel.app. Inspector: https://vercel.com/flux-ai-inc/fluxcreate/3L4rdAGQnkeKZbEdRYohWTsupTbn.
 
-Until these gates complete, production remains suite 2f0d045. Assembled verification is not a deployment claim or a claim that every feature gap is closed.
+Known build-log limitation: Vercel’s broad TypeScript tracing still reports pre-existing diagnostics in Fluxini developer-only paint/GPU check scripts. The application TypeScript check, all application builds, deployed status and runtime checks pass. Those developer-script diagnostics remain maintenance work; they were not fixed or suppressed by this release.
+
+This release closes the scoped second-batch acceptance checks. Full native-product parity and the remaining feature-gap plan are not complete.
