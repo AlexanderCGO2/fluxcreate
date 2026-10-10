@@ -52,3 +52,7 @@ The [actual-render design review and implementation record](../../Haidini/docs/D
 ## Second parallel batch — assembled and verified, deployment pending
 
 All eight scoped increments are implemented and assembled; broader categories remain partial. The complete combined suite matrix passed 536 unit/API/contract checks with zero failures or skips. All nine app builds plus MCP/server, 36 hosted browser checks and six packaged MCP checks pass. See the [batch plan](PARALLEL-GAP-BATCH-2.md) for exact limits and the [release record](RELEASE-PARALLEL-2026-10-10.md) for source counts and pending gates. No paid generation was used. Restoring a Lab draft/importing a recipe and opening an Agents version never generate or start a run. Guides are nonprinting, gesture previews remain separate from committed exports, and local browser persistence is not cloud storage.
+
+## Cloudflare fallback and music — researched 2026-10-10
+
+Cloudflare documents `elevenlabs/music-v2` through its account API. The [integration research](CLOUDFLARE-AI-GATEWAY.md) makes Cloudflare the preferred music candidate and a separately configured text-fallback gateway. The [implementation plan](superpowers/plans/2026-10-10-cloudflare-ai.md) covers independent settings, billing isolation, routing, music/MCP, audio handoff and uncertain-job handling. These are planned capabilities; no account access or paid output has been verified and production routing is unchanged.

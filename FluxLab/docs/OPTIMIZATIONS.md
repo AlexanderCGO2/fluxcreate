@@ -17,7 +17,7 @@
 | --- | --- | --- | --- |
 | P1 | Video and speech generation | Implemented | Live catalog controls, verified playback, bounded original downloads, permanent Blob assets, and motion-editor handoff. |
 | P1 | Background video recovery | Implemented | Pre-submission request IDs, durable signed tickets, explicit pause/resume, reload/MCP recovery, safe recognition of already-saved clips, failed-download retry, atomic completed-job removal, and cross-tab removal protection. Provider/ticket availability still limits recovery. |
-| P2 | Music generation | Planned, not implemented | Add a dedicated ElevenLabs connection and Music mode only after server-side credentials and real provider behavior are verified. See the research note below. |
+| P2 | Music generation | Planned, not implemented | Prefer Cloudflare AI Gateway Music v2 with an independent Cloudflare connection and Music mode; verify account access and actual provider behavior before enabling it. |
 
 ## Music research — checked 2026-10-09
 
@@ -32,7 +32,7 @@ Additional candidates checked on the same date:
 - Google documents `lyria-3.5` for full songs and `lyria-3-clip-preview` for 30-second clips through its paid Gemini API, using a separate Gemini key. See [music generation](https://ai.google.dev/gemini-api/docs/music-generation) and [pricing](https://ai.google.dev/gemini-api/docs/pricing). Direct API support does not imply Gateway availability.
 - MiniMax documents `music-3.0`, `music-2.6` and `music-cover`, but its [Music API availability notice](https://platform.minimax.io/docs/api-reference/music-generation) says that paid Music/Lyrics access closed to new users on 2026-08-20; existing paying users retain access. Do not present it as generally available without confirming account eligibility.
 
-For a new connection, investigate ElevenLabs first and Google as the alternative. Neither connection is configured or implemented in FluxLab.
+Update 2026-10-10: prefer the documented Cloudflare `elevenlabs/music-v2` route using Cloudflare account billing. This does not require assuming access to the direct ElevenLabs API. See [Cloudflare research and implementation direction](../../FluxCreate/docs/CLOUDFLARE-AI-GATEWAY.md). No Cloudflare music connection or provider smoke is implemented yet.
 
 ## Completed recipe/filter subset — 2026-10-09
 

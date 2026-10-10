@@ -248,3 +248,7 @@ PDF color fidelity: PNG files carrying ICC, gamma/chromaticity, orientation or a
 ## Published feature-gap milestone — 2026-10-09
 
 The current implemented subsets above are now published in Flux AI: runtime commit `7815f25`, deployment `dpl_8So38G1KzyEgUeXhzyGBg21Yr3yF`, READY and protected by Vercel Authentication. All 454 source tests, nine builds, hosted browser checks and final live verification passed. See [the full verification record](RELEASE-2026-10-09.md). Remaining specialist editing, cloud assets and hosted autonomous execution stay open.
+
+## Music research update — 2026-10-10
+
+The earlier music finding applied to Vercel’s catalog and the direct ElevenLabs API. Cloudflare now documents a separate `elevenlabs/music-v2` account-API route with Unified Billing. Prefer this path for the next integration; a separate direct ElevenLabs key is not the only option. See [verified references and design](CLOUDFLARE-AI-GATEWAY.md). This updates the plan, not the implementation status.
