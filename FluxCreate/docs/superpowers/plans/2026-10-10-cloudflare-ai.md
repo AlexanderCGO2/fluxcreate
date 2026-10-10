@@ -77,8 +77,8 @@ Modify hosting/setup docs, model capability notes and the current gap index. Use
 
 - [ ] Install the scoped account token through secure settings/server secrets and verify the selected `default` gateway and billing mode. Do not infer account access from the dashboard URL.
 - [ ] Record a short actual music generation, decoded duration/audio playback, actual billing metadata and both editor handoffs before calling provider output verified. Use mocked failures to test fallback; do not deliberately incur duplicated paid jobs.
-- [ ] Run all affected app/MCP checks, combined builds/matrix and hosted handoff checks. Commit/push/deploy under existing authorization once tests pass; keep authentication enabled.
-- [ ] Match deployed bundles and verify settings/MCP without paid production test repetition. Update the release record and preserve remaining long-job recovery and broader media-fallback gaps.
+- [x] Run all affected app/MCP checks, combined builds/matrix and hosted handoff checks. Commit/push/deploy under existing authorization once tests pass; keep authentication enabled.
+- [x] Match deployed bundles and verify settings/MCP without paid production test repetition. Update the release record and preserve remaining long-job recovery and broader media-fallback gaps.
 
 ## Current status
 

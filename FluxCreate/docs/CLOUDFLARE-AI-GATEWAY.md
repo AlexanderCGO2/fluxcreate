@@ -1,6 +1,6 @@
 # Cloudflare AI Gateway: fallback and music
 
-Research checked 2026-10-10; the settings, guarded text router and bounded music implementation are now in source and undergoing protected release verification. This is not a successful account/provider test. The supplied Cloudflare dashboard is authenticated and was not accessible through public browsing; account credits, token permissions, stored provider keys and gateway settings are unverified.
+Research checked 2026-10-10; the settings, guarded text router and bounded music implementation are deployed in the protected release described in [the release record](RELEASE-CLOUDFLARE-2026-10-10.md). This is not a successful account/provider test. The supplied Cloudflare dashboard is authenticated and was not accessible through public browsing; account credits, token permissions, stored provider keys and gateway settings are unverified.
 
 ## Confirmed capability and revised music direction
 
