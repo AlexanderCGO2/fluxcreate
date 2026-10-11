@@ -11,6 +11,7 @@
     "test:browser": "node scripts/browser-smoke.mjs",
     "test:audio": "node scripts/audio-smoke.mjs",
     "test:curves": "node scripts/bezier-smoke.mjs",
+    "test:key-clipboard": "node scripts/keyframe-clipboard-smoke.mjs",
     "test:key-selection": "node scripts/keyframe-selection-smoke.mjs",
     "test:recovery": "node scripts/recovery-smoke.mjs"
   },

@@ -3,7 +3,7 @@ import {replacePhotoSource,checkPhotoFile,checkPhotoSize} from '../src/photo-sou
 import {validateProject,newLayer} from '../src/model.mjs';
 const src='data:image/png;base64,eA==',replacement='data:image/png;base64,eQ==';
 test('Photo replacement preserves frame, mask, adjustments and original undo source',()=>{
- const p=validateProject({format:'fluxoto-project',version:1,id:'photo',layers:[newLayer('image',{id:'photo',src,x:17,rotation:42,width:100,height:50,opacity:.4,levels:{gamma:2},mask:{enabled:true,width:10,height:10,src:'',defaultAlpha:255,strokes:[]}})]});
+ const p=validateProject({format:'fluxoto-project',version:1,id:'photo',layers:[newLayer('image',{id:'photo',src,x:17,rotation:42,width:100,height:50,opacity:.4,levels:{gamma:2,outputWhite:220,channels:{red:{black:20,white:200,gamma:2}}},mask:{enabled:true,width:10,height:10,src:'',defaultAlpha:255,strokes:[]}})]});
  const next=replacePhotoSource(p,'photo',replacement);assert.deepEqual({...next.layers[0],src},p.layers[0]);assert.equal(p.layers[0].src,src);assert.equal(next.layers[0].src,replacement);
 });
 test('Photo replacement rejects invalid source, non-photo, missing and locked targets',()=>{

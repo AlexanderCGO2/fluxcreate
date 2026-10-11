@@ -152,6 +152,52 @@ export function editKeyframes(layer, property, keyIds, action, {duration} = {}) 
   return {...layer, keyframes};
 }
 
+/** Clipboard compatibility is narrower than imported inert property data. */
+export function supportsKeyframePaste(layer, property) {
+  if (!layer || !ANIMATABLE_PROPERTIES.includes(property)) return false;
+  if (SCENE3D_ANIMATABLE.includes(property)) return layer.type === 'scene3d';
+  if (property === 'volume') return ['audio','video'].includes(layer.type);
+  if (['fontSize','letterSpacing'].includes(property)) return layer.type === 'text';
+  if (['fill','stroke','strokeWidth'].includes(property)) return ['text','rectangle','ellipse','solid'].includes(layer.type);
+  if (property === 'cornerRadius') return ['rectangle','solid','image','video','scene3d'].includes(layer.type);
+  return true;
+}
+function clipboardKey(layer, property, key, time) {
+  if (!key || !Number.isFinite(time)) throw Error('Invalid copied keyframe time.');
+  if (property !== 'fill' && property !== 'stroke') {
+    const [min,max] = PROPERTY_RANGES[property] ?? [-1000000,1000000];
+    if (!Number.isFinite(key.value) || key.value < min || key.value > max) throw Error('Copied keyframe value is outside this property range.');
+  }
+  // Reuse canonical value and curve validation, on an empty detached track.
+  return setKeyframe({...layer,keyframes:{}},property,time,key.value,key.easing,key.bezier).keyframes[property][0];
+}
+export function copyKeyframes(layer, property, keyIds) {
+  if (!supportsKeyframePaste(layer,property)) throw Error('This layer does not support the copied property.');
+  const track=layer.keyframes?.[property]??[],ids=new Set(keyIds);
+  if (!Array.isArray(keyIds) || !keyIds.length || keyIds.some(id=>typeof id!=='string') || ids.size!==keyIds.length || new Set(track.map(key=>key.id)).size!==track.length || keyIds.some(id=>!track.some(key=>key.id===id))) throw Error('The keyframe selection changed. Select the keys again.');
+  const selected=track.filter(key=>ids.has(key.id)).sort((a,b)=>a.time-b.time),start=selected[0].time;
+  const keys=selected.map(key=>{const {id,...copy}=clipboardKey(layer,property,key,key.time-start);return copy;});
+  for(let i=1;i<keys.length;i++)if(keys[i].time-keys[i-1].time<.000001)throw Error('Copied keys have ambiguous times.');
+  return {property,keys};
+}
+export function pasteKeyframes(layer, property, clipboard, time, {duration,remainingKeys=100000} = {}) {
+  if (layer.locked) throw Error('Unlock the layer before pasting keyframes.');
+  if (!supportsKeyframePaste(layer,property) || clipboard?.property!==property) throw Error('Choose the same compatible property as the copied keys.');
+  if (!Number.isFinite(time) || !Number.isFinite(duration) || duration<=0 || !Array.isArray(clipboard.keys) || !clipboard.keys.length || clipboard.keys[0]?.time!==0) throw Error('Choose a valid playhead time and copied keyframes.');
+  const track=layer.keyframes?.[property]??[];
+  if(track.length+clipboard.keys.length>10000)throw Error('This paste exceeds the native limit of 10,000 keys per property.');
+  if(clipboard.keys.length>remainingKeys)throw Error('This paste exceeds the native project capacity of 100,000 keys.');
+  const pasted=clipboard.keys.map((key,index)=>{
+    if(!Number.isFinite(key?.time) || key.time<0 || (index && key.time-clipboard.keys[index-1].time<.000001))throw Error('Copied keys have invalid or ambiguous offsets.');
+    const at=time+key.time;
+    if(at < -1e-9 || at > duration+1e-9)throw Error('All pasted keys must stay between 0 and '+duration+' seconds.');
+    const result=clipboardKey(layer,property,key,clamp(at,0,duration));
+    if(track.some(existing=>Math.abs(existing.time-result.time)<.000001))throw Error('Pasted keys would collide with existing keys. Choose a different playhead time.');
+    return result;
+  });
+  return {...layer,keyframes:{...layer.keyframes,[property]:[...track,...pasted].sort((a,b)=>a.time-b.time)}};
+}
+
 const fail = message => {throw new Error(`Invalid project: ${message}`);};
 function object(value, label) {if (!value || typeof value !== 'object' || Array.isArray(value)) fail(`${label} must be an object.`); return value;}
 function string(value, fallback, label, limit = 2000) {

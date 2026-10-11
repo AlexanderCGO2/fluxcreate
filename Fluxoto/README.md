@@ -9,6 +9,7 @@ A local layered image and graphic design studio in the FluxCreate suite. Start a
 - Brush and eraser strokes stored as editable layers. An eraser mask removes the composite below it; reorder or hide it to change its effect.
 - Text, rectangle, ellipse, solid/gradient fill, blend modes, brightness, contrast, saturation, and blur. Rectangle corners have an explicit radius control.
 - Nondestructive layer masks: add a mask in Properties, choose Edit mask, then Hide with brush or Reveal with brush. Disable, remove, undo, resize, save and reopen masks without changing original image pixels. The separate Eraser tool still removes the composition underneath its stroke.
+- Photo Levels: combined RGB and independent Red/Green/Blue input, gamma and output controls, with a sampled source histogram, explicit Apply and one-step undo. Reset current or all channels; original image bytes remain editable. See [Levels details and verification](docs/LEVELS.md).
 - Crop by dragging a region; resize canvas with optional content scaling. Undo/redo keeps the last 40 edits.
 - Local PNG, JPEG, WebP, GIF (first frame), and SVG import by file picker, drag/drop, or paste. Images stay embedded in the saved project.
 - IndexedDB autosave on this device and origin. Save a project file for a portable backup.

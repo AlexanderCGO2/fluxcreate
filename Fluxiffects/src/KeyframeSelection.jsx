@@ -1,5 +1,5 @@
 import React, {useEffect,useRef,useState} from 'react';
-import {editKeyframes,getComp} from './core.mjs';
+import {editKeyframes,getComp,copyKeyframes,pasteKeyframes,supportsKeyframePaste} from './core.mjs';
 import './keyframe-selection.css';
 
 const scopeOf = (compId,layerId,property) => JSON.stringify([compId,layerId,property]);
@@ -11,8 +11,8 @@ function applyToProject(project,layerId,property,ids,action) {
   return {...project,compositions:project.compositions.map(item=>item.id===comp.id?{...comp,layers:comp.layers.map(item=>item.id===layerId?next:item)}:item)};
 }
 
-export function useKeyframeSelection({project,selectedId,property,commit,notice,onChoose,onPause}) {
-  const [selection,setSelection]=useState({scope:'',ids:[]}),[draft,setDraft]=useState(null);
+export function useKeyframeSelection({project,selectedId,property,time,commit,notice,onChoose,onPause}) {
+  const [selection,setSelection]=useState({scope:'',ids:[]}),[draft,setDraft]=useState(null),[clipboard,setClipboard]=useState(null);
   const current=useRef(null),gesture=useRef(null);
   current.current={project,selectedId,property,commit,notice,onChoose,onPause};
   const comp=getComp(project),scope=scopeOf(comp.id,selectedId,property),track=comp.layers.find(layer=>layer.id===selectedId)?.keyframes?.[property]??[];
@@ -28,6 +28,32 @@ export function useKeyframeSelection({project,selectedId,property,commit,notice,
       if(next!==base){onPause();commit(p=>p===base?next:p);notice(`${ids.length} keyframe${ids.length===1?'':'s'} ${action.type==='delete'?'deleted':'moved'}.`);}
     }catch(error){notice(error.message);}
   };
+  const copy=()=>{
+    gesture.current?.cancel();
+    try {
+      if(current.current.project!==project)throw Error('The project changed. Select the keys again.');
+      const layer=comp.layers.find(item=>item.id===selectedId);
+      if(!layer)throw Error('Select a source layer first.');
+      const next=copyKeyframes(layer,property,ids);setClipboard(next);
+      notice(next.keys.length+' keyframes copied. Choose the same property and paste at the playhead.');
+    }catch(error){notice(error.message);}
+  };
+  const paste=()=>{
+    gesture.current?.cancel();
+    try {
+      if(current.current.project!==project)throw Error('The project changed. Choose the destination again.');
+      const layer=comp.layers.find(item=>item.id===selectedId);
+      if(!layer)throw Error('Select a destination layer first.');
+      const keyCount=project.compositions.reduce((sum,item)=>sum+item.layers.reduce((n,layer)=>n+Object.values(layer.keyframes??{}).reduce((n,keys)=>n+keys.length,0),0),0);
+      const next=pasteKeyframes(layer,property,clipboard,time,{duration:comp.duration,remainingKeys:100000-keyCount});
+      const nextProject={...project,compositions:project.compositions.map(item=>item.id===comp.id?{...comp,layers:comp.layers.map(item=>item.id===layer.id?next:item)}:item)};
+      onPause();commit(p=>p===project?nextProject:p);
+      choose(next.keyframes[property].filter(key=>!layer.keyframes?.[property]?.some(old=>old.id===key.id)).map(key=>key.id));
+      notice(clipboard.keys.length+' keyframes pasted. Undo removes the whole paste.');
+    }catch(error){notice(error.message);}
+  };
+  const destination=comp.layers.find(item=>item.id===selectedId);
+  const canPaste=!!clipboard && clipboard.property===property && supportsKeyframePaste(destination,property) && !destination.locked;
   const isSelected=(layerId,prop,id)=>selection.scope===scopeOf(comp.id,layerId,prop)&&selection.ids.includes(id);
   const begin=(event,layer,prop,key)=>{
     event.stopPropagation();if(event.button!==0)return;event.preventDefault();
@@ -58,7 +84,7 @@ export function useKeyframeSelection({project,selectedId,property,commit,notice,
   };
   useEffect(()=>{const active=gesture.current;if(active&&(active.base!==project||active.scope!==scope))active.cancel();},[project,scope]);
   useEffect(()=>()=>gesture.current?.cancel(),[]);
-  return {ids,toggle,clear,all:()=>choose(track.map(key=>key.id)),apply,begin,isSelected,previewProject:draft?.base===project?draft.project:project,draftLabel:draft?.base===project?draft.label:''};
+  return {ids,toggle,clear,copy,paste,canPaste,clipboard,all:()=>choose(track.map(key=>key.id)),apply,begin,isSelected,previewProject:draft?.base===project?draft.project:project,draftLabel:draft?.base===project?draft.label:''};
 }
 
 export function KeyframeSelectionControls({selection,layer,property,label,fps}) {
@@ -66,6 +92,8 @@ export function KeyframeSelectionControls({selection,layer,property,label,fps}) 
   return <div className="key-selection-controls" aria-label="Keyframe selection controls">
     <div><strong>{selection.ids.length} selected</strong><button disabled={!hasKeys} onClick={selection.all}>Select all keys</button><button disabled={!selection.ids.length} onClick={selection.clear}>Clear keys</button></div>
     <p>{label} · this layer only. Shift-click diamonds or use the checkboxes.</p>
+    <div className="key-selection-actions"><button disabled={!selection.ids.length} onClick={selection.copy}>Copy keys</button><button disabled={!selection.canPaste} onClick={selection.paste}>Paste keys at playhead</button></div>
+    {selection.clipboard&&<small>{selection.clipboard.keys.length} copied · {selection.clipboard.property} · spacing in seconds</small>}
     <form noValidate onSubmit={event=>{event.preventDefault();selection.apply({type:'move',delta:delta.trim()?Number(delta):NaN});}}>
       <label>Move by seconds<input aria-label="Selected keyframe time change" type="number" step="any" value={delta} disabled={disabled} onChange={event=>setDelta(event.target.value)}/></label><button className="button" type="submit" disabled={disabled}>Move keys</button>
     </form>

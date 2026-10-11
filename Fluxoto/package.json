@@ -16,7 +16,8 @@
     "test:selection-cancel": "node scripts/selection-cancel-smoke.mjs",
     "test:gestures": "node scripts/gesture-smoke.mjs",
     "test:levels": "node scripts/levels-smoke.mjs",
-    "test:photo-source": "node scripts/photo-source-smoke.mjs"
+    "test:photo-source": "node scripts/photo-source-smoke.mjs",
+    "test:levels-channels": "node scripts/levels-channels-smoke.mjs"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",

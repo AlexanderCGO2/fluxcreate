@@ -192,3 +192,8 @@ See [Levels scope and evidence](LEVELS.md): source-preserving per-photo RGB Leve
 ## Source replacement continuation
 
 [Photo-source replacement and relink](PHOTO-SOURCES.md) now preserve the exact frame, mask and adjustments and retain undo originals. Missing ordinary photos can be repaired; studio-object replacement stays in its dedicated source-preserving flow. Five browser groups and three unit checks pass locally.
+
+
+## Channel and output Levels continuation — 2026-10-11
+
+Photo Levels now includes combined RGB plus separate Red/Green/Blue input points, gamma and output endpoints, channel-specific sampled source histograms and current/all reset. Explicit Apply preserves source bytes/alpha and adds one undo. Old/neutral Levels remain byte-identical in verified export fixtures. Native/portable/PSD/studio-object output and photo replacement retain the behavior. See [Levels scope and verification](LEVELS.md). Adjustment layers, Curves, color management, high bit depth and large-photo performance remain open.
