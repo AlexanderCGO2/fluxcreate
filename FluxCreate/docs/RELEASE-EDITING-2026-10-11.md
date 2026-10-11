@@ -1,6 +1,8 @@
 # Editing and workflow review release — 2026-10-11
 
-Status: source reviewed and local release gates passed; production deployment and verification in progress.
+Published runtime source: [4beb565](https://github.com/AlexanderCGO2/fluxcreate/commit/4beb565).
+
+Production: https://fluxcreate.vercel.app. Deployment: dpl_4wN1ALVET65yYqNkgYhJCEzriz2U in flux-ai-inc. All deployments remain protected by Vercel Authentication. Live verification completed 2026-10-11T00:57:16.256Z.
 
 ## Delivered
 
@@ -13,6 +15,12 @@ Status: source reviewed and local release gates passed; production deployment an
 601 tests across ten packages pass. All nine browser entries, hosted server and MCP App build. The assembled suite passes 36 hosted browser checks and six hosted MCP checks.
 
 Feature-specific browser evidence: 17 Fluxfoto channel/legacy Levels groups with source and PSD regressions; seven Fluxiffects clipboard groups with actual PNG and decoded WebM timing plus existing easing/selection checks; eight FluxAgents comparison groups plus ten library and five recovery groups. Independent reviews found no unresolved issues. Tests use fixtures and make no paid generation requests.
+
+## Production evidence
+
+62 protected live checks pass: 32 exact browser bundle/MCP resource, readiness and anonymous-access checks; 15 existing Gateway/settings and no-charge Agents simulation checks; 15 Cloudflare settings/music discovery/status and authentication checks. All nine deployed browser bundles and the MCP App match the reviewed local build. No paid requests were made. Production music availability is false; account activation remains separate.
+
+Vercel completed the deployment successfully. Its broad tracing still emits the previously documented TypeScript diagnostics for developer-only paint-check.ts and gpu-particle-check.ts. The application builds and live runtime checks pass; those developer script types remain maintenance work.
 
 ## Remaining scope
 

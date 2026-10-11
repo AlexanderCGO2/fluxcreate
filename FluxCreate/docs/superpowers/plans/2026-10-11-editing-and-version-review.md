@@ -51,8 +51,8 @@ Interface: compareWorkflowGraphs(before,after) validates bounded library graphs 
 
 - [x] Review app contracts and any shared Levels rendering/schema use; correct remaining-gap inventory.
 - [x] Assemble source into release; full unit matrix, nine builds, hosted app/handoff/MCP checks.
-- [ ] Commit/push/deploy under existing authorization; retain authentication and match live bundles.
-- [ ] Record delivered subsets, evidence and remaining specialist/cloud gaps.
+- [x] Commit/push/deploy under existing authorization; retain authentication and match live bundles.
+- [x] Record delivered subsets, evidence and remaining specialist/cloud gaps.
 
 ## Execution notes
 
@@ -66,4 +66,4 @@ Fluxiffects: 106 unit tests, build, seven new clipboard browser groups and exist
 
 FluxAgents: 33 unit tests, build, eight comparison browser groups, ten existing library groups and five recovery groups pass. Delayed reads, stale drafts, failed/missing storage, Escape, responsive themes and zero execution/persistence side effects were exercised. Independent code review found no actionable issues and reran all four pure comparison tests.
 
-No paid model calls were made. The assembled release passes 601 tests across ten packages, all nine browser builds plus shared server/MCP App, 36 hosted browser checks and six hosted MCP checks. Deployment and live verification follow.
+No paid model calls were made. The assembled release passes 601 tests across ten packages, all nine browser builds plus shared server/MCP App, 36 hosted browser checks and six hosted MCP checks. Published as 4beb565 and deployed to Flux AI. All 62 protected live checks pass; see RELEASE-EDITING-2026-10-11.md for the deployment identifier, exact bundle verification and known developer-only tracing diagnostics.
