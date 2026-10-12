@@ -1,6 +1,8 @@
 # Multi-selection and arrangement release — 2026-10-12
 
-Status: implemented and assembled; production verification pending.
+Published runtime source: [4cd4dc7](https://github.com/AlexanderCGO2/fluxcreate/commit/4cd4dc7), including the [editing batch](https://github.com/AlexanderCGO2/fluxcreate/commit/beb22f6). Fluxini source is pushed as 165beb8.
+
+Production: https://fluxcreate.vercel.app. Deployment: dpl_FdLK8YsPYNFBfNT3kxiaojygqvWx in flux-ai-inc. All deployments retain Vercel Authentication. Live verification completed 2026-10-12T09:24:43.479Z.
 
 ## Delivered scope
 
@@ -20,3 +22,9 @@ The seven-group GPU particle fixture and liquid-physics checks pass. The existin
 Persistent frame/scene groups, shared transform gizmos, rich threaded text, topology modeling, production simulation and durable cloud jobs remain open. See [feature gaps](FEATURE-GAPS.md) and the [batch plan](superpowers/plans/2026-10-12-multi-selection-and-arrangement.md).
 
 The [Stripe credit plan](STRIPE-CREDITS-PLAN.md) records the user's confirmed 50% contribution-margin target after attributed costs and payment fees. It proposes explicit BYOK/managed funding, prepaid Checkout, a durable credit ledger, bounded quotes and verified settlement. It is planning only, sequenced after gap work; this release creates no payment products or charges.
+
+## Production evidence
+
+62 protected live checks pass: 32 exact browser bundle/MCP resource, deployment readiness and anonymous-access checks; 15 Gateway/settings and no-charge Agents simulation checks; 15 Cloudflare settings/music discovery/status and authentication checks. All nine deployed browser bundles and the MCP App match the reviewed local build. No paid inference requests were made. Music availability remains false, with account activation separate.
+
+The first deployment exposed two additional implicit callback parameter types in Vercel tracing. Explicit annotations were added, both TypeScript checks and all builds reran successfully, and the final production deployment completed without the earlier TypeScript diagnostics. This typing-only follow-up leaves runtime behavior unchanged.

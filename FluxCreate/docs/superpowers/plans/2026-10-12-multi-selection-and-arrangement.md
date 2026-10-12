@@ -9,7 +9,7 @@ Baseline: suite runtime 4beb565, documentation a7b652f. The user authorizes cont
 - [x] Fluxini: box selection and direct multi-node dragging; one validated relative move within existing 32-command bounds. Cancel stale/cancelled gestures without resurrection. Parameter locks keep existing semantics (graph layout may move without changing protected values). Native scene/evaluation remains unchanged except node layout. Owner: graph_direct_selection; app-local plan and evidence.
 - [x] Release maintenance: type the existing paint/GPU developer browser fixtures so broad deployment tracing stops reporting their known errors. Add a targeted strict check, prove it fails before the correction, and run the existing browser fixtures. No solver behavior changes. Owner: root.
 - [x] Independent reviews, app-specific browser/native/export evidence and full regression matrix.
-- [ ] Assemble source, build all apps and server/MCP, verify hosted integration, commit/push/deploy to protected Flux AI project, verify exact live bundles and authentication, update truthful remaining-gap inventory.
+- [x] Assemble source, build all apps and server/MCP, verify hosted integration, commit/push/deploy to protected Flux AI project, verify exact live bundles and authentication, update truthful remaining-gap inventory.
 
 ## Boundaries
 
@@ -21,4 +21,4 @@ Targeted strict fixture check reproduced the existing paint/GPU diagnostics befo
 
 Implemented source passes scoped browser/export reviews. Root independently reran the 11 Design, five 3D, ten direct-graph and five graph-boundary groups. Developer strict check is GREEN after the reproduced RED. GPU particle (seven groups) and liquid invariants pass; the paint rewind check also fails on the unchanged baseline and remains an explicit open simulation reliability gap with its threshold retained. See [release record](../../RELEASE-ARRANGEMENT-2026-10-12.md).
 
-Combined assembled verification: 618 unit/API/contract tests, both TypeScript configurations, all nine browser entries plus hosted server/MCP, 36 hosted browser checks and six MCP checks pass. An independent indexed-mesh pivot finding was fixed and covered by a sixth 3D browser group and dedicated unit regression. No paid generation. Production verification is pending.
+Combined assembled verification: 618 unit/API/contract tests, both TypeScript configurations, all nine browser entries plus hosted server/MCP, 36 hosted browser checks and six MCP checks pass. An independent indexed-mesh pivot finding was fixed and covered by a sixth 3D browser group and dedicated unit regression. No paid generation. Production verification completed: 62 protected checks pass for 4cd4dc7 on dpl_FdLK8YsPYNFBfNT3kxiaojygqvWx. No paid inference. The known baseline paint rewind issue remains open separately.
