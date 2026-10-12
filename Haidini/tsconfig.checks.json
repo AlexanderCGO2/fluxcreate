@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["scripts/paint-check.ts", "scripts/gpu-particle-check.ts", "scripts/graph-drag-harness.tsx"]
+}

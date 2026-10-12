@@ -1,3 +1,6 @@
 import{spawnSync}from'node:child_process';import path from'node:path';import{fileURLToPath}from'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');let failed=false;
 for(const app of ['Haidini','FluxExchange','FluxCreate','Fluxoto','Fluxidesign','Fluximiere','Flux3D','Fluxiffects','FluxLab','FluxAgents']){const run=spawnSync(process.execPath,app==='Haidini'?['scripts/test.mjs']:['--test','tests/*.test.mjs'],{cwd:path.join(root,app),encoding:'utf8',windowsHide:true,maxBuffer:8*1024*1024});console.log(app+': '+(run.status===0?'PASS':'FAIL'));console.log(run.status===0?(run.stdout||'').split('\n').slice(-9).join('\n'):(run.stdout||'')+(run.stderr||''));if(run.status!==0)failed=true;}if(failed)process.exitCode=1;
+
+// Include the browser verification fixtures visited by deployment tracing.
+for(const config of ['tsconfig.json','tsconfig.checks.json']){const run=spawnSync(process.execPath,['node_modules/typescript/bin/tsc','--noEmit','-p',config,'--pretty','false'],{cwd:path.join(root,'Haidini'),encoding:'utf8',windowsHide:true,maxBuffer:8*1024*1024});console.log('Haidini '+config+': '+(run.status===0?'PASS':'FAIL'));if(run.status!==0){console.log((run.stdout||'')+(run.stderr||''));process.exitCode=1;}}

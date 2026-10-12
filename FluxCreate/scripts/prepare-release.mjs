@@ -1,7 +1,7 @@
 import{mkdir,readdir,cp,readFile,writeFile}from'node:fs/promises';import path from'node:path';import{fileURLToPath}from'node:url';
 const suite=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'),base=path.dirname(suite),target=path.join(base,'FluxCreateSuite');
 const folders=['Haidini','FluxCreate','FluxExchange','Fluxoto','Fluxidesign','Fluximiere','Flux3D','Fluxiffects','FluxLab','FluxAgents'];
-const directories=new Set(['src','src-tauri','public','server','scripts','tests','docs','deploy','mcp-ui','shared']),files=/^(package\.json|README\.md|tsconfig\.json|index\.mjs|index\.html|\.gitignore|.*\.config\.mjs|Start-.*\.cmd|Fluxini-Konzept-.*\.(html|md))$/;
+const directories=new Set(['src','src-tauri','public','server','scripts','tests','docs','deploy','mcp-ui','shared']),files=/^(package\.json|README\.md|tsconfig(?:\.checks)?\.json|index\.mjs|index\.html|\.gitignore|.*\.config\.mjs|Start-.*\.cmd|Fluxini-Konzept-.*\.(html|md))$/;
 await mkdir(target,{recursive:true});
 for(const folder of folders){const from=path.join(base,folder),to=path.join(target,folder);await mkdir(to,{recursive:true});for(const entry of await readdir(from,{withFileTypes:true})){if(entry.isDirectory()&&directories.has(entry.name)||entry.isFile()&&files.test(entry.name))await cp(path.join(from,entry.name),path.join(to,entry.name),{recursive:true,filter:source=>!source.split(path.sep).some(part=>['node_modules','.data','.git','target','artifacts','dist'].includes(part))});}console.log('Prepared '+folder);}
 for(const name of ['package.json','pnpm-workspace.yaml','vercel.json'])await cp(path.join(suite,'deploy',name),path.join(target,name));

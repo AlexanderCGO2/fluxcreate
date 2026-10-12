@@ -20,6 +20,18 @@ A bounded D2 slice is implemented: named reusable whole-text-frame styles for th
 
 Verified: 27 unit checks, the existing 19-check editor suite, six independent PDF groups and six new typography browser groups. This is not rich text, paragraph ranges, threading, missing-font analysis or production preflight; those D2/D3 gaps remain.
 
+## Implemented multi-frame arrangement increment — 2026-10-12
+
+A bounded D1 slice is implemented without changing the native schema: Shift/Ctrl/Cmd toggles on the canvas and layer buttons; select-all chooses visible unlocked frames on the current page; clear selection, group dragging, 1/10-point keyboard nudges, numeric relative offsets, six rotated-bound alignments, horizontal/vertical equal-gap distribution, duplication and deletion. Each operation is one undo/redo action. Explicit layer selection can include hidden or locked frames; if any selected frame is locked, the entire mutation is rejected. Stale or duplicate selection IDs also reject the whole batch. Duplicate copies preserve selected stack order and appearance.
+
+Moves and duplicate offsets saturate a single shared delta at the coordinate limits, preserving member spacing. Alignment/distribution reject an out-of-range result atomically. Distribution sorts by left/top and fixes the first and last frames in that order; nested/overlapping bounds can produce negative gaps. Drag snapping uses the union of rotated frame bounds against page/margins/columns and unselected visible frames; Alt bypass remains available. Single-frame resize, frame typography and margin/column alignment remain available when one frame is selected.
+
+Escape, pointercancel, selection changes and page navigation cancel previews. Autosave waits for committed state; native saves and all export branches capture the committed pregesture snapshot. Keyboard commands do not act from text fields or shared dialogs. Native text drag is suppressed on frame pointerdown, so a preceding browser text selection cannot swallow a frame move.
+
+Verification: 41 unit/import/PDF tests; build; existing 19 editor, five layout, six typography and six independent PDF browser groups; 11 new multi-selection browser groups. Native, PNG, PDF, pregesture native/PNG, and light/dark screenshots are retained in artifacts/multi-selection. PNG exported while a gesture is held matches the committed reference byte-for-byte. Unit tests include rotated bounds near coordinate limits, lock and stale-ID atomic rejection, shared clamping, and nested negative-gap distribution. An initial unelevated suite run could not resolve two dependency junctions; the complete suite passes with dependency access.
+
+Remaining D1 scope: persistent groups/hierarchy, marquee/lasso selection, group resize/rotation, proportional handles, named document layers, links panel and reusable parent pages. This is page-local multi-selection, not complete D1 or professional page-layout parity.
+
 ## Evidence and comparison scope
 
 Inspected `src/main.jsx`, `model.mjs`, `render.mjs`, `import-idml.mjs`, `import-pdf.mjs`, the import/model fixtures, README and optimization backlog. The model has pages containing independent text, rectangle, ellipse and image frames; text is a single string with one style per frame. The renderer uses browser text measurement and Canvas/SVG; the PDF exporter now preserves supported shapes/text/images with explicit per-page visual fallback.
@@ -34,7 +46,7 @@ Priorities: **P0** protects work or prevents misleading deliverables; **P1** com
 | --- | --- | --- |
 | Multipage documents | Working: add, duplicate, delete, reorder; active-page navigation | P1: facing-page spreads, binding direction, page sections and page labels |
 | Page setup | Working: presets/custom sizes, page background, margin/column/gutter guides in points | Independent edge margins and column/gutter guides now work. P1: mm/in conversion, bleed/slug settings and facing-page binding |
-| Precision placement | Partial: drag/resize, inspector geometry, rotated-bound alignment to margins/columns, visible page/column/frame snapping with Alt bypass, keyboard nudging | P1: multi-selection, marquee, proportional resize, distribution and richer snapping policies |
+| Precision placement | Partial: page-local multi-selection, shared drag/nudge/relative offsets, rotated-bound alignment and equal-gap distribution; group-bound page/column/frame snapping with Alt bypass; single-frame resizing | P1: marquee, proportional/group resize and richer snapping policies |
 | Object organization | Partial: per-page frame stack, visibility, locks, duplicate, forward/backward | P1: groups, named document layers, cross-page layer visibility and predictable group selection |
 | Reusable layout | Missing | P1: parent pages, reusable page templates, controlled overrides, automatic folios and running headers |
 | Text editing | Partial: plain text in an inspector; font, size, weight, tracking, line height and alignment per frame | P1: in-canvas caret editing, styled character ranges and paragraphs, useful paste behavior |

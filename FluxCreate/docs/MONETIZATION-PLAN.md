@@ -65,3 +65,7 @@ Decision signals: successful import → reviewable edit → cross-app handoff �
 ## Decisions to make after evidence
 
 Choose the first customer/workflow, the license, the service boundaries and the first paid pilot scope. Retain a free path to files, exports and personal model connections. Validate managed-service pricing after real workload measurements. The business should fund reliable creative work and a maintainable open project; it should not depend on selling unfinished parity or concealing AI costs.
+
+## Confirmed managed-credit direction — 2026-10-12
+
+The user requested prepaid Stripe packages after the gap-closing work and confirmed a **50% margin**, not a 50% markup. The [Stripe credits plan](STRIPE-CREDITS-PLAN.md) supersedes the earlier open-ended managed-usage pricing proposal. It retains BYOK, recommends Checkout plus a durable application ledger, defines payment-fee/credit-lot allocation and margin safeguards, and sequences identity, pricing, durable jobs, refunds and suite integration before live sales. This is planning only; no payments or live Stripe products are enabled.

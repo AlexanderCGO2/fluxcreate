@@ -13,7 +13,8 @@
     "test": "node scripts/test.mjs",
     "typecheck": "tsc --noEmit",
     "desktop": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "typecheck:checks": "tsc --noEmit -p tsconfig.checks.json"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",
