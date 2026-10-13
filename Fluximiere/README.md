@@ -41,7 +41,7 @@ See [the inspected optimization backlog](docs/OPTIMIZATIONS.md) for completed im
 
 ## Advanced trimming
 
-Use **Ripple** above the timeline to remove an interval with an explicit track scope. **Slip source** in Clip properties changes the source window without moving its timeline slot. **Rolling trim** moves the shared cut into the next adjacent video/audio clip while preserving the pair’s outside endpoints, every other track and sequence length. Numeric/frame/keyboard-slider controls and cancellable pointer preview are available. Rolling requires unlocked clips, measured source handles, no same-track overlap and no fades. Each edit is one Undo step. See [ripple](docs/RIPPLE-EDITING.md), [slip](docs/SLIP-EDITING.md) and [rolling details and checks](docs/ROLLING-EDITING.md).
+Use **Ripple** above the timeline to remove an interval with an explicit track scope. **Slip source** in Clip properties changes the source window without moving its timeline slot. **Rolling trim** moves the shared cut into the next adjacent video/audio clip while preserving the pair’s outside endpoints, every other track and sequence length. **Slide clip** moves a selected clip between two adjacent neighbours, keeping its content and duration while trimming the neighbours to fill the space. Numeric/frame/keyboard-slider controls and cancellable pointer preview are available. Rolling and slide require unlocked clips, measured source handles, no same-track overlap and no fades. Each edit is one Undo step. Picture and sound edit independently. See [ripple](docs/RIPPLE-EDITING.md), [slip](docs/SLIP-EDITING.md), [rolling](docs/ROLLING-EDITING.md) and [slide details and checks](docs/SLIDE-EDITING.md).
 
 ## Audio editing and export
 

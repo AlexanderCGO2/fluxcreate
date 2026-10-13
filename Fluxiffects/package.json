@@ -14,7 +14,8 @@
     "test:key-clipboard": "node scripts/keyframe-clipboard-smoke.mjs",
     "test:key-selection": "node scripts/keyframe-selection-smoke.mjs",
     "test:recovery": "node scripts/recovery-smoke.mjs",
-    "test:precise": "node scripts/precise-export-smoke.mjs"
+    "test:precise": "node scripts/precise-export-smoke.mjs",
+    "test:freeze": "node scripts/freeze-frame-smoke.mjs"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",

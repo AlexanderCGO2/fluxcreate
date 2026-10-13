@@ -12,7 +12,7 @@ function applyToProject(project,layerId,property,ids,action) {
 }
 
 export function useKeyframeSelection({project,selectedId,property,time,commit,notice,onChoose,onPause}) {
-  const [selection,setSelection]=useState({scope:'',ids:[]}),[draft,setDraft]=useState(null),[clipboard,setClipboard]=useState(null);
+  const [selection,setSelection]=useState({scope:'',ids:[]}),[draft,setDraft]=useState(null),[clipboard,setClipboard]=useState(null),[dragging,setDragging]=useState(false);
   const current=useRef(null),gesture=useRef(null);
   current.current={project,selectedId,property,commit,notice,onChoose,onPause};
   const comp=getComp(project),scope=scopeOf(comp.id,selectedId,property),track=comp.layers.find(layer=>layer.id===selectedId)?.keyframes?.[property]??[];
@@ -66,7 +66,7 @@ export function useKeyframeSelection({project,selectedId,property,time,commit,no
     const base=project,startX=event.clientX,pointerId=event.pointerId,width=event.currentTarget.closest('.track-lane').getBoundingClientRect().width;
     let next=null,lastDelta=0,error='',moved=false;
     const valid=()=>current.current.project===base&&scopeOf(getComp(current.current.project).id,current.current.selectedId,current.current.property)===targetScope;
-    const cleanup=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end);window.removeEventListener('pointercancel',cancelPointer);window.removeEventListener('blur',cancel);window.removeEventListener('keydown',escape,true);gesture.current=null;setDraft(null);};
+    const cleanup=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end);window.removeEventListener('pointercancel',cancelPointer);window.removeEventListener('blur',cancel);window.removeEventListener('keydown',escape,true);gesture.current=null;setDragging(false);setDraft(null);};
     const cancel=()=>cleanup();
     const cancelPointer=e=>{if(e.pointerId===pointerId)cancel();};
     const escape=e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();cancel();}};
@@ -79,12 +79,12 @@ export function useKeyframeSelection({project,selectedId,property,time,commit,no
       catch(failure){next=null;error=failure.message;setDraft({base,project:base,label:error});}
     };
     const end=e=>{if(e.pointerId!==pointerId)return;const canCommit=valid();cleanup();if(!canCommit)return;if(error)notice(error);else if(next&&next!==base&&lastDelta!==0)commit(p=>p===base?next:p);};
-    gesture.current={base,scope:targetScope,cancel};
+    gesture.current={base,scope:targetScope,cancel};setDragging(true);
     window.addEventListener('pointermove',move);window.addEventListener('pointerup',end);window.addEventListener('pointercancel',cancelPointer);window.addEventListener('blur',cancel);window.addEventListener('keydown',escape,true);
   };
   useEffect(()=>{const active=gesture.current;if(active&&(active.base!==project||active.scope!==scope))active.cancel();},[project,scope]);
   useEffect(()=>()=>gesture.current?.cancel(),[]);
-  return {ids,toggle,clear,copy,paste,canPaste,clipboard,all:()=>choose(track.map(key=>key.id)),apply,begin,isSelected,previewProject:draft?.base===project?draft.project:project,draftLabel:draft?.base===project?draft.label:''};
+  return {dragging,isDragging:()=>!!gesture.current,ids,toggle,clear,copy,paste,canPaste,clipboard,all:()=>choose(track.map(key=>key.id)),apply,begin,isSelected,previewProject:draft?.base===project?draft.project:project,draftLabel:draft?.base===project?draft.label:''};
 }
 
 export function KeyframeSelectionControls({selection,layer,property,label,fps}) {

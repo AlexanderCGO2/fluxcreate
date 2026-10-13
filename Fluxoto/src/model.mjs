@@ -1,3 +1,4 @@
+import {normalizePhotoPaint,hasPhotoPaint} from './photo-paint.mjs';
 import {normalizeCurves,hasActiveCurves} from './curves.mjs';
 import {normalizeLevels,hasActiveLevels} from './levels.mjs';
 import {normalizeMask} from './masks.mjs';
@@ -29,6 +30,7 @@ function normalizeLayer(raw) {
   if(raw.gradient!==undefined&&raw.gradient!==null){obj(raw.gradient);layer.gradient={from:color(raw.gradient.from,layer.fill),to:color(raw.gradient.to,layer.fill),angle:num(raw.gradient.angle,90,-36000,36000)};}
   layer.mask=normalizeMask(raw.mask);
   layer.levels=normalizeLevels(raw.levels);if(layer.levels&&layer.type!=='image')fail('Levels are supported on photo image layers only.');
+  if(raw.paint!=null){layer.paint=normalizePhotoPaint(raw.paint);if(layer.type!=='image')fail('Paint edits are supported on photo image layers only.');}
   if(raw.curves!=null){layer.curves=normalizeCurves(raw.curves);if(layer.type!=='image')fail('Curves are supported on photo image layers only.');}
   if(raw.suiteSource!==undefined&&raw.suiteSource!==null){if(layer.type!=='image')fail('Embedded objects require an image layer.');layer.suiteSource=normalizeSuiteSource(raw.suiteSource);validateSuitePreview(layer.src);}
   return layer;
@@ -73,6 +75,7 @@ export function toMotion(raw) {
   });
   if(project.layers.some(l=>l.eraser))motion.warnings=['Eraser strokes stay editable in Fluxfoto native projects. Export a PNG to preserve their composite appearance in other apps.'];
   if(project.layers.some(l=>hasActiveLevels(l.levels)))motion.warnings=[...(motion.warnings||[]),'Levels remain editable in Fluxfoto. Use the rendered portable export to preserve their appearance in other apps.'];
+  if(project.layers.some(l=>hasPhotoPaint(l.paint)))motion.warnings=[...(motion.warnings||[]),'Photo paint remains editable in Fluxfoto. Use the rendered portable export to preserve paint and erase appearance in other apps.'];
   if(project.layers.some(l=>hasActiveCurves(l.curves)))motion.warnings=[...(motion.warnings||[]),'Curves remain editable in Fluxfoto. Use the rendered portable export to preserve their appearance in other apps.'];
   if(project.layers.some(l=>l.mask?.enabled))motion.warnings=[...(motion.warnings||[]),'Layer masks remain editable in Fluxfoto. Use the rendered portable export to preserve them in other apps.'];
   if(project.layers.some(l=>l.suiteSource))motion.warnings=[...(motion.warnings||[]),'Embedded suite objects are rendered snapshots in the portable scene. Save the native Fluxfoto project to retain their original source documents.'];
@@ -113,6 +116,6 @@ export function applyAICommands(raw,commands,{selection=[],scope='composition'}=
   return validateProject(project);
 }
 export function getAIContext(raw,{selection=[],scope='composition'}={}) {
-  const p=validateProject(raw);return {name:p.name,width:p.width,height:p.height,background:p.background,layers:p.layers.filter(l=>scope!=='selection'||selection.includes(l.id)).map(l=>({...Object.fromEntries(Object.entries(l).filter(([key])=>!['src','points','mask','suiteSource'].includes(key))),...(l.suiteSource?{suiteSource:suiteSourceSummary(l.suiteSource)}:{})}))};
+  const p=validateProject(raw);return {name:p.name,width:p.width,height:p.height,background:p.background,layers:p.layers.filter(l=>scope!=='selection'||selection.includes(l.id)).map(l=>({...Object.fromEntries(Object.entries(l).filter(([key])=>!['src','points','mask','paint','suiteSource'].includes(key))),...(l.suiteSource?{suiteSource:suiteSourceSummary(l.suiteSource)}:{})}))};
 }
 export const AI_SPEC={app:'Fluxfoto',description:'A layered image and graphic design editor. Coordinates are top-left pixels; layers are ordered topmost first. Keep compositions attractive and editable. Do not invent photo assets.',commands:[{type:'updateLayer',id:'existing-layer-id',values:{x:100,fill:'#316ee8'}},{type:'addLayer',layer:{type:'text',name:'Headline',text:'Create something beautiful',x:80,y:100,width:900,height:180,fontSize:80,fill:'#203c32'}},{type:'deleteLayer',id:'existing-layer-id'},{type:'duplicateLayer',id:'existing-layer-id'},{type:'updateCanvas',values:{background:'#f5f2e9',width:1200,height:1500}}],editableProperties:EDITABLE,limits:'Maximum 32 commands. No unlocking, media sources, code, or network. Selection scope edits only selected unlocked existing layers. Levels are for image layers only: {enabled:true,black:0,white:255,gamma:1}, black and white 0–255 with black below white, gamma 0.1–10. Optional outputBlack/outputWhite are 0–255, outputBlack <= outputWhite. Optional channels:{red:{black,white,gamma,outputBlack,outputWhite},green:{...},blue:{...}} use the same bounds/defaults. Combined RGB input/gamma/output is applied before channel input/gamma/output. Levels alter RGB, not alpha; source pixels are not included in this context.'};

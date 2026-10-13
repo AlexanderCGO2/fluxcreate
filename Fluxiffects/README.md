@@ -27,6 +27,7 @@ For development, `pnpm dev` watches source changes; refresh the browser after an
 - **Design:** text editing, font family/weight/size/tracking, shape fills, rounded corners, transforms, opacity and blend modes.
 - **Effects:** blur, glow, brightness, contrast, saturation and grayscale controls. The renderer also supports shadow, hue and sepia in imported project data.
 - **Media:** import and embed images/video/audio; relink missing AE footage; preview audio; adjust per-layer volume, mute, playback speed and source start. Trimming and splitting preserve source timing.
+- **Freeze frames:** create a PNG copy from the video frame at the playhead, holding over the whole layer duration. Keeps editable picture keys/effects/parenting and retains the original video hidden and muted in one Undo. See [scope and limits](docs/FREEZE-FRAME.md).
 - **Projects:** undo/redo, device-local IndexedDB autosave and portable JSON save/reopen, including imported media.
 - **Export:** full-resolution PNG and precise timestamped WebM from a committed composition snapshot, with stereo Opus, progress/cancel and explicit picture-only output. Up to 60 seconds / 60 fps; precise output supports up to 4096 pixels per side / 8.8 megapixels. Explicit real-time WebM fallback remains available. See [timing, memory and codec limits](docs/AUDIO-EXPORT.md).
 - **Appearance:** light and dark workspaces, keyboard shortcuts and compact desktop layouts. The editing workspace is designed for desktop; narrow phone screens use a horizontally scrollable layout.
@@ -104,6 +105,7 @@ Autosave stays in this browser on this device and origin. Use **Export → Save 
 ```sh
 pnpm test
 pnpm test:browser
+pnpm test:freeze
 node scripts/renderer-smoke.mjs
 node scripts/editing-regression.mjs
 node scripts/ai-exchange-smoke.mjs
@@ -117,7 +119,7 @@ The tests exercise model validation, interpolation, native/AE import and roundtr
 
 ## Current boundaries
 
-This release is a motion editor with composited 3D scene layers, not a feature-complete replacement for After Effects. It does not yet have vector path/mask editing, track mattes, precomposition rendering, a shared 3D world across scene layers, mesh/rig editing, expression execution, tracking/rotoscoping, plugin hosting, MP4 encoding, audio export, or a native desktop installer. Graph curves are edited using keyframe values/easing in the inspector; direct Bézier handle editing is not implemented. Font selection uses installed/system fonts; it does not include proprietary Adobe fonts.
+This release is a motion editor with composited 3D scene layers, not a feature-complete replacement for After Effects. It does not yet have vector path/mask editing, track mattes, precomposition rendering, a shared 3D world across scene layers, mesh/rig editing, expression execution, tracking/rotoscoping, plugin hosting, MP4 encoding, reverse/animated time remapping, or a native desktop installer. Bounded cubic Bézier easing and multi-key editing/copy/paste are available; spatial paths and overshooting tangents remain unsupported. Font selection uses installed/system fonts; it does not include proprietary Adobe fonts.
 
 After Effects is a trademark of Adobe. Fluxiffects is an independent project and is not affiliated with Adobe.
 

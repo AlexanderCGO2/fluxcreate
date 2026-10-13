@@ -155,6 +155,51 @@ export function planRollingEdit(project,{clipId,cutTime,deltaFrames,leftDuration
   return {...bounds,project:validateProject(p),cutTime:boundary,delta};
 }
 
+/** One selected timed clip with an unambiguous neighbour at each cut. */
+export function slideGroup(project,clipId) {
+  const middle=project.clips.find(c=>c.id===clipId),epsilon=1e-8;
+  if(!middle||!['video','audio'].includes(middle.type))throw Error('Select a video or audio clip between two adjacent clips to slide.');
+  const track=project.clips.filter(c=>c.id!==middle.id&&c.track===middle.track),before=track.filter(c=>Math.abs(c.start+c.duration-middle.start)<=epsilon),after=track.filter(c=>Math.abs(c.start-(middle.start+middle.duration))<=epsilon);
+  if(before.length!==1||after.length!==1)throw Error('Slide requires exactly one adjacent neighbour on each side. Close gaps or resolve ambiguous cuts first.');
+  const left=before[0],right=after[0],end=right.start+right.duration;
+  if(left.type!==middle.type||right.type!==middle.type)throw Error('Slide requires three video clips or three audio clips on the same track.');
+  if([left,middle,right].some(c=>c.locked))throw Error('Unlock all three clips before sliding.');
+  if([left,middle,right].some(c=>c.fadeIn||c.fadeOut||c.transition||c.transitions?.length))throw Error('Remove fades or transitions from all three clips before sliding.');
+  if(track.some(c=>c.id!==left.id&&c.id!==right.id&&c.start<end-epsilon&&c.start+c.duration>left.start+epsilon))throw Error('Resolve overlapping clips across this three-clip span before sliding.');
+  return {left,middle,right,end};
+}
+
+export function slideBounds(project,clipId,{leftDuration,middleDuration,rightDuration}={}) {
+  const {left,middle,right,end}=slideGroup(project,clipId),minimum=Math.max(.01,1/project.fps),epsilon=1e-8,durations=[leftDuration,middleDuration,rightDuration];
+  [left,middle,right].forEach((clip,i)=>{
+    const asset=project.assets.find(a=>a.id===clip.assetId);
+    if(!asset?.src)throw Error('Relink all offline sources before sliding.');
+    if(clip.type==='video'&&asset.type!=='video'||clip.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Relink all three clips to matching timed media sources.');
+    if(durations[i]===undefined)durations[i]=asset.duration;
+    if(!Number.isFinite(durations[i])||durations[i]<=0)throw Error('All three source durations must be known before sliding.');
+    if(!Number.isFinite(clip.playbackRate)||clip.playbackRate<.1||clip.playbackRate>16||!Number.isFinite(clip.sourceIn)||clip.sourceIn<0)throw Error('Review the source offset and speed of all three clips before sliding.');
+    if(clip.sourceIn+clip.duration*clip.playbackRate>durations[i]+epsilon)throw Error('An existing source range exceeds its media duration. Shorten or slip that clip first.');
+    if(clip.duration<minimum-epsilon)throw Error('All three clips must contain at least one sequence frame before sliding.');
+  });
+  const min=Math.max(left.start+minimum,right.start-middle.duration-right.sourceIn/right.playbackRate),max=Math.min(end-middle.duration-minimum,left.start+(durations[0]-left.sourceIn)/left.playbackRate);
+  return {min,max,startTime:middle.start,leftId:left.id,middleId:middle.id,rightId:right.id,leftDuration:durations[0],middleDuration:durations[1],rightDuration:durations[2],minimum,frameStep:1/project.fps,minFrames:Math.ceil((min-middle.start)*project.fps-epsilon),maxFrames:Math.floor((max-middle.start)*project.fps+epsilon)};
+}
+
+export function planSlideEdit(project,{clipId,startTime,deltaFrames,leftDuration,middleDuration,rightDuration}={}) {
+  // Inspect raw transition fields before the supported native schema normalizes them away.
+  slideGroup(project,clipId);
+  const p=validateProject(project),bounds=slideBounds(p,clipId,{leftDuration,middleDuration,rightDuration}),left=p.clips.find(c=>c.id===bounds.leftId),middle=p.clips.find(c=>c.id===clipId),right=p.clips.find(c=>c.id===bounds.rightId);
+  if((startTime===undefined)===(deltaFrames===undefined))throw Error('Choose a start time or a whole-frame slide.');
+  if(deltaFrames!==undefined&&!Number.isInteger(deltaFrames))throw Error('Slide by a whole number of sequence frames.');
+  if(startTime!==undefined&&!Number.isFinite(startTime))throw Error('Enter a finite start time in seconds.');
+  const next=startTime===undefined?middle.start+deltaFrames/p.fps:Math.round(startTime*p.fps)/p.fps;
+  if(!Number.isFinite(next)||next<bounds.min-1e-8||next>bounds.max+1e-8)throw Error(`The selected start must be between ${bounds.min.toFixed(6)} and ${bounds.max.toFixed(6)} seconds to retain source handles and at least one frame per neighbour.`);
+  const start=Math.max(bounds.min,Math.min(bounds.max,next)),delta=start-middle.start,rightEnd=right.start+right.duration,newRightStart=start+middle.duration;
+  left.duration=Math.max(bounds.minimum,start-left.start);middle.start=start;
+  right.sourceIn=Math.max(0,right.sourceIn+(newRightStart-right.start)*right.playbackRate);right.start=newRightStart;right.duration=Math.max(bounds.minimum,rightEnd-newRightStart);
+  return {...bounds,project:validateProject(p),startTime:start,delta};
+}
+
 export function toMotion(project) {
   const p=validateProject(project),motion=createBlankProject({name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background});
   motion.id=p.id;motion.assets=p.assets.map(a=>({...a}));if(p.brief)motion.brief=p.brief;

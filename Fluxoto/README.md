@@ -6,7 +6,8 @@ A local layered image and graphic design studio in the FluxCreate suite. Start a
 
 - Editable demo poster with independent typography, shapes, and gradients.
 - Canvas move and resize handles, numeric transforms, opacity, layer ordering, visibility, locks, duplication, and deletion.
-- Brush and eraser strokes stored as editable layers. An eraser mask removes the composite below it; reorder or hide it to change its effect.
+- Selected-photo paint/erase: explicit photo target, hard round size/color/stroke opacity, canvas color sampling, isolated previews and one undo. Originals remain intact; native and exports retain the result. See [Photo painting scope and verification](docs/PHOTO-PAINT.md).
+- Separate-stroke Brush and eraser mode stores strokes as editable layers. An eraser mask removes the composite below it; reorder or hide it to change its effect.
 - Text, rectangle, ellipse, solid/gradient fill, blend modes, brightness, contrast, saturation, and blur. Rectangle corners have an explicit radius control.
 - Nondestructive layer masks: add a mask in Properties, choose Edit mask, then Hide with brush or Reveal with brush. Disable, remove, undo, resize, save and reopen masks without changing original image pixels. The separate Eraser tool still removes the composition underneath its stroke.
 - Photo Levels: combined RGB and independent Red/Green/Blue input, gamma and output controls, with a sampled source histogram, explicit Apply and one-step undo. Reset current or all channels; original image bytes remain editable. See [Levels details and verification](docs/LEVELS.md).
@@ -20,11 +21,11 @@ A local layered image and graphic design studio in the FluxCreate suite. Start a
 - `.fluxoto` saves the full native project and a validated portable Fluxiffects scene inside a versioned FluxCreate envelope. Other suite studios can import the portable scene; reopening in Fluxfoto restores all native editing details.
 - Open compatible FluxCreate projects, native Fluxiffects/AE bridge JSON, or `.flux.md` exchanges. Import reports unsupported motion, video, parenting, and other differences.
 - `.flux.md` exchanges retain editable text, shapes, supported transforms and adjustments. Brush strokes travel as SVG image layers. Eraser masks stay native; export PNG for their exact composite appearance.
-- Full-resolution PNG (including transparency) and JPEG export. Bounded layered-raster PSD export preserves rendered appearance; masks and Levels/Curves are baked into pixel layers, while native files retain their controls.
+- Full-resolution PNG (including transparency) and JPEG export. Bounded layered-raster PSD export preserves rendered appearance; photo paint, masks and Levels/Curves are baked into pixel layers, while native files retain their controls.
 - Layered Photoshop `.psd` and `.psb` import: 8-bit RGB or Grayscale documents, saved raster layers, positions, visibility, opacity, common blend modes, and editable pixel masks. Simple horizontal text becomes editable text with a hidden original raster backup when available. Nested groups flatten into named layers.
 - Photoshop import limits:64 MB file,8192 px per canvas side,32 megapixel canvas,200 layers/groups,16 group levels,48 megapixels total canvas/layer/mask pixels. Ordinary photos are limited to45 MB and32 megapixels. Photoshop structure and dimension checks run before its bitmap decoding. Photo dimensions are checked after the browser decodes the source.
 - Compatibility reports describe missing layer styles, smart-object source/filter controls, adjustment controls, vector paths, clipping relationships, color profiles, and group isolation/blending. Group opacity is distributed to children and may differ from isolated Photoshop groups. Text uses browser fonts and may reflow. Pixel-mask feathering is not retained. Original PSD/PSB files remain external; keep them for Photoshop-specific features. Converted native projects retain the imported photo pixels and editable masks, not the complete Photoshop source.
-- Native and Markdown exports render masked or actively Levels/Curves-adjusted layers into portable PNG layers for other suite editors while retaining fully editable masks in the native Fluxfoto project. PSB export, TIFF, camera RAW,16/32-bit, CMYK, Lab, Indexed and other Photoshop color modes are not included. Convert unsupported documents to8-bit RGB in Photoshop. Native After Effects projects require the Fluxiffects JSX bridge.
+- Native and Markdown exports render painted, masked or actively Levels/Curves-adjusted layers into portable PNG layers for other suite editors while retaining fully editable masks in the native Fluxfoto project. PSB export, TIFF, camera RAW,16/32-bit, CMYK, Lab, Indexed and other Photoshop color modes are not included. Convert unsupported documents to8-bit RGB in Photoshop. Native After Effects projects require the Fluxiffects JSX bridge.
 - Portable masked layers are rasterized at up to 8192 pixels per side and 32 megapixels. Larger native layer bounds keep their placement and dimensions, with a reduced-resolution portable image. The native source and editable mask remain unchanged. Imported pixel-mask density applies throughout the layer; fill opacity combines with ordinary layer opacity. Photoshop styles with independent fill opacity are reported as unsupported.
 
 ## AI
@@ -35,7 +36,7 @@ FluxLab results arrive in a review dialog. Add a generated image or refine and a
 
 ## Shortcuts
 
-V move · B brush · E eraser · T text · R rectangle · O ellipse · C crop. Delete removes an unlocked selected layer. Arrow keys nudge; Shift nudges by 10 px. Ctrl/Cmd Z undo, Shift Z or Ctrl Y redo, S save, O open, D duplicate. Escape cancels a crop or dialog.
+I sample canvas color · V move · B brush · E eraser · T text · R rectangle · O ellipse · C crop. Delete removes an unlocked selected layer. Arrow keys nudge; Shift nudges by 10 px. Ctrl/Cmd Z undo, Shift Z or Ctrl Y redo, S save, O open, D duplicate. Escape cancels a crop or dialog.
 
 ## Checks
 

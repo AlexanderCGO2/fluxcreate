@@ -12,7 +12,8 @@
     "test:ripple": "node scripts/ripple-smoke.mjs",
     "test:slip": "node scripts/slip-smoke.mjs",
     "test:premiere": "node scripts/premiere-smoke.mjs",
-    "test:rolling": "node scripts/rolling-smoke.mjs"
+    "test:rolling": "node scripts/rolling-smoke.mjs",
+    "test:slide": "node scripts/slide-smoke.mjs"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",
