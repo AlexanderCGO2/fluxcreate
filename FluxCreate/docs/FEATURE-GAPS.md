@@ -78,3 +78,5 @@ Per-photo RGB/channel Curves, same-track rolling trim, bounded precise motion ex
 ## Ordered photo, slide and freeze-frame continuation — 2026-10-13
 
 Selected-photo hard-round paint/erase, three-clip slide editing, and whole-layer freeze-frame copies are implemented and independently verified in the requested app order. The [ordered plan](superpowers/plans/2026-10-13-ordered-editor-gaps.md) and [release record](RELEASE-PHOTO-SLIDE-FREEZE-2026-10-13.md) track the combined build and production gates. Selection-clipped/soft/pressure painting, retouch, linked A/V, reverse playback and general time remapping remain open.
+
+The ordered editor batch is published as [3ec4df4](https://github.com/AlexanderCGO2/fluxcreate/commit/3ec4df4). Verification: 653 tests, all nine builds, 36 hosted browser checks, six packaged MCP checks and 62 protected live checks. See the [release record](RELEASE-PHOTO-SLIDE-FREEZE-2026-10-13.md).

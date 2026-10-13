@@ -1,6 +1,6 @@
 # Photo paint, slide and freeze-frame release — 2026-10-13
 
-Release preparation in progress. Production still runs the preceding release until deployment evidence is recorded below.
+Published runtime: [3ec4df4](https://github.com/AlexanderCGO2/fluxcreate/commit/3ec4df4). Production: https://fluxcreate.vercel.app. Deployment: dpl_FSZ3KqMs3YrSrJXhYTDvmeBfYEqe in flux-ai-inc, verified 2026-10-13T20:54:26.074Z. All deployments retain Vercel Authentication.
 
 ## Delivered editor increments
 
@@ -22,6 +22,10 @@ Fluximiére: 52 units, build and 12 new browser groups, independently rerun. Exi
 
 Fluxiffects: 118 units, build and 15 new browser groups, independently rerun; seven existing browser regressions pass. Actual offset/rate source pixels, animated parent/child placement and effects match before/after. Precise and real-time exported movies retain the still at later sample times, suppress the original video tone and retain separate stereo sound. Native/exchange source retention, reported Premiere conversion limits, ordinary still move/trim/split, Undo/Redo/reopen, cancellation, limits and recovery are covered.
 
-Combined release gates pass: **653 unit/API/contract tests** across ten packages, strict app and fixture TypeScript checks, all nine app builds plus server/MCP App, **36 hosted browser checks** and **six packaged MCP checks**. No dependencies or lockfile changes. Publishing and protected production verification follow.
+Combined release gates pass: **653 unit/API/contract tests** across ten packages, strict app and fixture TypeScript checks, all nine app builds plus server/MCP App, **36 hosted browser checks** and **six packaged MCP checks**. No dependencies or lockfile changes. Publishing and protected production verification are complete.
 
 No paid model calls or payment activation are part of this release. [Stripe credits](STRIPE-CREDITS-PLAN.md) remain planned after the editor gap work, with BYOK and the confirmed 50% contribution-margin target retained.
+
+## Production evidence
+
+**62 protected live checks pass:** 32 exact browser-bundle/MCP resource, deployment-readiness and anonymous-access checks; 15 settings/Gateway/no-charge Agents simulation checks; 15 Cloudflare settings/music/authentication checks. All nine deployed browser bundles and the MCP App match the reviewed local build. Music account availability remains false; hosted live Agents execution remains disabled pending its documented durable-execution work. No paid requests or payment activation.
