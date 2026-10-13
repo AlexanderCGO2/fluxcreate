@@ -1,6 +1,6 @@
 # Photo, timeline and rendering release — 2026-10-13
 
-Status: implementation, review and combined release gates complete; production verification pending.
+Published runtime: [8fdce80](https://github.com/AlexanderCGO2/fluxcreate/commit/8fdce80). Standalone Fluxini: [1157ab3](https://github.com/AlexanderCGO2/fluxini/commit/1157ab3). Production: https://fluxcreate.vercel.app. Deployment: dpl_128taPb5xDEEXVwWPRodvKzVgwgF in flux-ai-inc, verified 2026-10-13T19:50:23.096Z. All deployments retain Vercel Authentication.
 
 ## Delivered subsets
 
@@ -18,3 +18,7 @@ The paint unit contract and actual GPU workflow failed before implementation: a 
 See [feature gaps](FEATURE-GAPS.md), [batch plan](superpowers/plans/2026-10-13-photo-timeline-and-rendering.md), [Curves](../../Fluxoto/docs/CURVES.md), [rolling trim](../../Fluximiere/docs/ROLLING-EDITING.md) and [motion export](../../Fluxiffects/docs/AUDIO-EXPORT.md). The [Stripe plan](STRIPE-CREDITS-PLAN.md) remains queued after gap work, with the confirmed 50% contribution-margin target.
 
 Combined release gates pass: 633 unit/API/contract tests across ten packages, strict app and fixture TypeScript checks, all nine browser builds plus server and MCP App, 36 hosted browser checks and six hosted MCP checks. Frozen dependency installation passed supply-chain policy; the only lockfile change adds the already-pinned mediabunny 1.61.3 to Fluxiffects. Production verification follows.
+
+## Production evidence
+
+62 protected live checks pass: 32 exact browser bundle/MCP resource, deployment readiness and anonymous-access checks; 15 Gateway/settings and no-charge Agents simulation checks; 15 Cloudflare settings/music status and authentication checks. All nine deployed browser bundles and the MCP App match the reviewed local build. No paid inference or payment activation was performed. Cloudflare music account availability remains false; hosted live Agents execution remains disabled pending its documented durable-execution work.

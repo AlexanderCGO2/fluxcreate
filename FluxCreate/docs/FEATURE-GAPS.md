@@ -70,3 +70,7 @@ FluxDesign multi-frame editing, Fluxini direct group dragging and Flux3D numeric
 ## Photo, timeline and rendering continuation — 2026-10-13
 
 Source-preserving photo Curves, adjacent same-track rolling trim, deterministic motion WebM export and bidirectional paint checkpoint reuse are the next implemented subsets. The [current plan](superpowers/plans/2026-10-13-photo-timeline-and-rendering.md) and [release record](RELEASE-PHOTO-TIMELINE-2026-10-13.md) track verification and deployment. Adjustment layers, linked A/V/slide, durable rendering, and cross-driver simulation reproducibility remain separate targets. Stripe remains planning only.
+
+## Photo, timeline and rendering — published 2026-10-13
+
+Per-photo RGB/channel Curves, same-track rolling trim, bounded precise motion export and bidirectional paint checkpoint reuse are published as 8fdce80. The [release record](RELEASE-PHOTO-TIMELINE-2026-10-13.md) records 633 tests, all nine builds, 36 hosted browser checks, six MCP checks and 62 protected live checks. Separate adjustment layers, linked A/V/slide edits, remote rendering and general uncached/cross-driver simulation reproducibility remain open.
