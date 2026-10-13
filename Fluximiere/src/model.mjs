@@ -109,6 +109,52 @@ export function planSlipEdit(project,{clipId,sourceIn,deltaFrames,sourceDuration
   const offset=Math.max(bounds.min,Math.min(bounds.max,next)),delta=offset-clip.sourceIn;clip.sourceIn=offset;
   return {project:validateProject(p),sourceIn:offset,sourceOut:offset+bounds.sourceSpan,delta,...bounds};
 }
+/** The selected clip is the left side of one unambiguous, isolated shared cut. */
+export function rollingPair(project,clipId) {
+  const epsilon=1e-8,left=project.clips.find(c=>c.id===clipId);
+  if(!left||!['video','audio'].includes(left.type))throw Error('Select the left video or audio clip of an adjacent pair.');
+  const cutTime=left.start+left.duration,candidates=project.clips.filter(c=>c.id!==left.id&&c.track===left.track&&Math.abs(c.start-cutTime)<=epsilon);
+  if(candidates.length!==1)throw Error('Rolling requires exactly one adjacent clip at the selected clip’s end. Close gaps or resolve ambiguous cuts first.');
+  const right=candidates[0],end=right.start+right.duration;
+  if(right.type!==left.type)throw Error('Rolling requires two adjacent video clips or two adjacent audio clips.');
+  if(left.locked||right.locked)throw Error('Unlock both adjacent clips before rolling their shared cut.');
+  if([left,right].some(c=>c.fadeIn||c.fadeOut||c.transition||c.transitions?.length))throw Error('Remove fades or transitions from both clips before rolling this cut.');
+  if(project.clips.some(c=>c.id!==left.id&&c.id!==right.id&&c.track===left.track&&c.start<end-epsilon&&c.start+c.duration>left.start+epsilon))throw Error('Resolve overlapping clips on this track before rolling this pair.');
+  return {left,right,cutTime,end};
+}
+
+export function rollingBounds(project,clipId,{leftDuration,rightDuration}={}) {
+  const {left,right,cutTime,end}=rollingPair(project,clipId),minimum=Math.max(.01,1/project.fps),epsilon=1e-8;
+  const durations=[leftDuration,rightDuration];
+  [left,right].forEach((clip,i)=>{
+    const asset=project.assets.find(a=>a.id===clip.assetId);
+    if(!asset?.src)throw Error('Relink both offline sources before rolling this cut.');
+    if(clip.type==='video'&&asset.type!=='video'||clip.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Relink both clips to matching timed media sources.');
+    durations[i]??=asset.duration;
+    if(!Number.isFinite(durations[i])||durations[i]<=0)throw Error('Both source durations must be known before rolling this cut.');
+    if(clip.sourceIn+clip.duration*clip.playbackRate>durations[i]+epsilon)throw Error('An existing source range exceeds its media duration. Shorten or slip that clip first.');
+    if(clip.duration<minimum-epsilon)throw Error('Both clips must contain at least one sequence frame before rolling.');
+  });
+  const min=Math.max(left.start+minimum,cutTime-right.sourceIn/right.playbackRate),max=Math.min(end-minimum,left.start+(durations[0]-left.sourceIn)/left.playbackRate);
+  return {min,max,cutTime,leftId:left.id,rightId:right.id,leftDuration:durations[0],rightDuration:durations[1],minimum,frameStep:1/project.fps,minFrames:Math.ceil((min-cutTime)*project.fps-epsilon),maxFrames:Math.floor((max-cutTime)*project.fps+epsilon)};
+}
+
+/** Preserve the outer span and the source position at every surviving timeline time. */
+export function planRollingEdit(project,{clipId,cutTime,deltaFrames,leftDuration,rightDuration}={}) {
+  // Inspect before normalization so unsupported transition data cannot disappear silently.
+  rollingPair(project,clipId);
+  const p=validateProject(project),bounds=rollingBounds(p,clipId,{leftDuration,rightDuration}),left=p.clips.find(c=>c.id===bounds.leftId),right=p.clips.find(c=>c.id===bounds.rightId);
+  if((cutTime===undefined)===(deltaFrames===undefined))throw Error('Choose a cut time or a whole-frame roll.');
+  if(deltaFrames!==undefined&&!Number.isInteger(deltaFrames))throw Error('Roll by a whole number of sequence frames.');
+  const next=cutTime===undefined?bounds.cutTime+deltaFrames/p.fps:Math.round(cutTime*p.fps)/p.fps;
+  if(!Number.isFinite(next)||next<bounds.min-1e-8||next>bounds.max+1e-8)throw Error(`The cut must be between ${bounds.min.toFixed(6)} and ${bounds.max.toFixed(6)} seconds to retain source handles and at least one frame per clip.`);
+  const boundary=Math.max(bounds.min,Math.min(bounds.max,next)),delta=boundary-bounds.cutTime,end=right.start+right.duration;
+  left.duration=Math.max(bounds.minimum,boundary-left.start);
+  // Use the right clip's original start to preserve source placement even with floating-point adjacency tolerance.
+  right.sourceIn=Math.max(0,right.sourceIn+(boundary-right.start)*right.playbackRate);right.start=boundary;right.duration=Math.max(bounds.minimum,end-boundary);
+  return {...bounds,project:validateProject(p),cutTime:boundary,delta};
+}
+
 export function toMotion(project) {
   const p=validateProject(project),motion=createBlankProject({name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background});
   motion.id=p.id;motion.assets=p.assets.map(a=>({...a}));if(p.brief)motion.brief=p.brief;

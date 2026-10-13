@@ -1,6 +1,6 @@
 # Ripple editing
 
-The timeline **Ripple** button previews and applies one of three operations: delete the selected clip's interval, trim its start to the playhead, or trim its end to the playhead. Trim points align to the sequence's actual frame rate, including fractional rates. This increment shortens clips; extending a ripple trim, rolling, slip/slide and linked selection remain future work.
+The timeline **Ripple** button previews and applies one of three operations: delete the selected clip's interval, trim its start to the playhead, or trim its end to the playhead. Trim points align to the sequence's actual frame rate, including fractional rates. This increment shortens clips; extending a ripple trim, slide and linked selection remain future work. Bounded [slip](SLIP-EDITING.md) and [rolling trim](ROLLING-EDITING.md) are separate implemented commands.
 
 Choose the scope before applying:
 

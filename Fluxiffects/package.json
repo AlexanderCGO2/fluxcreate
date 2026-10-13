@@ -13,7 +13,8 @@
     "test:curves": "node scripts/bezier-smoke.mjs",
     "test:key-clipboard": "node scripts/keyframe-clipboard-smoke.mjs",
     "test:key-selection": "node scripts/keyframe-selection-smoke.mjs",
-    "test:recovery": "node scripts/recovery-smoke.mjs"
+    "test:recovery": "node scripts/recovery-smoke.mjs",
+    "test:precise": "node scripts/precise-export-smoke.mjs"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",
@@ -22,7 +23,8 @@
     "zod": "4.4.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "lucide-react": "0.468.0"
+    "lucide-react": "0.468.0",
+    "mediabunny": "1.61.3"
   },
   "devDependencies": {
     "esbuild": "0.25.12",

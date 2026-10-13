@@ -39,6 +39,10 @@ Optional: `node scripts/research-premiere.mjs` downloads public, independently p
 
 See [the inspected optimization backlog](docs/OPTIMIZATIONS.md) for completed improvements, remaining priorities and verification.
 
+## Advanced trimming
+
+Use **Ripple** above the timeline to remove an interval with an explicit track scope. **Slip source** in Clip properties changes the source window without moving its timeline slot. **Rolling trim** moves the shared cut into the next adjacent video/audio clip while preserving the pair’s outside endpoints, every other track and sequence length. Numeric/frame/keyboard-slider controls and cancellable pointer preview are available. Rolling requires unlocked clips, measured source handles, no same-track overlap and no fades. Each edit is one Undo step. See [ripple](docs/RIPPLE-EDITING.md), [slip](docs/SLIP-EDITING.md) and [rolling details and checks](docs/ROLLING-EDITING.md).
+
 ## Audio editing and export
 
 Drag the timeline ruler to hear sound, enable **Scratch** for signed variable speed, or use J/K/L to reverse, stop and shuttle forward. Speed changes change pitch. Real source waveforms and an output meter are included. Clip volume/mute/fades are independent of picture opacity.

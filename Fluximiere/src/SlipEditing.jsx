@@ -3,17 +3,17 @@ import {ChevronLeft,ChevronRight,MoveHorizontal} from 'lucide-react';
 import {planSlipEdit,slipBounds} from './model.mjs';
 import './slip.css';
 
-function useSourceDuration(asset){
+export function useSourceDuration(asset){
  const [result,setResult]=useState({src:null});
  useEffect(()=>{
-  if(!asset?.src||!['audio','video'].includes(asset.type)){setResult({src:asset?.src,error:'Relink the offline source before slipping this clip.'});return;}
+  if(!asset?.src||!['audio','video'].includes(asset.type)){setResult({src:asset?.src,error:'Relink the offline source before editing this clip.'});return;}
   const src=asset.src,media=document.createElement(asset.type);let active=true;
   setResult({src,loading:true});media.preload='metadata';media.muted=true;
   const clean=()=>{media.onloadedmetadata=null;media.onerror=null;media.removeAttribute('src');media.load();};
   const finish=error=>{if(!active)return;active=false;clearTimeout(timer);const duration=media.duration;setResult({src,...(error?{error}:{duration})});clean();};
   const timer=setTimeout(()=>finish('The source duration could not be read. Relink a file with a readable duration.'),12000);
   media.onloadedmetadata=()=>finish(Number.isFinite(media.duration)&&media.duration>0?'':'The source duration is unknown. Relink a file with a readable duration.');
-  media.onerror=()=>finish('This source could not be decoded. Relink it before slipping.');media.src=src;
+  media.onerror=()=>finish('This source could not be decoded. Relink it before editing.');media.src=src;
   return()=>{active=false;clearTimeout(timer);clean();};
  },[asset?.src,asset?.type]);
  return result.src===asset?.src?result:{loading:true};

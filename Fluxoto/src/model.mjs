@@ -1,3 +1,4 @@
+import {normalizeCurves,hasActiveCurves} from './curves.mjs';
 import {normalizeLevels,hasActiveLevels} from './levels.mjs';
 import {normalizeMask} from './masks.mjs';
 import {normalizeSuiteSource,suiteSourceSummary,suiteSourceBytes,validateSuitePreview,SUITE_SOURCE_LIMITS} from '../../FluxCreate/shared/suite-source.mjs';
@@ -28,6 +29,7 @@ function normalizeLayer(raw) {
   if(raw.gradient!==undefined&&raw.gradient!==null){obj(raw.gradient);layer.gradient={from:color(raw.gradient.from,layer.fill),to:color(raw.gradient.to,layer.fill),angle:num(raw.gradient.angle,90,-36000,36000)};}
   layer.mask=normalizeMask(raw.mask);
   layer.levels=normalizeLevels(raw.levels);if(layer.levels&&layer.type!=='image')fail('Levels are supported on photo image layers only.');
+  if(raw.curves!=null){layer.curves=normalizeCurves(raw.curves);if(layer.type!=='image')fail('Curves are supported on photo image layers only.');}
   if(raw.suiteSource!==undefined&&raw.suiteSource!==null){if(layer.type!=='image')fail('Embedded objects require an image layer.');layer.suiteSource=normalizeSuiteSource(raw.suiteSource);validateSuitePreview(layer.src);}
   return layer;
 }
@@ -71,6 +73,7 @@ export function toMotion(raw) {
   });
   if(project.layers.some(l=>l.eraser))motion.warnings=['Eraser strokes stay editable in Fluxfoto native projects. Export a PNG to preserve their composite appearance in other apps.'];
   if(project.layers.some(l=>hasActiveLevels(l.levels)))motion.warnings=[...(motion.warnings||[]),'Levels remain editable in Fluxfoto. Use the rendered portable export to preserve their appearance in other apps.'];
+  if(project.layers.some(l=>hasActiveCurves(l.curves)))motion.warnings=[...(motion.warnings||[]),'Curves remain editable in Fluxfoto. Use the rendered portable export to preserve their appearance in other apps.'];
   if(project.layers.some(l=>l.mask?.enabled))motion.warnings=[...(motion.warnings||[]),'Layer masks remain editable in Fluxfoto. Use the rendered portable export to preserve them in other apps.'];
   if(project.layers.some(l=>l.suiteSource))motion.warnings=[...(motion.warnings||[]),'Embedded suite objects are rendered snapshots in the portable scene. Save the native Fluxfoto project to retain their original source documents.'];
   return parseProject(JSON.stringify(motion)).project;

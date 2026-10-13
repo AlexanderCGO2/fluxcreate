@@ -17,7 +17,8 @@
     "test:gestures": "node scripts/gesture-smoke.mjs",
     "test:levels": "node scripts/levels-smoke.mjs",
     "test:photo-source": "node scripts/photo-source-smoke.mjs",
-    "test:levels-channels": "node scripts/levels-channels-smoke.mjs"
+    "test:levels-channels": "node scripts/levels-channels-smoke.mjs",
+    "test:curves": "node scripts/curves-smoke.mjs"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",

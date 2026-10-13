@@ -297,6 +297,9 @@ importers:
       lucide-react:
         specifier: 0.468.0
         version: 0.468.0(react@19.2.4)
+      mediabunny:
+        specifier: 1.61.3
+        version: 1.61.3
       react:
         specifier: 19.2.4
         version: 19.2.4

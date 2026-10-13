@@ -91,7 +91,7 @@ These categories correspond to Photoshop layer/group management and continuous t
 
 | Capability | Status | What remains |
 |---|---|---|
-| Levels and Curves | Partial, locally verified | Per-photo RGB input black/white/gamma controls with reset/bypass, one-step Apply/undo and original source retention now work. Per-channel/output Levels, Curves, presets and separate adjustment layers remain open. |
+| Levels and Curves | Partial, locally verified | Per-photo RGB/channel input/gamma/output Levels and bounded piecewise-linear RGB/channel Curves, reset/bypass, explicit Apply/one undo and source retention work. Smooth/freehand curves, presets, live preview and separate adjustment layers remain open. See [Curves](CURVES.md). |
 | Core photographic color corrections | Partial | Brightness/contrast/saturation exist. Add exposure, white balance/temperature/tint, highlights/shadows, hue, vibrance, color balance, black-and-white controls and selective correction. |
 | Adjustment layers | Missing | Separate masked, reorderable adjustments with defined lower-layer/group/clipping scope. The current CSS filters are attached to one layer and use a fixed rendering order. |
 | Histogram and pixel/channel inspection | Partial, locally verified | Source-photo RGB histogram sampled up to 512 px per side, before adjustments/masks, weighted by transparency. Full-document/full-resolution histogram, luminance, sample readouts and clipping warnings remain open. |
@@ -187,7 +187,7 @@ Evidence: 8 new end-to-end groups in `scripts/editing-smoke.mjs`, layer-operatio
 
 ## Photo Levels continuation
 
-See [Levels scope and evidence](LEVELS.md): source-preserving per-photo RGB Levels and sampled source histogram are locally verified, with native/portable/PSD pixel checks. Separate adjustment layers, Curves and managed-color processing remain open.
+See [Levels scope and evidence](LEVELS.md): source-preserving per-photo RGB Levels and sampled source histogram are locally verified, with native/portable/PSD pixel checks. Bounded [Curves](CURVES.md) is now implemented; separate adjustment layers and managed-color processing remain open.
 
 ## Source replacement continuation
 
@@ -196,4 +196,8 @@ See [Levels scope and evidence](LEVELS.md): source-preserving per-photo RGB Leve
 
 ## Channel and output Levels continuation — 2026-10-11
 
-Photo Levels now includes combined RGB plus separate Red/Green/Blue input points, gamma and output endpoints, channel-specific sampled source histograms and current/all reset. Explicit Apply preserves source bytes/alpha and adds one undo. Old/neutral Levels remain byte-identical in verified export fixtures. Native/portable/PSD/studio-object output and photo replacement retain the behavior. See [Levels scope and verification](LEVELS.md). Adjustment layers, Curves, color management, high bit depth and large-photo performance remain open.
+Photo Levels now includes combined RGB plus separate Red/Green/Blue input points, gamma and output endpoints, channel-specific sampled source histograms and current/all reset. Explicit Apply preserves source bytes/alpha and adds one undo. Old/neutral Levels remain byte-identical in verified export fixtures. Native/portable/PSD/studio-object output and photo replacement retain the behavior. See [Levels scope and verification](LEVELS.md). Bounded [Curves](CURVES.md) is now implemented. Adjustment layers, color management, high bit depth and large-photo performance remain open.
+
+## RGB and channel Curves continuation — 2026-10-13
+
+[Photo Curves](CURVES.md) adds source-preserving combined RGB plus red/green/blue curves with 2–16 ordered numeric points, visible draft graph, deliberate piecewise-linear interpolation, endpoint protection, reset/bypass and one Apply/undo. Neutral transformed PNGs remain byte-identical; native/portable/PSD/studio rendering, alpha, source replacement, stale drafts and locks pass local browser checks. Separate adjustment layers, smooth/freehand curves, presets and managed-color processing remain open.

@@ -6,7 +6,7 @@ The reference scope follows Adobe’s current [workflow overview](https://helpx.
 
 ## Current position
 
-Fluxiffects can create editable motion graphics, mix browser-supported footage, animate properties with bounded custom easing, import real animated 3D scene layers, and render PNG/WebM with sound. It remains substantially narrower than After Effects. The biggest practical gaps are masks/mattes, nested compositions, advanced animation tools, deterministic movie export, professional media/color workflows and a dependable render queue.
+Fluxiffects can create editable motion graphics, mix browser-supported footage, animate properties with bounded custom easing, import real animated 3D scene layers, and render PNG/WebM with sound. It remains substantially narrower than After Effects. The biggest practical gaps are masks/mattes, nested compositions, advanced animation tools, queued movie delivery, professional media/color workflows and a dependable render queue.
 
 Evidence reviewed: `src/core.mjs`, `main.jsx`, `renderer.mjs`, `storage.mjs`, `ai-commands.mjs`, `StudioAI.jsx`, `scene-import.mjs`, `Scene3DInspector.jsx`; shared Flux3D loader/compositor; `public/bridge/Export-to-Fluxiffects.jsx`; existing import, rendering, AI, exchange and recovery tests. Existing verification is recorded in the README; it was not all rerun for this audit.
 
@@ -33,7 +33,7 @@ Evidence reviewed: `src/core.mjs`, `main.jsx`, `renderer.mjs`, `storage.mjs`, `a
 | Audio | Partial: bounded mono/stereo export mix, volume keyframes/easing, audio fades, mute, source offsets/rate and matching preview gain | Shared sample-accurate preview transport, waveforms, track/bus routing, effects and device/latency qualification | P1/P2 |
 | Color pipeline | Partial: browser/Canvas color behavior | Explicit working space, linear compositing, 16/32-bit processing, OCIO/ICC handling, HDR and display transforms | P2 |
 | Preview performance | Partial: local live rendering and media preparation | Managed RAM/disk frame cache, region of interest, preview resolution, background preparation, profiling and worker scheduling | P1/P2 |
-| Output | Working: PNG still and real-time WebM with stereo Opus, currently capped at 60 seconds/60 fps; progress/cancel and explicit picture-only output | Deterministic offline frame encoder, MP4, alpha codecs, EXR/image sequences, render queue and crash-resumable jobs | P1/P2 |
+| Output | Working bounded subset: PNG, timestamped VP9/VP8 WebM with stereo Opus and explicit real-time fallback; 60 seconds/60 fps, progress/cancel and picture-only output; [precise scope](AUDIO-EXPORT.md) | MP4, alpha codecs, EXR/image sequences, render queue, crash-resumable jobs and broader codec/device qualification | P1/P2 |
 | AE files | Partial: supplied AE-host export bridge transfers supported 2D layers/keys and records unsupported data | Direct `.aep`/`.aepx` decoding is absent; bridge cannot reproduce masks, paths, nested rendering, AE 3D or third-party effects; real AE-host execution remains unverified | P0 |
 | Adobe ecosystem | Missing | `.mogrt`, Essential Graphics controls, Dynamic Link, plugin hosting and template packaging | P3 |
 | FluxCreate interchange | Working subset: `.flux.md`, suite motion wrappers, rendered media and live Flux3D scene layers | Per-object editable adapters, source refresh, fidelity review and cross-app layer placement | P0/P1 |
@@ -64,3 +64,7 @@ On 9 October, new feature expansion was paused for this planning pass. Unfinishe
 ## Audio delivery increment — 2026-10-09
 
 The previous silent export gap is closed for bounded real-time WebM. Native scene output and actual decoded stereo sound were verified together. Animated gain and fades now survive native save/open. The explicit 60-second/60-fps limit remains, and deterministic Fluximiére output is not claimed for this app. See [AUDIO-EXPORT.md](AUDIO-EXPORT.md) for architecture, measured cues, resource limits and remaining work.
+
+## Precise delivery increment — 2026-10-13
+
+Effects now encodes every requested composition frame with explicit timestamps and synchronized stereo sound from a committed snapshot. Real-time capture remains an explicit fallback, never silently selected. This closes the bounded offline frame-encoding part of F4, not the render queue, professional codec/color, or full AE delivery scope. See [AUDIO-EXPORT.md](AUDIO-EXPORT.md) for exact bounds and decoded verification.

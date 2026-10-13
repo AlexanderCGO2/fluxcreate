@@ -1,9 +1,11 @@
+import {checkExport,validateVideoExport,preciseCodec,encodeCompositionWebM} from './video-export.mjs';
 import { evaluateLayer } from './core.mjs';
 import { loadSceneSource } from '../../Flux3D/src/compositor.mjs';
 import {audioLayerGain,renderCompositionAudio} from './audio.mjs';
 
 // Canvas rendering stays in composition pixels. The preview may use any backing size.
 const assetCache = new Map();
+const exportAssetKeys = new Set();
 const layerMedia = new Map();
 const layerScenes = new Map();
 const mediaSubscribers = new Set();
@@ -112,7 +114,8 @@ function mediaReady(element, kind) {
   return kind === 'image' ? element.complete && element.naturalWidth > 0 : element.readyState >= 2;
 }
 
-function awaitElement(element, kind) {
+function awaitElement(element, kind, signal) {
+  checkExport(signal);
   if (mediaReady(element, kind)) return Promise.resolve(element);
   return new Promise((resolve, reject) => {
     const event = kind === 'image' ? 'load' : 'loadeddata';
@@ -120,17 +123,22 @@ function awaitElement(element, kind) {
       clearTimeout(timeout);
       element.removeEventListener(event, success);
       element.removeEventListener('error', failure);
+      signal?.removeEventListener('abort', abort);
     };
+    const abort = () => { cleanup(); reject(new DOMException('Export cancelled.', 'AbortError')); };
     const success = () => { cleanup(); resolve(element); };
     const failure = () => { cleanup(); reject(new Error('This media could not be decoded. Relink it to a supported image, video, or audio file.')); };
     const timeout = setTimeout(() => { cleanup(); reject(new Error('Media loading timed out. Try a local file or relink this asset.')); }, 15000);
     element.addEventListener(event, success, { once: true });
     element.addEventListener('error', failure, { once: true });
+    signal?.addEventListener('abort', abort, { once: true });
+    if(signal?.aborted) abort();
   });
 }
 
 /** Cached per asset identity and source. HTTP assets must permit CORS for export. */
-export function loadAsset(asset) {
+export function loadAsset(asset, signal) {
+  checkExport(signal);
   if (!assetSource(asset)) return Promise.reject(new Error('This asset has no source. Relink the missing file.'));
   const key = assetKey(asset);
   if (assetCache.has(key)) return assetCache.get(key).promise;
@@ -153,7 +161,7 @@ export function loadAsset(asset) {
   }
   const record = { element, kind, state: 'loading', promise: null };
   assetCache.set(key, record);
-  record.promise = awaitElement(element, kind).then(result => { record.state = 'ready'; notifyMediaChanged(); return result; }, error => {
+  record.promise = awaitElement(element, kind, signal).then(result => { record.state = 'ready'; notifyMediaChanged(); return result; }, error => {
     record.state = 'error'; record.error = error; notifyMediaChanged(); throw error;
   });
   element.src = assetSource(asset);
@@ -222,8 +230,8 @@ function pruneCompositionScenes(comp, assets) {
 /** Drop removed model templates and stale layer instances without touching other project media. */
 export function disposeUnusedAssets(assets) {
   const keep = new Set(assetsArray(assets).map(assetKey));
-  for (const [key, record] of layerScenes) if (!keep.has(record.assetKey)) disposeSceneRecord(key, record);
-  for (const [key, record] of assetCache) if (record.kind === 'model3d' && !keep.has(key)) {
+  for (const [key, record] of layerScenes) if (!keep.has(record.assetKey) && !exportAssetKeys.has(record.assetKey)) disposeSceneRecord(key, record);
+  for (const [key, record] of assetCache) if (record.kind === 'model3d' && !keep.has(key) && !exportAssetKeys.has(key)) {
     record.disposed = true; record.element?.dispose(); assetCache.delete(key);
   }
 }
@@ -441,14 +449,14 @@ export function renderComposition(ctx, comp, assets, time = 0, options = {}) {
   ctx.restore();
 }
 
-async function loadCompositionMedia(comp, assets, frameTime = null) {
+async function loadCompositionMedia(comp, assets, frameTime = null, signal) {
+  checkExport(signal);
   const neededLayers = (comp.layers || []).filter(layer => (layer.type === 'image' || layer.type === 'video' || layer.type === 'scene3d') &&
     layer.visible !== false && (frameTime === null ? number(layer.start) < comp.duration && number(layer.end, comp.duration) > 0 : isActive(layer, frameTime, comp)));
   const assetIds = new Set(neededLayers.map(layer => layer.assetId));
   const needed = assetsArray(assets).filter(asset => assetIds.has(asset.id));
-  const results = await prepareAssets(needed);
-  const failed = results.find(result => result.status === 'rejected');
-  if (failed) throw new Error(`Cannot export missing or unreadable footage. ${failed.reason}`);
+  for(const asset of needed){checkExport(signal);await waitForExport(loadAsset(asset,signal),signal);}
+  checkExport(signal);
   for (const layer of neededLayers) {
     if (!assetFor(assets, layer.assetId)) throw new Error(`Cannot export: relink missing footage for “${layer.name || 'Untitled layer'}”.`);
     if (layer.type === 'scene3d') {
@@ -456,28 +464,40 @@ async function loadCompositionMedia(comp, assets, frameTime = null) {
       if (!record?.instance || record.error) throw record?.error || new Error('The 3D scene could not be prepared.');
     } else {
       const element = getLayerMedia(comp, layer, assetFor(assets, layer.assetId));
-      if (element) await awaitElement(element, layer.type);
+      if (element) await awaitElement(element, layer.type, signal);
     }
   }
-  if (document.fonts?.ready) await document.fonts.ready;
+  if (document.fonts?.ready) await waitForExport(document.fonts.ready,signal);
+  checkExport(signal);
 }
 
-async function seekVideos(comp, assets, time) {
-  await Promise.all((comp.layers || []).filter(layer => layer.type === 'video' && isActive(layer, time, comp)).map(async layer => {
+function waitForExport(promise,signal){
+  checkExport(signal);if(!signal)return promise;
+  return new Promise((resolve,reject)=>{const abort=()=>{cleanup();reject(new DOMException('Export cancelled.','AbortError'));},cleanup=()=>signal.removeEventListener('abort',abort);signal.addEventListener('abort',abort,{once:true});Promise.resolve(promise).then(value=>{cleanup();resolve(value);},error=>{cleanup();reject(error);});if(signal.aborted)abort();});
+}
+
+async function seekVideos(comp, assets, time, signal, exact = false) {
+  for(const layer of (comp.layers || []).filter(layer => layer.type === 'video' && isActive(layer, time, comp))){
+    checkExport(signal);
     const element = getLayerMedia(comp, layer, assetFor(assets, layer.assetId));
-    if (!element) return;
+    if (!element) throw new Error('Cannot decode video. Relink the source before exporting.');
     element.pause(); element.muted = true;
-    const desired = mediaTime(layer, time, element);
-    if (Math.abs(element.currentTime - desired) < 0.005 && element.readyState >= 2) return;
+    const requested=(time-number(layer.start))*number(layer.playbackRate,1)+number(layer.sourceIn);
+    if(exact&&(!Number.isFinite(element.duration)||requested<0||requested>=element.duration))throw new Error('Video extends beyond its source. Shorten the layer or relink it before exporting.');
+    const desired = exact ? requested : mediaTime(layer, time, element);
+    if (!element.seeking && Math.abs(element.currentTime - desired) < .0000001 && element.readyState >= 2) continue;
     await new Promise((resolve, reject) => {
-      const cleanup = () => { clearTimeout(timeout); element.removeEventListener('seeked', success); element.removeEventListener('error', failure); };
-      const success = () => { cleanup(); resolve(); };
-      const failure = () => { cleanup(); reject(new Error(`Could not seek “${layer.name || 'Video'}”.`)); };
+      const cleanup = () => { clearTimeout(timeout); element.removeEventListener('seeked', success); element.removeEventListener('error', failure);signal?.removeEventListener('abort',abort); };
+      const success = () => { if(element.seeking||element.readyState<2)return;cleanup(); resolve(); };
+      const failure = () => { cleanup(); reject(new Error('Could not decode the requested video frame. Relink the source.')); };
+      const abort=()=>{cleanup();reject(new DOMException('Export cancelled.','AbortError'));};
       const timeout = setTimeout(failure, 10000);
-      element.addEventListener('seeked', success, { once: true }); element.addEventListener('error', failure, { once: true });
+      element.addEventListener('seeked', success); element.addEventListener('error', failure, { once: true });signal?.addEventListener('abort',abort,{once:true});
       try { element.currentTime = desired; } catch { failure(); }
+      if(signal?.aborted)abort();
     });
-  }));
+    checkExport(signal);
+  }
 }
 
 function exportComposition(comp) {
@@ -485,7 +505,7 @@ function exportComposition(comp) {
   if (width < 1 || height < 1 || width > 7680 || height > 7680 || width * height > 33177600) {
     throw new Error('Choose composition dimensions between 1 and 7680 pixels, with no more than 33 megapixels.');
   }
-  return { ...comp, id: `${comp.id || 'composition'}:export:${Date.now()}:${Math.random().toString(36).slice(2)}`, width, height };
+  return { ...structuredClone(comp), id: `${comp.id || 'composition'}:export:${Date.now()}:${Math.random().toString(36).slice(2)}`, width, height };
 }
 
 /** Full-resolution PNG; video layers are decoded at the requested timeline time. */
@@ -504,7 +524,7 @@ export async function exportFrame(comp, assets, time = 0) {
 }
 
 /** Bounded real-time WebM with an offline native-layer sound mix and an audio clock. */
-export async function exportVideo(comp, assets, onProgress = () => {}, { signal, pictureOnly=false } = {}) {
+async function exportRealtimeVideo(comp, assets, onProgress = () => {}, { signal, pictureOnly=false } = {}) {
   if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) throw new Error('Video export needs a browser with MediaRecorder and canvas capture support, such as Chrome or Edge.');
   const duration = number(comp.duration);
   if (duration <= 0 || duration > 60) throw new Error('Video export supports compositions from 0 to 60 seconds. Shorten the duration and try again.');
@@ -516,8 +536,8 @@ export async function exportVideo(comp, assets, onProgress = () => {}, { signal,
   let stream,mix,destination,sound;
   try {
     if(!pictureOnly)mix=await renderCompositionAudio(isolated,assets,signal,value=>onProgress(value*.15));
-    await loadCompositionMedia(isolated, assets);
-    await seekVideos(isolated, assets, 0);
+    await loadCompositionMedia(isolated, assets, null, signal);
+    await seekVideos(isolated, assets, 0, signal);
     if (signal?.aborted) throw new DOMException('Export cancelled.', 'AbortError');
     const canvas = document.createElement('canvas'); canvas.width = isolated.width; canvas.height = isolated.height;
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -549,7 +569,7 @@ export async function exportVideo(comp, assets, onProgress = () => {}, { signal,
         if (renderError) { reject(renderError); return; }
         const blob = new Blob(chunks, { type: recorder.mimeType || mimeType });
         if (!blob.size) { reject(new Error('The browser returned an empty video. Try again with a smaller composition.')); return; }
-        notify(1); resolve({ blob, mimeType: recorder.mimeType || mimeType, hasAudio: !pictureOnly });
+        notify(1); resolve({ blob, mimeType: recorder.mimeType || mimeType, hasAudio: !pictureOnly, mode: 'realtime' });
       };
       const tick = () => {
         if (finished || recorder.state === 'inactive') return;
@@ -581,5 +601,32 @@ export async function exportVideo(comp, assets, onProgress = () => {}, { signal,
     try{sound?.stop();}catch{}sound?.disconnect();destination?.disconnect();await mix?.store.dispose();
     stream?.getTracks().forEach(track => track.stop());
     disposeCompositionMedia(isolated.id);
+  }
+}
+
+/** A committed native snapshot owns every decoder/template until export settles. */
+export async function exportVideo(comp,assets,onProgress=()=>{},{signal,pictureOnly=false,mode='precise'}={}){
+  checkExport(signal);validateVideoExport(comp,mode==='precise');
+  if(!['precise','realtime'].includes(mode))throw new Error('Choose precise or real-time WebM export.');
+  const isolated=exportComposition(comp),snapshotAssets=structuredClone(assetsArray(assets));
+  const prefix=isolated.id+':asset:';
+  for(const asset of snapshotAssets){asset.id=prefix+asset.id;exportAssetKeys.add(assetKey(asset));}
+  for(const layer of isolated.layers)if(layer.assetId)layer.assetId=prefix+layer.assetId;
+  let mix,progress=0;
+  const notify=value=>{progress=Math.max(progress,Math.min(1,value));try{onProgress(progress);}catch{/* Progress UI cannot invalidate an export. */}};
+  try{
+    if(mode==='realtime')return await exportRealtimeVideo(isolated,snapshotAssets,notify,{signal,pictureOnly});
+    const encoding=await preciseCodec(isolated,pictureOnly,signal);checkExport(signal);notify(0);
+    if(!pictureOnly)mix=await renderCompositionAudio(isolated,snapshotAssets,signal,p=>notify(p*.15));
+    await loadCompositionMedia(isolated,snapshotAssets,null,signal);checkExport(signal);
+    const canvas=document.createElement('canvas');canvas.width=isolated.width;canvas.height=isolated.height;
+    const ctx=canvas.getContext('2d',{alpha:false});
+    return await encodeCompositionWebM({comp:isolated,canvas,mix,...encoding,signal,onProgress:notify,drawFrame:async time=>{
+      await seekVideos(isolated,snapshotAssets,time,signal,true);checkExport(signal);
+      renderComposition(ctx,isolated,snapshotAssets,time,{throwMediaErrors:true});
+    }});
+  }finally{
+    await mix?.store.dispose();disposeCompositionMedia(isolated.id);
+    for(const asset of snapshotAssets){const key=assetKey(asset),record=assetCache.get(key);exportAssetKeys.delete(key);if(!record)continue;record.disposed=true;if(record.kind==='model3d')record.element?.dispose();else if(record.element){record.element.pause?.();record.element.removeAttribute('src');if(record.kind!=='image')record.element.load();}assetCache.delete(key);}
   }
 }

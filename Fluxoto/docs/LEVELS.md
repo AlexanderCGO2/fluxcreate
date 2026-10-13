@@ -27,4 +27,4 @@ Temporary surfaces stay within the existing 8192-side / 32 MP limits and are rel
 
 Run node --test tests/*.test.mjs, node scripts/build.mjs, node scripts/levels-channels-smoke.mjs, node scripts/photo-source-smoke.mjs and node scripts/psd-export-smoke.mjs. Browser reports and screenshots are under artifacts/levels-channels, artifacts/photo-source and artifacts/psd-export.
 
-Still missing: separate adjustment layers, Curves, live preview before Apply, presets, color-managed/high-bit-depth processing, full-document histogram, pixel readout/clipping warnings and large-photo performance profiling. The bounded renderer does not resolve the 32 MP performance backlog.
+[Photo Curves](CURVES.md) now provides bounded RGB/channel piecewise-linear curves after Levels. Still missing: separate adjustment layers, live preview before Apply, presets, color-managed/high-bit-depth processing, full-document histogram, pixel readout/clipping warnings and large-photo performance profiling. The bounded renderer does not resolve the 32 MP performance backlog.
