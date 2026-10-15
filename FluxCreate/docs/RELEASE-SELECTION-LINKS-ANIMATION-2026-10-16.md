@@ -1,6 +1,6 @@
 # Selection, linked editing and grouped animation — 2026-10-16
 
-Release preparation in progress. Production still runs the preceding release until deployment evidence is recorded below.
+Published runtime: [7c944c5](https://github.com/AlexanderCGO2/fluxcreate/commit/7c944c5). Production: https://fluxcreate.vercel.app. Deployment: dpl_725y8t8Qrgyh7uM27pFfWv3WqEUY in flux-ai-inc, verified 2026-10-15T22:08:38.629Z. All deployments retain Vercel Authentication.
 
 ## Delivered editor increments
 
@@ -16,7 +16,7 @@ Fluximiére: **65 unit tests**, build and **77 browser groups** pass. Root indep
 
 Fluxiffects: **127 unit tests**, build and **16 new browser groups** pass, with independent review and rerun. Verification covers cross-property identity, atomic failure, global paste timing, capacity, locks, selection scope, gesture cancellation, committed exports and existing single-property/freeze behavior. Exact remaining regression evidence is recorded in the app's feature and workflow documents.
 
-Frozen source hashes are checked before release assembly. Combined release gates pass: **680 unit/API/contract tests** across ten packages, strict app/fixture TypeScript checks, all nine app builds plus server/MCP App, **36 hosted browser checks** and **six packaged MCP checks**. No dependencies or lockfile changes. Publishing and protected production verification follow.
+Frozen source hashes are checked before release assembly. Combined release gates pass: **680 unit/API/contract tests** across ten packages, strict app/fixture TypeScript checks, all nine app builds plus server/MCP App, **36 hosted browser checks** and **six packaged MCP checks**. No dependencies or lockfile changes. Publishing and protected production verification are complete.
 
 ## Boundaries and next work
 
@@ -27,3 +27,7 @@ Native linked timelines upgrade to v2 and stay v2 after unlinking. Older editors
 See the [gap tracker](FEATURE-GAPS.md), [ordered plan](superpowers/plans/2026-10-15-selection-links-animation.md), [photo selection-paint scope](../../Fluxoto/docs/PHOTO-PAINT-SELECTION.md), [linked-editing scope](../../Fluximiere/docs/LINKED-EDITING.md) and [animation gap plan](../../Fluxiffects/docs/FEATURE-GAPS.md).
 
 No paid model requests, dependencies or payment activation are included. [Stripe credits](STRIPE-CREDITS-PLAN.md) remain planned after editor gap work, with BYOK and the agreed 50% contribution-margin target retained.
+
+## Production evidence
+
+**62 protected live checks pass:** 32 exact browser-bundle/MCP resource, deployment-readiness and anonymous-access checks; 15 settings/Gateway/no-charge Agents simulation checks; 15 Cloudflare settings/music/authentication checks. All nine browser bundles and the MCP App match the reviewed build. Music account availability remains false; hosted live Agents execution remains disabled pending its documented durable-execution work. No paid model requests or payment activation.
