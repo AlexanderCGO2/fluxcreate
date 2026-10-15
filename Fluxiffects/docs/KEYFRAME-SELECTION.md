@@ -1,8 +1,8 @@
 # Keyframe selection and retiming
 
-Implemented in the source app on 9 October 2026. Selection is deliberately limited to one property on one layer in the active composition.
+Current scope, 15 October 2026: selection, move/delete and copy/paste span multiple properties on one selected layer. See [grouped keyframe editing](GROUPED-KEYFRAMES.md) for current controls, global-anchor paste, atomic limits and verification. The dated records below describe the earlier single-property foundation.
 
-## Editing workflow
+## Original single-property editing workflow — 9 October
 
 In Animate, select keyframe checkboxes or use **Select all keys**. Shift-click, Ctrl-click or Command-click timeline diamonds toggles keys in that same property. A plain drag on an already selected diamond moves the selected group; a plain click on another diamond selects that key. The inspector names the property and selection count. **Clear keys** or Escape clears selection outside a gesture.
 
@@ -18,7 +18,7 @@ Enter a signed change in seconds and choose **Move keys**, or use **−1 frame /
 - Mutation commands and exported files use committed project state. Duplication or splitting during a drag can create a normal duplicate or split, but uncommitted preview times never enter the resulting layers, native copies, PNG/WebM exports or autosave. Canvas, timeline and value graph render the separate preview.
 - Audio volume keyframes use the same evaluator as picture properties. Source media bytes, source offsets, speed, fades and mute are not changed by keyframe retiming.
 
-The group operation does not include cross-property/layer selection, marquee selection, multi-property copy/paste, scale/stretch, velocity editing or spatial motion paths. These remain gaps. Existing bounded custom-curve and real-time WebM limits remain as documented in [CUSTOM-EASING.md](CUSTOM-EASING.md) and [AUDIO-EXPORT.md](AUDIO-EXPORT.md).
+At this initial checkpoint cross-property editing and multi-property paste were absent; those are now delivered by the grouped increment above. Cross-layer selection, marquee selection, scale/stretch, velocity editing and spatial motion paths remain gaps. Existing bounded custom-curve and real-time WebM limits remain as documented in [CUSTOM-EASING.md](CUSTOM-EASING.md) and [AUDIO-EXPORT.md](AUDIO-EXPORT.md).
 
 ## Verification
 
@@ -29,7 +29,7 @@ Final source verification on 9–10 October: the build, all 100 Node tests, 14 e
 The generated fixture shifts a quadratic custom position/volume curve by 0.2 seconds. The exported PNG at 0.7 seconds places the red box at pixels 90–109 (center 100), matching the source curve at 0.5 seconds. Independent WebM audio decode checks two channels, duration within 0.1 seconds of the 1.6-second composition, and gain within 0.015 RMS of the exact offline mix at 0.45 and 0.7 seconds. Native save/reload retains original WAV bytes and Bézier metadata. Results and a real editor screenshot are written under `artifacts/key-selection/`.
 
 
-## Single-property clipboard — 11 October 2026
+## Single-property clipboard foundation — 11 October 2026
 
 Select keys and choose **Copy keys**, select a destination layer and the same property, position the playhead, then choose **Paste keys at playhead**. Ctrl/Command+C and Ctrl/Command+V perform these actions outside text fields and dialogs. Copy also respects selected page text. The clipboard stays inside this editor tab and expires on reload; it never writes to the operating-system clipboard. Copying a locked layer is allowed because it does not change that layer. Paste requires an unlocked destination.
 

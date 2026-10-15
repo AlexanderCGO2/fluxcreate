@@ -19,7 +19,8 @@
     "test:photo-source": "node scripts/photo-source-smoke.mjs",
     "test:levels-channels": "node scripts/levels-channels-smoke.mjs",
     "test:curves": "node scripts/curves-smoke.mjs",
-    "test:photo-paint": "node scripts/photo-paint-smoke.mjs"
+    "test:photo-paint": "node scripts/photo-paint-smoke.mjs",
+    "test:photo-paint-selection": "node scripts/photo-paint-selection-smoke.mjs"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",

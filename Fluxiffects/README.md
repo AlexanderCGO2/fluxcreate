@@ -24,6 +24,7 @@ For development, `pnpm dev` watches source changes; refresh the browser after an
 - **Canvas:** live preview, selection, dragging, corner scaling, fit/custom zoom, panning, grid and full-resolution rendering. Imported 2D affine parenting is supported.
 - **Timeline:** playback, looping, frame stepping, scrubbing, movable clips, in/out trimming, clip splitting and draggable keyframes.
 - **Animation:** position, scale, rotation, opacity and other numeric property tracks; linear, ease in, ease out, ease in/out and hold interpolation. A value graph displays the evaluated curve. Fade, rise, pop and drift presets create editable keyframes.
+- **Grouped animation:** select keys across properties on one layer, then move, nudge, drag, delete or copy/paste them atomically. Global-anchor paste preserves relative picture/audio timing and outgoing curves; see [scope and verification](docs/GROUPED-KEYFRAMES.md).
 - **Design:** text editing, font family/weight/size/tracking, shape fills, rounded corners, transforms, opacity and blend modes.
 - **Effects:** blur, glow, brightness, contrast, saturation and grayscale controls. The renderer also supports shadow, hue and sepia in imported project data.
 - **Media:** import and embed images/video/audio; relink missing AE footage; preview audio; adjust per-layer volume, mute, playback speed and source start. Trimming and splitting preserve source timing.
@@ -106,6 +107,7 @@ Autosave stays in this browser on this device and origin. Use **Export → Save 
 pnpm test
 pnpm test:browser
 pnpm test:freeze
+pnpm test:grouped-keys
 node scripts/renderer-smoke.mjs
 node scripts/editing-regression.mjs
 node scripts/ai-exchange-smoke.mjs

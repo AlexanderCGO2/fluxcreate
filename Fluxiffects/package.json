@@ -15,7 +15,8 @@
     "test:key-selection": "node scripts/keyframe-selection-smoke.mjs",
     "test:recovery": "node scripts/recovery-smoke.mjs",
     "test:precise": "node scripts/precise-export-smoke.mjs",
-    "test:freeze": "node scripts/freeze-frame-smoke.mjs"
+    "test:freeze": "node scripts/freeze-frame-smoke.mjs",
+    "test:grouped-keys": "node scripts/grouped-keyframes-smoke.mjs"
   },
   "dependencies": {
     "@flux-studio/exchange": "file:../FluxExchange",

@@ -26,8 +26,8 @@ export function createProject() {
   ]};
 }
 export function validateProject(raw) {
-  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.format!=='fluximiere'||raw.version!==1)throw new Error('Choose a Fluximiére project.');
-  const p={format:'fluximiere',version:1,id:id(raw.id),name:str(raw.name,'Untitled sequence'),width:num(raw.width,1920,16,8192,'Width'),height:num(raw.height,1080,16,8192,'Height'),fps:num(raw.fps,30,1,120,'Frame rate'),duration:num(raw.duration,16,0.1,86400,'Duration'),background:color(raw.background,'#101019'),assets:[],clips:[]};
+  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.format!=='fluximiere'||![1,2].includes(raw.version))throw new Error('Choose a Fluximiére project.');
+  const p={format:'fluximiere',version:raw.version,id:id(raw.id),name:str(raw.name,'Untitled sequence'),width:num(raw.width,1920,16,8192,'Width'),height:num(raw.height,1080,16,8192,'Height'),fps:num(raw.fps,30,1,120,'Frame rate'),duration:num(raw.duration,16,0.1,86400,'Duration'),background:color(raw.background,'#101019'),assets:[],clips:[]};
   if(!Array.isArray(raw.assets)||raw.assets.length>500||!Array.isArray(raw.clips)||raw.clips.length>2000)throw new Error('This project has too many assets or clips.');
   const seen=new Set();
   p.assets=raw.assets.map(a=>{if(!a||!['video','image','audio'].includes(a.type))throw new Error('Unsupported media type.');const src=str(a.src,'',140000000);if(src&&!/^data:(?:image|video|audio)\/[a-z0-9.+-]+[;,]/i.test(src))throw new Error('Media must be embedded locally; relink this source.');const result={id:id(a.id),type:a.type,name:str(a.name,'Untitled media'),src,width:num(a.width,0,0,32768,'Media width'),height:num(a.height,0,0,32768,'Media height'),duration:num(a.duration,0,0,86400,'Media duration'),missing:!src};if(a.path!==undefined)result.path=str(a.path,'',4000);if(seen.has(result.id))throw new Error('Duplicate asset identifier.');seen.add(result.id);return result;});
@@ -35,6 +35,7 @@ export function validateProject(raw) {
   p.clips=raw.clips.map(c=>{
     if(!c||!TYPES.includes(c.type)||!validTrack(c.track))throw new Error('Use video tracks V1–V16 or audio tracks A1–A16.');
     const b=makeClip(c.type),out={id:id(c.id),type:c.type,name:str(c.name,b.name),track:c.track,assetId:c.assetId==null?null:id(c.assetId),text:str(c.text,'',20000),color:color(c.color,b.color),secondary:color(c.secondary,b.secondary),align:['left','center','right'].includes(c.align)?c.align:'center',locked:bool(c.locked),muted:bool(c.muted)};
+    if(c.linkId!==undefined){if(raw.version!==2||typeof c.linkId!=='string'||!c.linkId)throw Error('Linked clips require a version 2 native project and a valid link identifier.');out.linkId=id(c.linkId);}
     const ranges={start:[0,86400],duration:[0.01,86400],sourceIn:[0,86400],playbackRate:[0.1,16],volume:[0,1],fadeIn:[0,86400],fadeOut:[0,86400],opacity:[0,1],x:[-32768,32768],y:[-32768,32768],width:[1,32768],height:[1,32768],rotation:[-36000,36000],fontSize:[1,2000]};
     for(const [key,range]of Object.entries(ranges))out[key]=num(c[key],b[key],...range,key);
     if((out.type==='audio')!==out.track.startsWith('A'))throw new Error('Audio belongs on an audio track; visual clips belong on a video track.');
@@ -42,12 +43,102 @@ export function validateProject(raw) {
     if(clips.has(out.id))throw new Error('Duplicate clip identifier.');clips.add(out.id);return out;
   });
   if(raw.tracks!==undefined){if(!Array.isArray(raw.tracks)||raw.tracks.length>32||raw.tracks.some(t=>!validTrack(t)))throw new Error('Invalid sequence tracks.');p.tracks=[...new Set(raw.tracks)];}
+  validateLinks(p);
   if(raw.brief!==undefined)p.brief=str(raw.brief,'',6000);
   return p;
 }
+// Linked picture/sound intentionally supports aligned pairs, not arbitrary groups.
+const LINK_EPSILON=1e-8;
+const unlinkMessage='Unlink picture and sound before using this edit.';
+function rejectLinked(...clips){if(clips.some(c=>c?.linkId))throw Error(unlinkMessage);}
+function validateLinks(project){
+  const groups=new Map();
+  for(const c of project.clips)if(c.linkId){const group=groups.get(c.linkId)??[];group.push(c);groups.set(c.linkId,group);}
+  for(const pair of groups.values()){
+    const video=pair.find(c=>c.type==='video'),audio=pair.find(c=>c.type==='audio');
+    if(pair.length!==2||!video||!audio)throw Error('Each picture/sound link needs exactly one video and one audio clip.');
+    if(['start','duration','playbackRate'].some(k=>Math.abs(video[k]-audio[k])>LINK_EPSILON))throw Error('Linked picture and sound must share start, duration and speed. Unlink before editing them independently.');
+    if(!video.muted)throw Error('Sound is on the linked audio clip. Unlink before unmuting picture sound.');
+    if(video.start+video.duration>project.duration+LINK_EPSILON)throw Error('The sequence must include the whole linked pair. Extend the sequence or trim the pair first.');
+    for(const c of pair){const asset=project.assets.find(a=>a.id===c.assetId);if(!asset||c.type==='video'&&asset.type!=='video'||c.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Linked clips need matching picture and sound sources.');}
+  }
+}
+export function linkedPair(project,clipId){
+  const selected=project.clips.find(c=>c.id===clipId);if(!selected?.linkId)throw Error('Select a linked picture or sound clip.');
+  const pair=project.clips.filter(c=>c.linkId===selected.linkId);
+  if(pair.length!==2||!pair.some(c=>c.type==='video')||!pair.some(c=>c.type==='audio'))throw Error('The picture/sound link is incomplete.');
+  return pair.sort((a,b)=>a.type==='video'?-1:1);
+}
+function unlockedPair(pair){if(pair.some(c=>c.locked))throw Error('Unlock both picture and sound before editing their link.');}
+function measuredRanges(project,clips,sourceDurations){
+  for(const c of clips){
+    const asset=project.assets.find(a=>a.id===c.assetId),duration=sourceDurations?.[c.id];
+    if(!asset?.src)throw Error('Relink both sources before editing picture and sound.');
+    if(c.type==='video'&&asset.type!=='video'||c.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Choose matching picture and sound sources.');
+    if(!Number.isFinite(duration)||duration<=0)throw Error('Read both actual source durations before editing picture and sound.');
+    if(c.sourceIn<0||c.sourceIn+c.duration*c.playbackRate>duration+LINK_EPSILON)throw Error('A linked source range exceeds its media duration. Unlink and shorten it first.');
+    if(c.duration<Math.max(.01,1/project.fps)-LINK_EPSILON)throw Error('Both clips must contain at least one sequence frame.');
+  }
+}
+export function assertSourceRelinkable(project,assetId){if(project.clips.some(c=>c.assetId===assetId&&c.linkId))throw Error('Unlink every picture/sound pair using this source before replacing it.');}
+export function planLinkClips(project,{clipId,partnerId,sourceDurations}={}){
+  const p=validateProject(project),pair=[p.clips.find(c=>c.id===clipId),p.clips.find(c=>c.id===partnerId)];
+  if(pair.some(c=>!c)||clipId===partnerId||!pair.some(c=>c.type==='video')||!pair.some(c=>c.type==='audio'))throw Error('Choose one video and one audio clip to link.');
+  unlockedPair(pair);if(pair.some(c=>c.linkId))throw Error('Unlink existing pairs before making another link.');
+  if(['start','duration','playbackRate'].some(k=>Math.abs(pair[0][k]-pair[1][k])>LINK_EPSILON))throw Error('Align start, duration and speed before linking picture and sound.');
+  measuredRanges(p,pair,sourceDurations);
+  const linkId=uid();p.version=2;for(const c of pair)c.linkId=linkId;pair.find(c=>c.type==='video').muted=true;
+  return {project:validateProject(p),linkId};
+}
+export function planSeparateSound(project,{clipId,videoDuration,soundDuration}={}){
+  const p=validateProject(project),video=p.clips.find(c=>c.id===clipId);
+  if(video?.type!=='video')throw Error('Select a video clip to separate its sound.');unlockedPair([video]);rejectLinked(video);
+  measuredRanges(p,[video],{[clipId]:videoDuration});measuredRanges(p,[video],{[clipId]:soundDuration});
+  const track=Array.from({length:16},(_,i)=>'A'+(i+1)).find(t=>!p.clips.some(c=>c.track===t&&c.start<video.start+video.duration-LINK_EPSILON&&c.start+c.duration>video.start+LINK_EPSILON));
+  if(!track)throw Error('All sound tracks overlap this clip. Make space before separating its sound.');
+  const audio={...video,id:uid(),type:'audio',name:video.name+' · sound',track};p.clips.push(audio);
+  const result=planLinkClips(p,{clipId:video.id,partnerId:audio.id,sourceDurations:{[video.id]:videoDuration,[audio.id]:soundDuration}});
+  return {...result,audioId:audio.id};
+}
+export function planLinkedEdit(project,{clipId,operation,time,deltaFrames,sourceDurations}={}){
+  // Unsupported raw transitions must not disappear through native normalization.
+  const rawPair=linkedPair(project,clipId);
+  if(['trim-start','trim-end','split'].includes(operation)&&rawPair.some(c=>c.fadeIn||c.fadeOut||c.transition||c.transitions?.length))throw Error('Remove fades or transitions before trimming or splitting linked picture and sound.');
+  const p=validateProject(project),pair=linkedPair(p,clipId),first=pair[0],minimum=Math.max(.01,1/p.fps);unlockedPair(pair);
+  if(!['move','trim-start','trim-end','split','duplicate','delete','unlink'].includes(operation))throw Error('Choose a supported linked edit.');
+  if(operation==='unlink'){pair.forEach(c=>delete c.linkId);return {project:validateProject(p)};}
+  if(operation==='delete'){p.clips=p.clips.filter(c=>c.linkId!==first.linkId);return {project:validateProject(p)};}
+  measuredRanges(p,pair,sourceDurations);
+  if(['duplicate','split'].includes(operation)&&p.clips.length+2>2000)throw Error('This edit exceeds the 2000 clip limit.');
+  let selectedId=clipId;
+  if(operation==='duplicate'){
+    const linkId=uid(),copies=pair.map(c=>({...c,id:uid(),linkId,name:c.name+' copy',start:c.start+c.duration}));
+    selectedId=copies[pair.findIndex(c=>c.id===clipId)].id;p.clips.push(...copies);p.duration=Math.max(p.duration,...copies.map(c=>c.start+c.duration));
+  }else{
+    if((time===undefined)===(deltaFrames===undefined))throw Error('Choose a numeric time or a whole-frame offset.');
+    if(deltaFrames!==undefined&&!Number.isInteger(deltaFrames))throw Error('Use whole sequence frames.');
+    if(time!==undefined&&!Number.isFinite(time))throw Error('Enter a finite numeric time.');
+    const origin=operation==='trim-end'?first.start+first.duration:first.start;
+    const boundary=deltaFrames===undefined?Math.round(time*p.fps)/p.fps:origin+deltaFrames/p.fps;
+    if(!Number.isFinite(boundary)||boundary<0)throw Error('Linked timing must start at zero or later.');
+    const delta=boundary-origin,end=first.start+first.duration;
+    if(operation==='move')pair.forEach(c=>c.start=boundary);
+    if(operation==='trim-start')pair.forEach(c=>{c.start=boundary;c.duration=Math.max(minimum,end-boundary);c.sourceIn+=delta*c.playbackRate;});
+    if(operation==='trim-end')pair.forEach(c=>c.duration=Math.max(minimum,boundary-c.start));
+    if(operation==='trim-start'&&end-boundary<minimum-LINK_EPSILON||operation==='trim-end'&&boundary-first.start<minimum-LINK_EPSILON)throw Error('Keep at least one frame in both linked clips.');
+    if(operation==='split'){
+      if(boundary-first.start<minimum-LINK_EPSILON||end-boundary<minimum-LINK_EPSILON)throw Error('Split inside the linked pair, leaving at least one frame on each side.');
+      const linkId=uid(),length=boundary-first.start,copies=pair.map(c=>({...c,id:uid(),linkId,name:c.name+' · B',start:boundary,duration:Math.max(minimum,end-boundary),sourceIn:c.sourceIn+length*c.playbackRate}));
+      pair.forEach(c=>c.duration=Math.max(minimum,length));p.clips.push(...copies);
+    }
+    measuredRanges(p,pair,sourceDurations);p.duration=Math.max(p.duration,...pair.map(c=>c.start+c.duration));
+  }
+  return {project:validateProject(p),selectedId};
+}
+
 export function splitClip(project, clipId, time, newId=uid()) {
   const p=clone(project),index=p.clips.findIndex(c=>c.id===clipId),clip=p.clips[index];
-  if(!clip)throw new Error('Select a clip to split.');if(clip.locked)throw new Error('Unlock this clip before editing.');
+  if(!clip)throw new Error('Select a clip to split.');rejectLinked(clip);if(clip.locked)throw new Error('Unlock this clip before editing.');
   if(time<=clip.start+0.01||time>=clip.start+clip.duration-0.01)throw new Error('Place the playhead inside the clip to split it.');
   const leftLength=time-clip.start,rightLength=clip.duration-leftLength;
   p.clips.splice(index,1,{...clip,duration:leftLength,fadeIn:Math.min(clip.fadeIn,leftLength),fadeOut:0},{...clip,id:newId,name:`${clip.name} · B`,start:time,duration:rightLength,sourceIn:clip.sourceIn+leftLength*clip.playbackRate,fadeIn:0,fadeOut:Math.min(clip.fadeOut,rightLength)});
@@ -70,6 +161,7 @@ export function planRippleEdit(project,{clipId,operation='delete',scope='track',
   for(const c of p.clips){
     const end=c.start+c.duration;
     if(scope==='track'&&c.track!==selected.track||end<=from+epsilon){result.push(c);continue;}
+    rejectLinked(c);
     if(c.locked)throw Error(`“${c.name}” is locked on ${c.track}. Unlock it or choose another track scope.`);
     if(c.start>=to-epsilon){result.push({...c,start:Math.max(0,c.start-amount)});changes.push({id:c.id,name:c.name,track:c.track,action:'Move earlier'});continue;}
     // This clip intersects the removed interval. Cuts inside a fade would alter
@@ -90,6 +182,7 @@ export function planRippleEdit(project,{clipId,operation='delete',scope='track',
 export function slipBounds(project,clipId,{sourceDuration}={}) {
   const clip=project.clips.find(c=>c.id===clipId);
   if(!clip||!['video','audio'].includes(clip.type))throw Error('Select a video or audio clip to slip its source.');
+  rejectLinked(clip);
   if(clip.locked)throw Error('Unlock this clip before slipping its source.');
   const asset=project.assets.find(a=>a.id===clip.assetId);
   if(!asset?.src)throw Error('Relink the offline source before slipping this clip.');
@@ -116,6 +209,7 @@ export function rollingPair(project,clipId) {
   const cutTime=left.start+left.duration,candidates=project.clips.filter(c=>c.id!==left.id&&c.track===left.track&&Math.abs(c.start-cutTime)<=epsilon);
   if(candidates.length!==1)throw Error('Rolling requires exactly one adjacent clip at the selected clip’s end. Close gaps or resolve ambiguous cuts first.');
   const right=candidates[0],end=right.start+right.duration;
+  rejectLinked(left,right);
   if(right.type!==left.type)throw Error('Rolling requires two adjacent video clips or two adjacent audio clips.');
   if(left.locked||right.locked)throw Error('Unlock both adjacent clips before rolling their shared cut.');
   if([left,right].some(c=>c.fadeIn||c.fadeOut||c.transition||c.transitions?.length))throw Error('Remove fades or transitions from both clips before rolling this cut.');
@@ -163,6 +257,7 @@ export function slideGroup(project,clipId) {
   if(before.length!==1||after.length!==1)throw Error('Slide requires exactly one adjacent neighbour on each side. Close gaps or resolve ambiguous cuts first.');
   const left=before[0],right=after[0],end=right.start+right.duration;
   if(left.type!==middle.type||right.type!==middle.type)throw Error('Slide requires three video clips or three audio clips on the same track.');
+  rejectLinked(left,middle,right);
   if([left,middle,right].some(c=>c.locked))throw Error('Unlock all three clips before sliding.');
   if([left,middle,right].some(c=>c.fadeIn||c.fadeOut||c.transition||c.transitions?.length))throw Error('Remove fades or transitions from all three clips before sliding.');
   if(track.some(c=>c.id!==left.id&&c.id!==right.id&&c.start<end-epsilon&&c.start+c.duration>left.start+epsilon))throw Error('Resolve overlapping clips across this three-clip span before sliding.');
@@ -230,6 +325,7 @@ export function fromMotion(input) {
 export function timecode(seconds,fps=30){const frame=Math.max(0,Math.round(seconds*Math.round(fps))),f=Math.round(fps),s=Math.floor(frame/f);return [Math.floor(s/3600),Math.floor(s/60)%60,s%60,frame%f].map(v=>String(v).padStart(2,'0')).join(':');}
 export function exportEDL(project){
   const p=validateProject(project),clips=p.clips.filter(c=>c.track==='V1').sort((a,b)=>a.start-b.start),warnings=[];
+  if(p.clips.some(c=>c.linkId))warnings.push('Picture/sound links are not retained in EDL. Keep the native Fluximiére project.');
   if(p.fps!==Math.round(p.fps))throw new Error('EDL export currently requires an integer frame rate.');
   if(clips.some((c,i)=>i&&c.start<clips[i-1].start+clips[i-1].duration-1/p.fps))throw new Error('EDL requires non-overlapping cuts on V1.');
   if(clips.some(c=>c.playbackRate!==1))throw new Error('EDL export requires 100% playback speed.');
@@ -262,10 +358,10 @@ export function applyAICommands(project,commands,{selection=[],scope='compositio
   if(!Array.isArray(commands)||commands.length>40)throw new Error('Expected at most 40 editing commands.');let p=clone(project);const selected=new Set(selection);
   const editable=clipId=>{const clip=p.clips.find(c=>c.id===clipId);if(!clip)throw new Error('The requested clip no longer exists.');if(clip.locked)throw new Error('AI cannot edit locked clips.');if(scope==='selection'&&!selected.has(clipId))throw new Error('AI can only edit the selected clips.');return clip;};
   for(const command of commands){if(!command||typeof command!=='object'||Array.isArray(command))throw new Error('Invalid editing command.');const allowed=Object.hasOwn(COMMAND_KEYS,command.type)?COMMAND_KEYS[command.type]:null;if(!allowed)throw new Error(`Unsupported AI command: ${command.type}`);for(const key of Object.keys(command))if(!allowed.includes(key))throw new Error(`Unsupported ${command.type} command field: ${key}`);
-    if(command.type==='updateClip'){Object.assign(editable(command.clipId),properties(command.properties,CLIP_PROPS));}
-    else if(command.type==='deleteClip'){editable(command.clipId);p.clips=p.clips.filter(c=>c.id!==command.clipId);}
-    else if(command.type==='splitClip'){editable(command.clipId);const newId=command.newId??uid();p=splitClip(p,command.clipId,command.time,newId);if(scope==='selection')selected.add(newId);}
-    else if(command.type==='duplicateClip'){const c=editable(command.clipId),copy={...clone(c),id:command.newId??uid(),start:command.start??c.start+c.duration,name:`${c.name} copy`};p.clips.push(copy);selected.add(copy.id);}
+    if(command.type==='updateClip'){const c=editable(command.clipId),props=properties(command.properties,CLIP_PROPS);if(['start','duration','sourceIn','playbackRate'].some(k=>Object.hasOwn(props,k)))rejectLinked(c);Object.assign(c,props);}
+    else if(command.type==='deleteClip'){rejectLinked(editable(command.clipId));p.clips=p.clips.filter(c=>c.id!==command.clipId);}
+    else if(command.type==='splitClip'){rejectLinked(editable(command.clipId));const newId=command.newId??uid();p=splitClip(p,command.clipId,command.time,newId);if(scope==='selection')selected.add(newId);}
+    else if(command.type==='duplicateClip'){const c=editable(command.clipId);rejectLinked(c);const copy={...clone(c),id:command.newId??uid(),start:command.start??c.start+c.duration,name:`${c.name} copy`};p.clips.push(copy);selected.add(copy.id);}
     else if(command.type==='addTitle'){if(scope==='selection')throw new Error('Switch to sequence scope to add a title.');const props=properties(command.properties,CLIP_PROPS);p.clips.push(makeClip('title',{...props,id:command.id??uid()}));}
     else if(command.type==='updateSequence'){if(scope==='selection')throw new Error('Switch to sequence scope to change the sequence.');Object.assign(p,properties(command.properties,new Set(['name','duration','background'])));}
     else throw new Error(`Unsupported AI command: ${command.type}`);
@@ -276,4 +372,4 @@ export function getAIContext(project,{selection=[],scope='composition'}={}){
   const p=validateProject(project),clips=scope==='selection'?p.clips.filter(c=>selection.includes(c.id)):p.clips;
   return {name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background,clips:clips.map(c=>({...c})),assets:p.assets.filter(a=>clips.some(c=>c.assetId===a.id)).map(({id,type,width,height,duration,missing})=>({id,type,width,height,duration,missing}))};
 }
-export const AI_SPEC={description:'Fluximiére is a video timeline. Return commands for editable cuts and titles. Times are seconds. V1 contains visual footage; V2 contains titles; A1 contains audio. Do not create media URLs or pretend to generate video.',commands:[{type:'updateClip',clipId:'existing id',properties:{start:2,duration:4,fadeIn:0.4,fadeOut:0.5}},{type:'addTitle',properties:{text:'A new beginning',name:'Opening',start:0,duration:4,fontSize:110,color:'#ffffff',x:960,y:540}},{type:'splitClip',clipId:'existing id',time:3},{type:'deleteClip',clipId:'existing id'},{type:'duplicateClip',clipId:'existing id',start:6},{type:'updateSequence',properties:{name:'New name',duration:20,background:'#101019'}}],rules:'Use only supported property names. Preserve locked clips. Selection scope must not add titles or update the sequence. Numeric ranges: start 0..86400, duration .01..86400, speed .1..16, opacity and volume 0..1, fontSize 1..2000. Fades cannot exceed duration. Colors must be #RRGGBB. Make at most 40 commands.'};
+export const AI_SPEC={description:'Fluximiére is a video timeline. Return commands for editable cuts and titles. Times are seconds. V1 contains visual footage; V2 contains titles; A1 contains audio. Do not create media URLs or pretend to generate video.',commands:[{type:'updateClip',clipId:'existing id',properties:{start:2,duration:4,fadeIn:0.4,fadeOut:0.5}},{type:'addTitle',properties:{text:'A new beginning',name:'Opening',start:0,duration:4,fontSize:110,color:'#ffffff',x:960,y:540}},{type:'splitClip',clipId:'existing id',time:3},{type:'deleteClip',clipId:'existing id'},{type:'duplicateClip',clipId:'existing id',start:6},{type:'updateSequence',properties:{name:'New name',duration:20,background:'#101019'}}],rules:'Linked clips carry linkId. They require explicit unlinking in the editor before timing, source, speed, split, duplicate or deletion changes. Do not unmute a linked video: its audio member owns sound. Use only supported property names. Preserve locked clips. Selection scope must not add titles or update the sequence. Numeric ranges: start 0..86400, duration .01..86400, speed .1..16, opacity and volume 0..1, fontSize 1..2000. Fades cannot exceed duration. Colors must be #RRGGBB. Make at most 40 commands.'};

@@ -6,7 +6,7 @@ A local layered image and graphic design studio in the FluxCreate suite. Start a
 
 - Editable demo poster with independent typography, shapes, and gradients.
 - Canvas move and resize handles, numeric transforms, opacity, layer ordering, visibility, locks, duplication, and deletion.
-- Selected-photo paint/erase: explicit photo target, hard round size/color/stroke opacity, canvas color sampling, isolated previews and one undo. Originals remain intact; native and exports retain the result. See [Photo painting scope and verification](docs/PHOTO-PAINT.md).
+- Selected-photo paint/erase: explicit photo target, hard round size/color/stroke opacity, canvas color sampling, isolated previews and one undo. Rectangle, ellipse, lasso and combined/inverted/feathered selections constrain each stroke with a retained clip. Originals remain intact; native and exports retain the result. See [Photo painting scope and verification](docs/PHOTO-PAINT.md).
 - Separate-stroke Brush and eraser mode stores strokes as editable layers. An eraser mask removes the composite below it; reorder or hide it to change its effect.
 - Text, rectangle, ellipse, solid/gradient fill, blend modes, brightness, contrast, saturation, and blur. Rectangle corners have an explicit radius control.
 - Nondestructive layer masks: add a mask in Properties, choose Edit mask, then Hide with brush or Reveal with brush. Disable, remove, undo, resize, save and reopen masks without changing original image pixels. The separate Eraser tool still removes the composition underneath its stroke.
@@ -52,4 +52,4 @@ Uses pinned `ag-psd`31.0.2. The upstream README limitation list is stale about P
 
 ### Pixel editing and multiple layers
 
-Use Selection or Lasso, then New/Add/Subtract/Intersect to combine areas. Copy/Cut operates on one selected layer; Paste inserts a separate image at its original position. Fill creates a new image layer, and Hide/Cut masks the original. This clipboard is local to the open Fluxfoto workspace, not the operating-system clipboard. Ctrl/⌘ toggles layer selection, Shift selects a range; drag, arrow keys, duplicate/delete and ordering work on the selected set. Unlock every selected layer before a batch edit. Nested layer groups and pixel retouching remain separate work.
+Use Selection or Lasso, then New/Add/Subtract/Intersect to combine areas. Selected-photo Brush/Eraser captures the active selection and feather at stroke start; later deselection does not alter committed marks. Copy/Cut operates on one selected layer; Paste inserts a separate image at its original position. Fill creates a new image layer, and Hide/Cut masks the original. This clipboard is local to the open Fluxfoto workspace, not the operating-system clipboard. Ctrl/⌘ toggles layer selection, Shift selects a range; drag, arrow keys, duplicate/delete and ordering work on the selected set. Unlock every selected layer before a batch edit. Nested layer groups and pixel retouching remain separate work.
