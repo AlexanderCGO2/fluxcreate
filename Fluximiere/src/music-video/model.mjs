@@ -27,7 +27,7 @@ function safeTree(value,depth=0,budget={nodes:0}){
   obj(value,'metadata');for(const [k,v] of Object.entries(value)){if(/^(?:__proto__|prototype|constructor|api[-_]?key|access[-_]?token|authorization|password|secret|credential|credentials|connectionKey|base64|src|url)$/i.test(k))fail(`forbidden credential or media field ${k}`);safeTree(v,depth+1,budget);}
 }
 function asset(v,song=false){
-  keys(v,['assetId','hash','mime','bytes','role','name',...(song?['duration','sampleRate','sampleCount']:[])],'asset');
+  keys(v,['assetId','hash','mime','bytes','role','name',...(song?['duration','sampleRate','sampleCount','sourceAssetId','sourceDuration','fadeOutSeconds']:[])],'asset');
   const a={assetId:id(v.assetId,'asset ID'),hash:hash(v.hash,'asset hash'),mime:str(v.mime,'MIME',128),bytes:num(v.bytes,'asset bytes',1,1073741824,true),role:str(v.role,'role',20)};
   if(!['song','character','scene','frame','video','audio'].includes(a.role))fail('invalid asset role');
   if(!/^(audio|image|video)\/[a-z0-9.+-]+$/i.test(a.mime))fail('invalid asset MIME');
@@ -38,6 +38,7 @@ function asset(v,song=false){
   if(a.role==='audio'&&!a.mime.startsWith('audio/'))fail('audio asset must use an audio MIME');
   if(v.name!==undefined)a.name=str(v.name,'asset name',240);
   if(song){a.duration=num(v.duration,'song duration',1,180);if(v.sampleRate!==undefined)a.sampleRate=num(v.sampleRate,'sampleRate',8000,192000,true);if(v.sampleCount!==undefined)a.sampleCount=num(v.sampleCount,'sampleCount',1,34560000,true);}
+  if(song&&v.sourceAssetId!==undefined){a.sourceAssetId=id(v.sourceAssetId,'original song ID');a.sourceDuration=num(v.sourceDuration,'original duration',180,86400);a.fadeOutSeconds=num(v.fadeOutSeconds,'fade duration',5,5);if(a.sourceDuration<=180||a.duration!==180)fail('invalid shortened song duration');}else if(song&&(v.sourceDuration!==undefined||v.fadeOutSeconds!==undefined))fail('shortened song needs its original source');
   return a;
 }
 function analysis(v,song){
@@ -64,6 +65,7 @@ export function validateMusicVideoPlan(raw){
   p.analysis=analysis(raw.analysis,p.song);if(!p.director)fail('director is required');
   keys(raw.pacing,['minCutsPer10s','maxCutsPer10s'],'pacing');p.pacing={minCutsPer10s:num(raw.pacing.minCutsPer10s,'minimum cuts',0,20,true),maxCutsPer10s:num(raw.pacing.maxCutsPer10s,'maximum cuts',0,20,true)};if(p.pacing.minCutsPer10s>p.pacing.maxCutsPer10s)fail('invalid pacing interval');
   const referenceIds=unique(p.references,'asset',x=>x.assetId);if(p.song&&referenceIds.has(p.song.assetId))fail('duplicate song asset ID');if(p.references.filter(r=>r.role==='character').length>1)fail('only one character identity is supported');
+  if(p.song?.sourceAssetId&&!p.references.some(r=>r.assetId===p.song.sourceAssetId&&r.role==='audio'))fail('original song reference is missing');
   p.sections=list(raw.sections??[],'sections',120).map(v=>{keys(v,['id','name','startFrame','endFrame'],'section');return {id:id(v.id,'section ID'),name:str(v.name??'','section name',240),...interval(v,'section')};});const sectionIds=unique(p.sections,'section');
   p.scenes=list(raw.scenes??[],'scenes',120).map(v=>{keys(v,['id','sectionId','name'],'scene');if(!sectionIds.has(v.sectionId))fail('unknown scene section');return {id:id(v.id,'scene ID'),sectionId:v.sectionId,name:str(v.name??'','scene name',240)};});const sceneIds=unique(p.scenes,'scene');
   p.shots=list(raw.shots??[],'shots',120).map(v=>{keys(v,SHOT_FIELDS,'shot');if(!sectionIds.has(v.sectionId)||!sceneIds.has(v.sceneId))fail('unknown shot scene or section');if(p.scenes.find(s=>s.id===v.sceneId).sectionId!==v.sectionId)fail('shot scene/section mismatch');const range=interval(v,'shot'),section=p.sections.find(s=>s.id===v.sectionId);if(range.startFrame<section.startFrame||range.endFrame>section.endFrame)fail('shot is outside its section');const refs=ids(v.referenceIds,'reference IDs',64);if(refs.some(x=>!referenceIds.has(x)))fail('unknown shot reference');if(v.performance!==undefined&&typeof v.performance!=='boolean')fail('performance must be boolean');return {id:id(v.id,'shot ID'),revision:rev(v.revision),sceneId:v.sceneId,sectionId:v.sectionId,...range,anchorIds:ids(v.anchorIds,'anchor IDs',8),snapErrorFrames:num(v.snapErrorFrames??0,'snap error',-4320,4320),generationUnitId:nullableId(v.generationUnitId,'generation unit ID'),sourceInFrame:num(v.sourceInFrame??0,'source frame',0,86400,true),narrative:str(v.narrative??'','narrative'),camera:str(v.camera??'','camera',2000),look:str(v.look??'','look',2000),prompt:str(v.prompt??'','prompt'),referenceIds:refs,performance:v.performance??false,modelProfile:v.modelProfile==null?null:str(v.modelProfile,'model profile',160),selectedTakeId:nullableId(v.selectedTakeId,'take ID')};});const shotIds=unique(p.shots,'shot');

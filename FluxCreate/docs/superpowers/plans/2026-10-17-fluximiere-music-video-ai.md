@@ -167,3 +167,8 @@ Browser requests do not supply trusted owner IDs or prices. Server derives owner
 Tasks 1–3 produce the first reviewable animatic. Task 4 qualifies the provider. Tasks 5–6 are production prerequisites. Tasks 7–8 complete the experience; task 9 qualifies/releases it. Shared contracts and migrations remain sequential. Independent tests/UI/provider work may be delegated after its contracts are frozen, consistent with the existing collaboration preference.
 
 Implementation was authorized by the user on 17 October 2026. Paid generation still requires the explicitly budgeted pilot described above.
+
+
+## Long-song upload amendment — 17 October 2026
+
+User requested uploads beyond 180 seconds. The preview now prepares exactly the first 180 seconds at 48 kHz PCM16 with a linear fade from 175 seconds to silence at the endpoint. Full original bytes are retained separately, downloadable, and referenced in the recipe. Preview, analysis/listening and animatic use the same derivative; short songs remain unchanged. Incremental decoding is bounded to the excerpt. Upload budget is 64 MiB, board budget 128 MiB. This does not extend generated film duration beyond three minutes or close paid-generation milestones. See [release checks](../../RELEASE-LONG-SONGS-2026-10-17.md).
