@@ -9,3 +9,9 @@ Limits: 64 MiB per song upload; 128 MiB total local board media; supported brows
 Verified locally: 16 browser audio assertions including a ten-minute upload, a >24 MiB stereo upload, exact duration, measured fade amplitudes, save/reopen, unchanged three-minute audio and cancellation; 17 storage assertions; recipe/source validation and relinking unit tests; full long-song UI upload/download/reopen/storyboard/timeline flow; existing short-song board flow.
 
 Release checks and deployment evidence are recorded after verification below.
+
+## Release evidence
+
+Runtime commit: `a4bafe84cbb06546545b0cfc299722c1d9f78498`. Deployment: `dpl_8xJGRJpwHzpRCAXCWWjBv2UJuRtL`, READY under Flux AI at 2026-10-16T23:55:15.086Z. [Open Fluximiére](https://fluxcreate.vercel.app/fluximiere/) and refresh an already-open tab to load the updated importer.
+
+All 749 suite tests and both strict TypeScript checks passed. Nine browser apps, the hosted server and MCP UI built. The packaged long-song UI flow passed, along with 36 hosted browser checks and six packaged MCP checks. Live verification passed 32 suite checks plus three music-worker/director checks. Browser bundles exactly matched the locally tested release; Vercel Authentication remains enabled for all deployments and anonymous routes remain protected. No paid generation calls were made.
