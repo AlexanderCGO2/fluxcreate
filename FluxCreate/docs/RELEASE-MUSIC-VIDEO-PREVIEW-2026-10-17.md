@@ -1,6 +1,6 @@
 # Music Video Studio preview — 17 October 2026
 
-Status: implemented and qualified preview; production publication in progress. This is the first working increment of the music-video plan, not finished automated music-video production.
+Status: published and verified preview under Vercel Authentication. This is the first working increment of the music-video plan, not finished automated music-video production.
 
 ## Delivered
 
@@ -41,4 +41,8 @@ Rulings: reuse the established sibling-source/release-mirror workflow and author
 - 17 dedicated real-browser storage/media checks passed.
 - Independent review fixes have regression coverage. No paid calls were made.
 
-Production deployment evidence follows after publishing the qualified source commit.
+Production source commit: [fbffc6f](https://github.com/AlexanderCGO2/fluxcreate/commit/fbffc6f). Deployment: `dpl_4VyQaKYgQmtpw29mkLrxtma9R93Q`, READY in `flux-ai-inc`. [Open Fluximiére](https://fluxcreate.vercel.app/fluximiere/) and choose **Music video**.
+
+35 protected live checks passed: exact bundles for all nine apps, five MCP discovery/UI resources, production readiness and authentication, anonymous app/MCP rejection, exact analysis worker, director route invalid-input/connection rejection and anonymous director rejection. Checked 2026-10-16T23:36:45.637Z; zero paid calls.
+
+The evidence-document commit may follow the runtime commit; no runtime files changed after this deployment.
