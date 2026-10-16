@@ -88,3 +88,7 @@ Selection-clipped photo painting has passed its source verification gate, includ
 All three scoped editor increments have passed their source gates. See the [release record](RELEASE-SELECTION-LINKS-ANIMATION-2026-10-16.md) for verified behavior, exact boundaries and publishing status.
 
 The 16 October editor release is published as [7c944c5](https://github.com/AlexanderCGO2/fluxcreate/commit/7c944c5). Verification: 680 tests, all nine builds, 36 hosted browser checks, six packaged MCP checks and 62 protected live checks. See the [release record](RELEASE-SELECTION-LINKS-ANIMATION-2026-10-16.md). Broader feature gaps remain open as listed.
+
+## Planned Music Video AI mode — 17 October 2026
+
+The requested Fluximiére music-video mode now has a researched [product and architecture plan](MUSIC-VIDEO-AI-PLAN.md) and [implementation checklist](superpowers/plans/2026-10-17-fluximiere-music-video-ai.md). It covers concept/character/scene/song input, music analysis, director scene/sub-scene planning, precise audio excerpts, opening-frame generation, Pruna Pro/Pro Reference takes and editable assembly. Durable hosted runs, owner-scoped asset storage and reference-aware provider adapters are prerequisites. **Planning only: no new feature is implemented or deployed by these documents.** Existing editor gaps remain open.
