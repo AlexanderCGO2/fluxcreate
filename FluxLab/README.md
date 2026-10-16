@@ -118,3 +118,7 @@ The unsent draft uses its own IndexedDB record, independent of outputs, video jo
 Recipe JSON import accepts only a version-1 FluxLab export up to 64 KB and rejects unsupported fields, credentials and tickets. The preview shows prompt, model, settings and availability. Save creates a fresh named recipe; duplicate names require a new name. Import never changes the current prompt or starts a request. Explicit Load prepares the draft; Generate still approves one request. Late cancelled file reads cannot restore a preview.
 
 Build, 69 unit checks, 12 studio browser groups, nine media/recovery groups, eight recipe/filter groups and nine new draft/import groups pass with injected services and no paid calls. New evidence: `node scripts/drafts-browser-smoke.mjs`, `artifacts/drafts-browser/report.json`. Bulk library archives, multi-draft history, cloud sync, provider reconciliation, full-text search, actual upscale, music and automatic batches remain open.
+
+## Music-video director preview
+
+Fluximiére uses the same scoped AI Gateway connection through a bounded multimodal Gemini director route. It currently exposes analysis/beat-grid/timing-preview tools; it does not execute canonical audio cuts or video generation. Live Gemini 4 Argon listening is blocked because Gateway's current catalog does not advertise audio input. See [preview status](../FluxCreate/docs/RELEASE-MUSIC-VIDEO-PREVIEW-2026-10-17.md). No paid pilot has run.

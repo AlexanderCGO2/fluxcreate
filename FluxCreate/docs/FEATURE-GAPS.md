@@ -30,6 +30,16 @@ The home app already launches the studios, shows local recent-document metadata,
 | Operations | Common progress/job queue, retry/diagnostics and comprehensive contract checks | Interrupted imports/renders recover without corrupting a document or duplicating a paid request |
 | Accessibility | Consistent focus, shortcuts, contrast, reduced motion and touch behavior | Keyboard-only completion of key workflows in each workspace |
 
+## Music Video Studio preview — 17 October 2026
+
+Fluximiére now has a dedicated music-video workspace: concept and character/scene references, original-song import (1–180 seconds), measured onset/tempo candidates, manual BPM/first-beat correction, beat-aligned editorial shots, editable ideas/reference assignments/locks, and an editable still/placeholder animatic with one continuous original song. The first workspace keeps at most 64 MiB of local media; original songs are limited to 24 MiB. Metadata-only Markdown recipes can be reopened and original assets relinked by SHA256. IndexedDB saves use revision conflict checks. Native editor v1/v2 remains unchanged; production lineage stays in the separate recipe.
+
+Gemini multimodal direction is implemented behind strict capability checks, with real full-song 8 kHz mono WAV input and bounded reference thumbnails, paged proposals, locks, cancellation, no automatic retries, and analyze_music/get_beat_grid/preview_edit inspection tools. It is mock-tested, not paid-pilot qualified. **Live listening currently blocks before inference:** the public Gateway catalog returned Gemini 4 Argon inputs text/image/PDF/video without audio on 17 October. No silent model or text-only fallback is used. Model/profile upgrades remain explicitly reviewed, not automatic catalog substitutions.
+
+Still open: canonical PCM retention and director FFmpeg/cut-tool execution; multi-section creative timing; frame generation and Pruna takes; approved quotes/spend limits; app ownership/private hosted media; native v3/packages; durable background jobs; take review/assembly and full-song decoded export qualification. Reduced-resolution listening is for direction, not sample-accurate performance alignment. Unapplied direction proposals are temporary; durable resumable passes remain a later milestone. No paid generations were run.
+
+See [implementation status](RELEASE-MUSIC-VIDEO-PREVIEW-2026-10-17.md) and [remaining tasks](superpowers/plans/2026-10-17-fluximiere-music-video-ai.md).
+
 ## Important corrections to the previous optimization list
 
 - Photo masks, real image imports, rounded rectangles, core recovery guards, personal Gateway settings, authenticated hosting, video/speech generation and local FluxAgents persistence are already implemented. They must not be counted as entirely missing.

@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {createMusicVideoPlan} from '../src/music-video/model.mjs';
+import {attachSong,attachReference,activeAssets} from '../src/music-video/workspace.mjs';
+const song={assetId:'original',hash:'a'.repeat(64),mime:'audio/wav',bytes:44,role:'song',duration:10,name:'Song',sampleRate:48000,sampleCount:480000};
+const ref={assetId:'character',hash:'b'.repeat(64),mime:'image/png',bytes:100,role:'character',name:'Actor'};
+test('same original song relinks recipe asset ID without clearing story',()=>{const p=createMusicVideoPlan({song});p.concept='Keep this';const r=attachSong(p,{ref:{...song,assetId:'new-id'},asset:{...song,assetId:'new-id',blob:new Blob(['song'])}});assert.equal(r.plan.song.assetId,'original');assert.equal(r.asset.assetId,'original');assert.equal(r.plan.concept,p.concept);});
+test('same character relinks existing identity and rejects a different second identity',()=>{const p=createMusicVideoPlan({references:[ref]});const r=attachReference(p,{ref:{...ref,assetId:'new'},asset:{...ref,assetId:'new'}});assert.equal(r.plan.references.length,1);assert.equal(r.asset.assetId,'character');assert.throws(()=>attachReference(p,{ref:{...ref,hash:'c'.repeat(64)},asset:ref}),/character/i);});
+test('replacement prunes unreferenced Blob retention in browser state',()=>{const p=createMusicVideoPlan({song,references:[ref]}),assets=new Map([['old',{blob:new Blob(['discard'])}],['original',{blob:new Blob(['song'])}],['character',{blob:new Blob(['image'])}]]);assert.deepEqual([...activeAssets(p,assets).keys()],['original','character']);});

@@ -1,0 +1,37 @@
+import {chromium,expect} from '@playwright/test';
+import {serve} from './serve.mjs';
+import fs from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import {preview} from '../../FluxCreate/deploy/preview.mjs';
+const hosted=process.argv.includes('--hosted'),server=hosted?await preview(fileURLToPath(new URL('../../',import.meta.url))):await serve(0),browser=await chromium.launch({channel:'msedge',headless:true}),page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true}),errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+const button=name=>page.getByRole('button',{name,exact:true});
+function wav(){const rate=8000,length=10*rate,b=Buffer.alloc(44+length*2);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(rate,24);b.writeUInt32LE(rate*2,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(length*2,40);for(let i=0;i<length;i++)if(i%(rate/2)<80)b.writeInt16LE(Math.round(Math.sin(i*1.2)*24000),44+i*2);return b;}
+try{
+ await page.goto(`http://127.0.0.1:${server.address().port}${hosted?'/fluximiere/':'/'}`);await page.locator('.sequence-loading-veil').waitFor({state:'hidden'});
+ await button('Music video').click();await expect(page.getByRole('dialog',{name:'Music Video Studio'})).toBeVisible();
+ await page.getByLabel('Video concept',{exact:true}).fill('A dancer discovers a city made from glass.');await page.getByLabel('Video concept',{exact:true}).blur();
+ await expect(page.locator('.mv-save')).toHaveText('Saved on this device');
+ await page.getByLabel('Song file',{exact:true}).setInputFiles({name:'click-song.wav',mimeType:'audio/wav',buffer:wav()});
+ await expect(page.locator('.mv-song')).toContainText('click-song.wav');await expect(page.locator('.mv-save')).toHaveText('Saved on this device');
+ await button('Analyze music').click();await expect(page.locator('.mv-analysis')).toContainText('BPM',{timeout:20000});
+ await page.getByLabel('Target shot length',{exact:true}).selectOption('2');await button('Create beat storyboard').click();await expect(page.locator('.mv-shot')).toHaveCount(5);
+ await page.getByLabel('Shot 1 idea',{exact:true}).fill('Opening on a glass skyline');await page.getByLabel('Shot 1 idea',{exact:true}).blur();await expect(page.locator('.mv-save')).toHaveText('Saved on this device');
+ await button('Close music video').click();await button('Music video').click();await expect(page.getByLabel('Shot 1 idea',{exact:true})).toHaveValue('Opening on a glass skyline');
+ await page.reload();await button('Music video').click();await expect(page.locator('.mv-shot')).toHaveCount(5);await button('Music map').click();await expect(page.locator('.mv-song')).toContainText('click-song.wav');await button('Storyboard').click();
+ await page.getByLabel('Import music-video recipe',{exact:true}).setInputFiles({name:'bad.md',mimeType:'text/markdown',buffer:Buffer.from('not a recipe')});await expect(page.locator('.mv-error')).toBeVisible();await expect(page.locator('.mv-shot')).toHaveCount(5);
+ await button('Open animatic in timeline').click();await expect(page.getByRole('dialog',{name:'Music Video Studio'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Clip: Opening on a glass skyline',exact:true})).toBeVisible();
+ await button('Undo').click();await expect(page.getByRole('button',{name:'Clip: Opening on a glass skyline',exact:true})).toHaveCount(0);await button('Redo').click();await expect(page.getByRole('button',{name:'Clip: Opening on a glass skyline',exact:true})).toBeVisible();
+ await button('Music video').click();await button('Music map').click();await page.getByLabel('Manual tempo (BPM)',{exact:true}).fill('120');await button('Apply manual beat grid').click();await expect(page.locator('.mv-analysis')).toContainText('manual');
+ await expect(button('Open animatic in timeline')).toBeDisabled();await button('Create beat storyboard').click();await expect(page.locator('.mv-shot')).toHaveCount(4);
+ await page.route(hosted?'**/api/fluximiere/lab/music-video/direct':'**/api/lab/music-video/direct',async route=>{const body=route.request().postDataJSON();expect(body.song.audioDataUrl).toMatch(/^data:audio\/wav;base64,/);expect(body.analysis.beats.length).toBeGreaterThan(10);await route.fulfill({json:{planId:body.planId,revision:body.revision,model:'google/gemini-4-argon',treatment:'Glass city, shifting light.',shots:body.shots.map((s,i)=>({id:s.id,narrative:`Directed shot ${i+1}`,camera:'Slow dolly',look:'Warm glass',prompt:'Cinematic glass city',referenceIds:[],performance:false}))}});});
+ await button('Direct with Gemini').click();await expect(page.locator('.mv-proposal')).toContainText('Glass city');await expect(page.getByLabel('Shot 1 idea',{exact:true})).not.toHaveValue('Directed shot 1');await button('Apply direction to board').click();await expect(page.getByLabel('Shot 1 idea',{exact:true})).toHaveValue('Directed shot 1');
+ await page.keyboard.press('Space');expect(await page.locator('.editor').evaluate(el=>el.inert)).toBe(true);
+ const download=page.waitForEvent('download');await button('Export music-video recipe').click();const file=await download,recipe=await fs.readFile(await file.path());expect(recipe.toString()).not.toContain('data:audio');
+ await page.evaluate(async()=>{const r=indexedDB.open('fluximiere-music-video',1),db=await new Promise(resolve=>r.onsuccess=()=>resolve(r.result));await new Promise(resolve=>{const tx=db.transaction('workspace','readwrite'),s=tx.objectStore('workspace'),q=s.get('active');q.onsuccess=()=>s.put({...q.result,version:q.result.version+1},'active');tx.oncomplete=resolve;});db.close();});
+ await button('Open animatic in timeline').click();await expect(page.locator('.mv-error')).toContainText('another tab');await expect(page.getByRole('dialog',{name:'Music Video Studio'})).toBeVisible();
+ await button('Close music video').click();await page.evaluate(async()=>new Promise((resolve,reject)=>{const q=indexedDB.deleteDatabase('fluximiere-music-video');q.onsuccess=resolve;q.onerror=reject;}));await button('Music video').click();await page.getByLabel('Import music-video recipe',{exact:true}).setInputFiles({name:'saved.flux.md',mimeType:'text/markdown',buffer:recipe});await expect(page.locator('.mv-shot')).toHaveCount(4);await button('Brief & references').click();await page.getByLabel('Song file',{exact:true}).setInputFiles({name:'click-song.wav',mimeType:'audio/wav',buffer:wav()});await expect(page.locator('.mv-save')).toHaveText('Saved on this device');await button('Storyboard').click();await expect(page.getByLabel('Shot 1 idea',{exact:true})).toHaveValue('Directed shot 1');await expect(button('Open animatic in timeline')).toBeEnabled();
+ await fs.mkdir(new URL('../artifacts/music-video/',import.meta.url),{recursive:true});await page.screenshot({path:new URL('../artifacts/music-video/board-light.png',import.meta.url).pathname.replace(/^\/([A-Z]:)/,'$1')});
+ await button('Close music video').click();await button('Toggle theme').click();await button('Music video').click();await page.screenshot({path:new URL('../artifacts/music-video/board-dark.png',import.meta.url).pathname.replace(/^\/([A-Z]:)/,'$1')});
+ expect(errors).toEqual([]);console.log('PASS music-video board: uploads, real worker analysis, fast shots, edit/save/reopen, invalid import preservation, atomic timeline Undo/Redo, manual anchors, themes.');
+}finally{await browser.close();await new Promise(r=>server.close(r));}

@@ -10,7 +10,7 @@
 
 **Spec:** [Music Video AI product/architecture design](../../MUSIC-VIDEO-AI-PLAN.md).
 
-Status: proposed, not implemented. All paths below are relative to the suite root and are created only where marked Create. Existing source folders are mirrored into `FluxCreateSuite` by the established release script. Execute one verified increment at a time; read-only investigation may overlap, but do not concurrently change shared schemas.
+Status: implementation started 2026-10-17. Tasks 1–3 have a working local board/analysis/animatic preview and a mock-tested Gemini director adapter. They are not fully complete: live audio capability is unconfirmed, canonical director cut tools and production retention remain open. Tasks 4–9 remain pending. See [preview evidence](../../RELEASE-MUSIC-VIDEO-PREVIEW-2026-10-17.md). All paths below are relative to the suite root and are created only where marked Create. Existing source folders are mirrored into `FluxCreateSuite` by the established release script. Execute one verified increment at a time; read-only investigation may overlap, but do not concurrently change shared schemas.
 
 ## Global constraints
 
@@ -166,4 +166,4 @@ Browser requests do not supply trusted owner IDs or prices. Server derives owner
 
 Tasks 1–3 produce the first reviewable animatic. Task 4 qualifies the provider. Tasks 5–6 are production prerequisites. Tasks 7–8 complete the experience; task 9 qualifies/releases it. Shared contracts and migrations remain sequential. Independent tests/UI/provider work may be delegated after its contracts are frozen, consistent with the existing collaboration preference.
 
-No implementation approval or paid generation is implied by this document's status; it is the requested plan for review.
+Implementation was authorized by the user on 17 October 2026. Paid generation still requires the explicitly budgeted pilot described above.
