@@ -1,3 +1,4 @@
+import {hasMedia,mediaSource,openMediaURL} from './local-media.mjs';
 import {createMixer,mixSample,peakData} from './audio-math.mjs';
 
 export const PCM_BUDGET=96*1024*1024;
@@ -5,19 +6,19 @@ const cancelled=signal=>{if(signal?.aborted)throw new DOMException('Export cance
 export const audioClips=project=>project.clips.filter(c=>['audio','video'].includes(c.type)&&!c.muted&&c.volume>0&&c.start<project.duration);
 const audioContext=()=>{const Context=globalThis.AudioContext??globalThis.webkitAudioContext;if(!Context)throw Error('Web Audio is unavailable. Use a current Chrome, Edge or Firefox browser.');return new Context({sampleRate:48000,latencyHint:'interactive'});};
 async function sourceDuration(asset,signal){
-  const element=document.createElement(asset.type==='video'?'video':'audio');element.preload='metadata';element.muted=true;
-  try{return await new Promise((resolve,reject)=>{let timer,seeking=false;const finish=(error,duration)=>{clearTimeout(timer);element.onloadedmetadata=null;element.ondurationchange=null;element.onseeked=null;element.onerror=null;signal?.removeEventListener('abort',abort);error?reject(error):resolve(duration);},abort=()=>finish(Error('Export cancelled.')),read=()=>{if(Number.isFinite(element.duration)&&element.duration>0)finish(null,element.duration);else if(element.readyState>=1&&!seeking){seeking=true;try{element.currentTime=1e9;}catch{finish(Error(`Cannot measure ${asset.name}. Relink a source with a known duration.`));}}};timer=setTimeout(()=>finish(Error(`Cannot measure ${asset.name}. Relink a source with a known duration.`)),12000);element.onloadedmetadata=read;element.ondurationchange=read;element.onseeked=read;element.onerror=()=>finish(Error(`Cannot read ${asset.name}. Relink this source.`));signal?.addEventListener('abort',abort,{once:true});element.src=asset.src;if(signal?.aborted)abort();});}
-  finally{element.removeAttribute('src');element.load();}
+  const element=document.createElement(asset.type==='video'?'video':'audio');element.preload='metadata';element.muted=true;const opened=openMediaURL(asset);
+  try{return await new Promise((resolve,reject)=>{let timer,seeking=false;const finish=(error,duration)=>{clearTimeout(timer);element.onloadedmetadata=null;element.ondurationchange=null;element.onseeked=null;element.onerror=null;signal?.removeEventListener('abort',abort);error?reject(error):resolve(duration);},abort=()=>finish(Error('Export cancelled.')),read=()=>{if(Number.isFinite(element.duration)&&element.duration>0)finish(null,element.duration);else if(element.readyState>=1&&!seeking){seeking=true;try{element.currentTime=1e9;}catch{finish(Error(`Cannot measure ${asset.name}. Relink a source with a known duration.`));}}};timer=setTimeout(()=>finish(Error(`Cannot measure ${asset.name}. Relink a source with a known duration.`)),12000);element.onloadedmetadata=read;element.ondurationchange=read;element.onseeked=read;element.onerror=()=>finish(Error(`Cannot read ${asset.name}. Relink this source.`));signal?.addEventListener('abort',abort,{once:true});element.src=opened.url;if(signal?.aborted)abort();});}
+  finally{element.removeAttribute('src');element.load();opened.release();}
 }
 
 export class AudioStore {
   constructor({budget=PCM_BUDGET,onChange=()=>{}}={}){this.budget=budget;this.entries=new Map();this.bytes=0;this.onChange=onChange;this.context=null;this.queue=Promise.resolve();this.peakQueue=Promise.resolve();this.closed=false;}
   getContext(){return this.context??=audioContext();}
-  entry(asset){const entry=this.entries.get(asset?.id);return entry?.src===asset?.src?entry:null;}
-  prune(assets){for(const [id,entry]of this.entries)if(!assets.some(a=>a.id===id&&a.src===entry.src)){this.bytes-=entry.bytes??0;this.entries.delete(id);}}
+  entry(asset){const entry=this.entries.get(asset?.id);return entry?.src===mediaSource(asset)?entry:null;}
+  prune(assets){for(const [id,entry]of this.entries)if(!assets.some(a=>a.id===id&&mediaSource(a)===entry.src)){this.bytes-=entry.bytes??0;this.entries.delete(id);}}
   async load(asset,signal){
     cancelled(signal);if(this.closed)throw Error('Audio workspace is closed.');
-    if(!asset?.src)throw Error(`Relink ${asset?.name??'the audio source'} before playing or exporting sound.`);
+    if(!hasMedia(asset))throw Error(`Relink ${asset?.name??'the audio source'} before playing or exporting sound.`);
     const existing=this.entry(asset);if(existing){if(existing.error)throw existing.error;return existing;}
     const operation=this.queue.then(async()=>{
       cancelled(signal);const cached=this.entry(asset);if(cached){if(cached.error)throw cached.error;return cached;}
@@ -26,14 +27,14 @@ export class AudioStore {
       if(estimated>this.budget)throw Error(`${asset.name} exceeds the ${Math.round(this.budget/1048576)} MiB decoded-audio limit. Import a shorter audio proxy.`);
       while(this.bytes+estimated>this.budget&&this.entries.size){const [id,item]=this.entries.entries().next().value;this.entries.delete(id);this.bytes-=item.bytes??0;}
       let buffer;
-      try{const response=await fetch(asset.src,{signal});const bytes=await response.arrayBuffer();cancelled(signal);buffer=await this.getContext().decodeAudioData(bytes);}
-      catch(error){if(signal?.aborted)throw new DOMException('Export cancelled.','AbortError');const failure=Error(`Cannot decode sound in ${asset.name}. Relink a supported audio source, or explicitly mute this clip for a picture-only result.`);this.entries.set(asset.id,{src:asset.src,error:failure,bytes:0});this.onChange();throw failure;}
+      try{const bytes=asset.blob?await asset.blob.arrayBuffer():await (await fetch(asset.src,{signal})).arrayBuffer();cancelled(signal);buffer=await this.getContext().decodeAudioData(bytes);}
+      catch(error){if(signal?.aborted)throw new DOMException('Export cancelled.','AbortError');const failure=Error(`Cannot decode sound in ${asset.name}. Relink a supported audio source, or explicitly mute this clip for a picture-only result.`);this.entries.set(asset.id,{src:mediaSource(asset),error:failure,bytes:0});this.onChange();throw failure;}
       cancelled(signal);if(this.closed)throw Error('Audio workspace is closed.');
       if(buffer.numberOfChannels>2)throw Error(`${asset.name} has ${buffer.numberOfChannels} channels. Supply a mono or stereo mix; surround routing is not supported.`);
       const size=buffer.length*buffer.numberOfChannels*4;if(size>this.budget)throw Error(`${asset.name} exceeds the decoded-audio budget. Import a shorter proxy.`);
       while(this.bytes+size>this.budget&&this.entries.size){const [id,item]=this.entries.entries().next().value;this.entries.delete(id);this.bytes-=item.bytes??0;}
       const channels=Array.from({length:buffer.numberOfChannels},(_,i)=>buffer.getChannelData(i));
-      const item={src:asset.src,bytes:size,sampleRate:buffer.sampleRate,duration:buffer.duration,channels,buffer,peaks:null};
+      const item={src:mediaSource(asset),bytes:size,sampleRate:buffer.sampleRate,duration:buffer.duration,channels,buffer,peaks:null};
       this.entries.set(asset.id,item);this.bytes+=size;this.onChange();return item;
     });this.queue=operation.catch(()=>{});return operation;
   }

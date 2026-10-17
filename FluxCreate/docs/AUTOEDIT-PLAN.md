@@ -4,6 +4,8 @@ Requested mode: upload existing videos and a soundtrack; an editor agent analyze
 
 Delivered: A; B with sampled image input and measured musical features; C with device-local completed-page recovery; D's bounded sampling and source-audio controls. Still open: durable hosted background jobs, detailed usage/cost reporting, proxies, dense scene-change analysis and native acceleration. The initial editor selects source ranges for music-derived timings; adjust final timeline timing in the normal editor.
 
+The [large-video follow-up](RELEASE-LARGE-VIDEO-2026-10-17.md) adds 48 unique sources, 512 MiB per video, 2 GiB boards, binary project portability, bounded visual requests and sequential export decoding. A live 16-source, three-minute music-video pilot is now verified.
+
 ## User flow
 
 1. Open Autoedit beside Music video. Add multiple source videos and one soundtrack; choose aspect ratio and a short creative brief.

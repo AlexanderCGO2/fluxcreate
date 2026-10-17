@@ -1,24 +1,25 @@
+import {hasMedia,mediaSource,openMediaURL} from './local-media.mjs';
 import {AudioStore,renderAudioMix} from './audio.mjs';
 export class MediaPool {
   constructor(onChange=()=>{}){this.items=new Map();this.onChange=onChange;}
   get(asset,clipId){
-    if(!asset?.src)return null;const key=asset.type==='image'?asset.id:clipId;
-    let item=this.items.get(key);if(item?.source===asset.src)return item.element;
-    if(item){item.element.pause?.();item.element.removeAttribute?.('src');}
+    if(!hasMedia(asset))return null;const key=asset.type==='image'?asset.id:clipId;
+    let item=this.items.get(key);if(item?.source===mediaSource(asset))return item.element;
+    if(item){item.element.pause?.();item.element.removeAttribute?.('src');item.element.load?.();item.release();}
     const el=asset.type==='image'?new Image():document.createElement(asset.type==='audio'?'audio':'video');
     if(asset.type==='image'){el.onload=this.onChange;}else{el.preload='auto';el.playsInline=true;el.onloadeddata=this.onChange;el.onseeked=this.onChange;}
-    el.onerror=this.onChange;el.src=asset.src;this.items.set(key,{element:el,source:asset.src});return el;
+    const opened=openMediaURL(asset);el.onerror=this.onChange;el.src=opened.url;this.items.set(key,{element:el,source:mediaSource(asset),release:opened.release});return el;
   }
   pause(){for(const {element}of this.items.values())element.pause?.();}
-  pruneActive(project,time){const active=new Set(project.clips.filter(c=>c.type!=='audio'&&time>=c.start&&time<c.start+c.duration).map(c=>c.type==='image'?c.assetId:c.id));for(const [key,{element}]of this.items)if(!active.has(key)){element.pause?.();element.onload=null;element.onloadeddata=null;element.onseeked=null;element.onerror=null;element.removeAttribute('src');element.load?.();this.items.delete(key);}}
-  dispose(){for(const {element}of this.items.values()){element.pause?.();element.onload=null;element.onloadeddata=null;element.onseeked=null;element.removeAttribute('src');element.load?.();}this.items.clear();}
+  pruneActive(project,time){const active=new Set(project.clips.filter(c=>c.type!=='audio'&&time>=c.start&&time<c.start+c.duration).map(c=>c.type==='image'?c.assetId:c.id));for(const [key,{element,release}]of this.items)if(!active.has(key)){element.pause?.();element.onload=null;element.onloadeddata=null;element.onseeked=null;element.onerror=null;element.removeAttribute('src');element.load?.();release();this.items.delete(key);}}
+  dispose(){for(const {element,release}of this.items.values()){element.pause?.();element.onload=null;element.onloadeddata=null;element.onseeked=null;element.removeAttribute('src');element.load?.();release();}this.items.clear();}
 }
 export function activeOpacity(clip,time){let amount=clip.opacity,elapsed=time-clip.start,remaining=clip.duration-elapsed;if(clip.fadeIn)amount*=Math.min(1,elapsed/clip.fadeIn);if(clip.fadeOut)amount*=Math.min(1,remaining/clip.fadeOut);return Math.max(0,amount);}
-export function drawFrame(ctx,project,time,pool,{playing=false,silent=false}={}){
+export function drawFrame(ctx,project,time,pool,{playing=false,silent=false,videoFrames}={}){
   pool?.pruneActive(project,time);
   const {width:w,height:h}=project;ctx.save();ctx.setTransform(ctx.canvas.width/w,0,0,ctx.canvas.height/h,0,0);ctx.globalAlpha=1;ctx.fillStyle=project.background;ctx.fillRect(0,0,w,h);
   const active=new Set(),assets=new Map(project.assets.map(a=>[a.id,a]));const ordered=[...project.clips].sort((a,b)=>Number(a.track.slice(1))-Number(b.track.slice(1)));
-  for(const clip of ordered){if(clip.type==='audio'||time<clip.start||time>=clip.start+clip.duration)continue;const asset=assets.get(clip.assetId),media=pool?.get(asset,clip.id),opacity=activeOpacity(clip,time);
+  for(const clip of ordered){if(clip.type==='audio'||time<clip.start||time>=clip.start+clip.duration)continue;const asset=assets.get(clip.assetId),decoded=videoFrames?.get(clip.id),media=decoded?null:pool?.get(asset,clip.id),opacity=activeOpacity(clip,time);
     if(media&&asset.type!=='image'){
       active.add(media);const wanted=clip.sourceIn+(time-clip.start)*clip.playbackRate;
       if(Number.isFinite(media.duration)&&Math.abs(media.currentTime-wanted)>(playing?0.22:0.025))try{media.currentTime=Math.min(wanted,Math.max(0,media.duration-0.001));}catch{}
@@ -35,9 +36,10 @@ export function drawFrame(ctx,project,time,pool,{playing=false,silent=false}={})
       // A gentle atmosphere is a built-in color-card treatment; all card controls stay editable.
       ctx.save();ctx.globalAlpha*=0.22;const glow=ctx.createRadialGradient(clip.width*.23, -clip.height*.16,0,clip.width*.23,-clip.height*.16,clip.width*.55);glow.addColorStop(0,'#ffffff');glow.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=glow;ctx.fillRect(x,y,clip.width,clip.height);ctx.restore();
     }else if(clip.type==='shape'){ctx.fillStyle=clip.color;ctx.fillRect(x,y,clip.width,clip.height);}
+    else if(decoded){const scale=Math.min(clip.width/decoded.width,clip.height/decoded.height);ctx.drawImage(decoded,-decoded.width*scale/2,-decoded.height*scale/2,decoded.width*scale,decoded.height*scale);}
     else if(media&&((asset.type==='image'&&media.complete&&media.naturalWidth)||(asset.type==='video'&&media.readyState>=2))){
       const mw=media.videoWidth||media.naturalWidth,mh=media.videoHeight||media.naturalHeight,scale=Math.min(clip.width/mw,clip.height/mh);try{ctx.drawImage(media,-mw*scale/2,-mh*scale/2,mw*scale,mh*scale);}catch{}
-    }else{ctx.fillStyle='#22212d';ctx.fillRect(x,y,clip.width,clip.height);ctx.fillStyle='#a4a0b4';ctx.font='32px sans-serif';ctx.textAlign='center';ctx.fillText(asset?.src?'Loading media…':'Media offline — relink source',0,0);}
+    }else{ctx.fillStyle='#22212d';ctx.fillRect(x,y,clip.width,clip.height);ctx.fillStyle='#a4a0b4';ctx.font='32px sans-serif';ctx.textAlign='center';ctx.fillText(hasMedia(asset)?'Loading media…':'Media offline — relink source',0,0);}
     ctx.restore();
   }
   if(pool)for(const {element}of pool.items.values())if(element.pause&&!active.has(element))element.pause();ctx.restore();
@@ -48,7 +50,7 @@ export async function exportWebM(project,onProgress=()=>{},signal,options={}){
   const {exportPreciseWebM}=await import('./video-export.mjs');return exportPreciseWebM(project,onProgress,signal);
 }
 export async function exportRecordedWebM(project,onProgress=()=>{},signal){
-  const missing=project.clips.find(c=>['video','image'].includes(c.type)&&c.opacity>0&&c.start<project.duration&&!project.assets.find(a=>a.id===c.assetId)?.src);
+  const missing=project.clips.find(c=>['video','image'].includes(c.type)&&c.opacity>0&&c.start<project.duration&&!hasMedia(project.assets.find(a=>a.id===c.assetId)));
   if(missing)throw new Error(`Relink “${missing.name}” before exporting video. Offline media cannot be rendered.`);
   if(!globalThis.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)throw new Error('WebM export is unavailable in this browser. Try Chrome or Edge.');
   const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus'].find(type=>MediaRecorder.isTypeSupported(type));if(!mime)throw new Error('This browser cannot record WebM with Opus sound. Use a current Chrome or Edge browser.');

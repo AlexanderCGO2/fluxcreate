@@ -1,3 +1,4 @@
+import {hasMedia,validateMediaBlob,MEDIA_TOTAL_BYTES} from './local-media.mjs';
 import {createBlankProject, createLayer, getComp, parseProject, uid} from '../../Fluxiffects/src/core.mjs';
 
 export {uid};
@@ -30,7 +31,7 @@ export function validateProject(raw) {
   const p={format:'fluximiere',version:raw.version,id:id(raw.id),name:str(raw.name,'Untitled sequence'),width:num(raw.width,1920,16,8192,'Width'),height:num(raw.height,1080,16,8192,'Height'),fps:num(raw.fps,30,1,120,'Frame rate'),duration:num(raw.duration,16,0.1,86400,'Duration'),background:color(raw.background,'#101019'),assets:[],clips:[]};
   if(!Array.isArray(raw.assets)||raw.assets.length>500||!Array.isArray(raw.clips)||raw.clips.length>2000)throw new Error('This project has too many assets or clips.');
   const seen=new Set();
-  p.assets=raw.assets.map(a=>{if(!a||!['video','image','audio'].includes(a.type))throw new Error('Unsupported media type.');const src=str(a.src,'',140000000);if(src&&!/^data:(?:image|video|audio)\/[a-z0-9.+-]+[;,]/i.test(src))throw new Error('Media must be embedded locally; relink this source.');const result={id:id(a.id),type:a.type,name:str(a.name,'Untitled media'),src,width:num(a.width,0,0,32768,'Media width'),height:num(a.height,0,0,32768,'Media height'),duration:num(a.duration,0,0,86400,'Media duration'),missing:!src};if(a.path!==undefined)result.path=str(a.path,'',4000);if(seen.has(result.id))throw new Error('Duplicate asset identifier.');seen.add(result.id);return result;});
+  p.assets=raw.assets.map(a=>{if(!a||!['video','image','audio'].includes(a.type))throw new Error('Unsupported media type.');const src=str(a.src,'',140000000);if(src&&!/^data:(?:image|video|audio)\/[a-z0-9.+-]+[;,]/i.test(src))throw new Error('Media must be embedded locally; relink this source.');const result={id:id(a.id),type:a.type,name:str(a.name,'Untitled media'),src,width:num(a.width,0,0,32768,'Media width'),height:num(a.height,0,0,32768,'Media height'),duration:num(a.duration,0,0,86400,'Media duration'),missing:!src};if(a.blob!==undefined){if(src)throw Error('A media source cannot contain both embedded text and binary data.');result.blob=validateMediaBlob(a.blob,a.type);result.missing=false;}if(a.path!==undefined)result.path=str(a.path,'',4000);if(seen.has(result.id))throw new Error('Duplicate asset identifier.');seen.add(result.id);return result;});if(p.assets.reduce((n,a)=>n+(a.blob?.size??Math.ceil(a.src.length*.75)),0)>MEDIA_TOTAL_BYTES)throw Error('The timeline supports up to 2 GiB of source media.');
   const clips=new Set();
   p.clips=raw.clips.map(c=>{
     if(!c||!TYPES.includes(c.type)||!validTrack(c.track))throw new Error('Use video tracks V1–V16 or audio tracks A1–A16.');
@@ -73,7 +74,7 @@ function unlockedPair(pair){if(pair.some(c=>c.locked))throw Error('Unlock both p
 function measuredRanges(project,clips,sourceDurations){
   for(const c of clips){
     const asset=project.assets.find(a=>a.id===c.assetId),duration=sourceDurations?.[c.id];
-    if(!asset?.src)throw Error('Relink both sources before editing picture and sound.');
+    if(!hasMedia(asset))throw Error('Relink both sources before editing picture and sound.');
     if(c.type==='video'&&asset.type!=='video'||c.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Choose matching picture and sound sources.');
     if(!Number.isFinite(duration)||duration<=0)throw Error('Read both actual source durations before editing picture and sound.');
     if(c.sourceIn<0||c.sourceIn+c.duration*c.playbackRate>duration+LINK_EPSILON)throw Error('A linked source range exceeds its media duration. Unlink and shorten it first.');
@@ -185,7 +186,7 @@ export function slipBounds(project,clipId,{sourceDuration}={}) {
   rejectLinked(clip);
   if(clip.locked)throw Error('Unlock this clip before slipping its source.');
   const asset=project.assets.find(a=>a.id===clip.assetId);
-  if(!asset?.src)throw Error('Relink the offline source before slipping this clip.');
+  if(!hasMedia(asset))throw Error('Relink the offline source before slipping this clip.');
   if(clip.type==='video'&&asset.type!=='video'||clip.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Relink this clip to a matching timed media source.');
   const duration=sourceDuration===undefined?asset.duration:sourceDuration;
   if(!Number.isFinite(duration)||duration<=0)throw Error('The source duration is unknown. Relink a file with a readable duration before slipping.');
@@ -222,7 +223,7 @@ export function rollingBounds(project,clipId,{leftDuration,rightDuration}={}) {
   const durations=[leftDuration,rightDuration];
   [left,right].forEach((clip,i)=>{
     const asset=project.assets.find(a=>a.id===clip.assetId);
-    if(!asset?.src)throw Error('Relink both offline sources before rolling this cut.');
+    if(!hasMedia(asset))throw Error('Relink both offline sources before rolling this cut.');
     if(clip.type==='video'&&asset.type!=='video'||clip.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Relink both clips to matching timed media sources.');
     durations[i]??=asset.duration;
     if(!Number.isFinite(durations[i])||durations[i]<=0)throw Error('Both source durations must be known before rolling this cut.');
@@ -268,7 +269,7 @@ export function slideBounds(project,clipId,{leftDuration,middleDuration,rightDur
   const {left,middle,right,end}=slideGroup(project,clipId),minimum=Math.max(.01,1/project.fps),epsilon=1e-8,durations=[leftDuration,middleDuration,rightDuration];
   [left,middle,right].forEach((clip,i)=>{
     const asset=project.assets.find(a=>a.id===clip.assetId);
-    if(!asset?.src)throw Error('Relink all offline sources before sliding.');
+    if(!hasMedia(asset))throw Error('Relink all offline sources before sliding.');
     if(clip.type==='video'&&asset.type!=='video'||clip.type==='audio'&&!['audio','video'].includes(asset.type))throw Error('Relink all three clips to matching timed media sources.');
     if(durations[i]===undefined)durations[i]=asset.duration;
     if(!Number.isFinite(durations[i])||durations[i]<=0)throw Error('All three source durations must be known before sliding.');
@@ -296,7 +297,7 @@ export function planSlideEdit(project,{clipId,startTime,deltaFrames,leftDuration
 }
 
 export function toMotion(project) {
-  const p=validateProject(project),motion=createBlankProject({name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background});
+  const p=validateProject(project);if(p.assets.some(a=>a.blob))throw Error('Binary media needs a Fluximiére project export. Flux Exchange text export cannot carry these originals yet.');const motion=createBlankProject({name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background});
   motion.id=p.id;motion.assets=p.assets.map(a=>({...a}));if(p.brief)motion.brief=p.brief;
   getComp(motion).layers=[...p.clips].reverse().sort((a,b)=>trackOrder(a.track)-trackOrder(b.track)).map(c=>{
     const layer=createLayer(c.type==='title'?'text':c.type==='card'||c.type==='shape'?'rectangle':c.type,{id:c.id,name:c.name,start:c.start,end:c.start+c.duration,x:c.x,y:c.y,width:c.width,height:c.height,anchorX:c.width/2,anchorY:c.height/2,text:c.text,fontSize:c.fontSize,textAlign:c.align,fill:c.color,cornerRadius:0,rotation:c.rotation,locked:c.locked,opacity:c.opacity,assetId:c.assetId,sourceIn:c.sourceIn,playbackRate:c.playbackRate,volume:c.volume,muted:c.muted,fadeIn:c.fadeIn,fadeOut:c.fadeOut});
