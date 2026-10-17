@@ -73,7 +73,9 @@ export function analyzeMusic(input, { signal } = {}) {
   base.status=base.confidence>=.55?'measured':'uncertain';
   base.warnings.push('Tempo and half/double-time candidates are suggestions. Review the beat map before directing.');
   if(base.status==='uncertain')base.warnings.push('Rhythm confidence is low or tempo varies. Add manual anchors where needed.');
-  base.beats=events.map((e,i)=>({id:`beat-${i}`,sample:Math.min(canonicalSampleCount-1,Math.round(e.frame*hop/sampleRate*canonicalSampleRate)),confidence:Math.min(.8,clamp(e.strength/e.scale)*Math.max(.2,base.confidence)),manual:false}));
+  // Local onset strength and confidence in a single global tempo are different.
+  // Syncopation or tempo changes must not make every clearly measured hit unusable.
+  base.beats=events.map((e,i)=>({id:`beat-${i}`,sample:Math.min(canonicalSampleCount-1,Math.round(e.frame*hop/sampleRate*canonicalSampleRate)),confidence:.8*clamp(e.strength/e.scale),manual:false}));
   for(let i=8;i<events.length-4;i+=4) {
     const before=(events[i].frame-events[i-4].frame), after=(events[i+4].frame-events[i].frame);
     if(before&&Math.abs(after/before-1)>.18)base.changePoints.push({id:`change-${i}`,sample:base.beats[i].sample,confidence:.4,suggested:true});
@@ -91,6 +93,20 @@ export function analyzeMusic(input, { signal } = {}) {
   for(let i=1;i<base.dynamics.length;i++){const before=base.dynamics[i-1],now=base.dynamics[i],change=Math.abs(now.energy-before.energy);if(change>=.3&&!base.changePoints.some(c=>Math.abs(c.sample-now.startSample)<canonicalSampleRate/2))base.changePoints.push({id:`energy-change-${i}`,sample:now.startSample,confidence:Math.min(.8,change),suggested:true});}
   base.changePoints.sort((a,b)=>a.sample-b.sample);
   return base;
+}
+
+/** A new measurement refreshes detection without discarding the user's beat corrections. */
+export function refreshMusicAnalysis(previous,measured){
+ if(!previous)return measured;
+ if(previous.sourceHash!==measured.sourceHash||previous.sampleRate!==measured.sampleRate||previous.sampleCount!==measured.sampleCount)throw Error('Reanalysis source does not match the saved music.');
+ if(!Number.isSafeInteger(previous.revision)||previous.revision<0||previous.revision>=Number.MAX_SAFE_INTEGER)throw Error('Music analysis revision is invalid.');
+ const next={...measured,revision:previous.revision};
+ if(!previous.anchors?.length)return {...next,revision:previous.revision+1};
+ const corrected=applyMusicAnchors(next,previous.anchors,previous.revision);
+ // Editing a subrange can split anchor records without renaming retained beats.
+ // Keep those identities so an unchanged manual cut still resolves in saved shots.
+ const manualIds=new Map(previous.beats.filter(b=>b.manual).map(b=>[b.sample,b.id]));
+ return {...corrected,beats:corrected.beats.map(b=>b.manual&&manualIds.has(b.sample)?{...b,id:manualIds.get(b.sample)}:b)};
 }
 
 /** Atomic, revision-checked correction of selected sample ranges only. */

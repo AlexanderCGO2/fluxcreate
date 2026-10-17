@@ -9,7 +9,7 @@ export default function MusicMap({analysis,onApplyAnchors,disabled=false}) {
   async function apply(event){event.preventDefault();setError('');setPending(true);try{await onApplyAnchors(createManualBeatGrid(analysis,Number(bpm),Number(offset)));}catch(e){setError(e?.message??'The manual beat grid could not be applied.');}finally{setPending(false);}}
   const manual=beats.filter(b=>b.manual).length;
   return <section className="mv-analysis" aria-label="Music map">
-    <div className="mv-section-heading"><div><h3>Music map</h3><p>{analysis.duration.toFixed(2)} seconds · {beats.length} {manual?'measured and manual':'measured'} beat candidates</p></div><span className="mv-confidence">{manual?'Manual anchors added':analysis.status==='silent'?'No rhythm detected':`${Math.round(analysis.confidence*100)}% rhythm confidence`}</span></div>
+    <div className="mv-section-heading"><div><h3>Music map</h3><p>{analysis.duration.toFixed(2)} seconds · {beats.length} {manual?'measured and manual':'measured'} beat candidates · {beats.filter(b=>b.manual||b.confidence>=.35).length} usable cut anchors</p></div><span className="mv-confidence">{manual?'Manual anchors added':analysis.status==='silent'?'No rhythm detected':`${Math.round(analysis.confidence*100)}% rhythm confidence`}</span></div>
     <svg role="img" aria-labelledby={`${prefix}-map-title`} viewBox="0 0 1000 96" width="100%" style={{display:'block',borderRadius:12,background:'var(--panel-2,rgba(127,127,127,.06))'}}>
       <title id={`${prefix}-map-title`}>{beats.length} musical beat candidates across {analysis.duration.toFixed(2)} seconds. Manual anchors are highlighted. This is a beat map, not an audio waveform.</title>
       <line x1="0" y1="48" x2="1000" y2="48" stroke="currentColor" opacity=".12"/>

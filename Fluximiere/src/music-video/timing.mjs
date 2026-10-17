@@ -33,7 +33,7 @@ export function buildBeatStoryboard(plan,analysis,shotSeconds='music'){
  if(adaptive?!['music','energetic','cinematic'].includes(shotSeconds):!Number.isFinite(shotSeconds)||shotSeconds<2||shotSeconds>5)fail('Choose music-led, energetic or cinematic pacing.');
  if(plan.shots?.some(s=>s.selectedTakeId)||plan.locks?.length)fail('Keep locked or reviewed shots; create a new board to rebuild timings.');
  const beats=(analysis.beats??[]).filter(b=>Number.isInteger(b.sample)&&b.sample>=0&&b.sample<=analysis.sampleCount&&(b.manual||b.confidence>=.35));
- if(!beats.length)fail('Add manual beat anchors or analyze a song with a clear beat first.');
+ if(!beats.length)fail('No usable cut anchors were found. Click Analyze music again to refresh this map, or set Manual tempo and First beat below, then Apply manual beat grid.');
  const boundaries=adaptive?musicalBoundaries(analysis,beats,end,shotSeconds):[{frame:0,id:null,error:0}];
  for(let seconds=shotSeconds;!adaptive&&seconds<analysis.duration-.5;seconds+=shotSeconds){
   const target=seconds*analysis.sampleRate;

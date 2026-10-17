@@ -1,10 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {analyzeMusic,applyMusicAnchors} from '../src/music-video/analysis.mjs';
+import {analyzeMusic,applyMusicAnchors,refreshMusicAnalysis} from '../src/music-video/analysis.mjs';
 import {buildBeatStoryboard,compileShotTiming} from '../src/music-video/timing.mjs';
 import {createMusicVideoPlan,validateMusicVideoPlan} from '../src/music-video/model.mjs';
 import {decodeRecipe,encodeRecipe} from '../src/music-video/recipe.mjs';
 const hash='a'.repeat(64);
+test('reanalysis retains manual beat identities after a range correction splits an older grid',()=>{
+ const measured=analyzeMusic(clicks(120));
+ const whole=applyMusicAnchors(measured,[{id:'whole',startSample:0,endSample:160000,beats:Array.from({length:40},(_,i)=>i*4000)}],0);
+ const split=applyMusicAnchors(whole,[{id:'middle',startSample:8000,endSample:20000,beats:[8000,12000,16000]}],1);
+ const board=buildBeatStoryboard({revision:0,fps:24,song:{hash},shots:[],locks:[]},split);
+ const refreshed=refreshMusicAnalysis(split,measured);
+ assert.deepEqual(refreshed.beats,split.beats);
+ assert.equal(compileShotTiming({...board,analysis:refreshed}).coverage.complete,true);
+});
+test('clear irregular transients remain usable cut anchors when global tempo confidence is low',()=>{
+ const mono=new Float32Array(8000*40),intervals=[.3,.45,.65,.55,.4,.75];let t=0,index=0;
+ while(t<40){const n=Math.round(t*8000);for(let j=0;j<40&&n+j<mono.length;j++)mono[n+j]=(1-j/40)*(j%2?-.8:.8);t+=intervals[index++%intervals.length];}
+ const a=analyzeMusic({mono,sampleRate:8000,sourceHash:hash});
+ assert.ok(a.confidence<.35,'tempo remains honestly uncertain');
+ assert.ok(a.beats.filter(b=>b.confidence>=.35).length>40,'clear onsets must not all be rejected because tempo varies');
+ const plan=createMusicVideoPlan({song:{assetId:'song',role:'song',hash,mime:'audio/wav',bytes:640044,duration:40,sampleRate:8000,sampleCount:320000},analysis:a});
+ const board=validateMusicVideoPlan(buildBeatStoryboard(plan,a));assert.equal(compileShotTiming(board).coverage.complete,true);
+});
+test('reanalysis advances its revision and preserves approved manual timing',()=>{const measured=analyzeMusic(clicks(120));const manual=applyMusicAnchors(measured,[{id:'my-grid',startSample:0,endSample:8000,beats:[123,4123]}],0);const refreshed=refreshMusicAnalysis(manual,measured);assert.equal(refreshed.revision,manual.revision+1);assert.deepEqual(refreshed.anchors,manual.anchors);assert.deepEqual(refreshed.beats.filter(b=>b.manual),manual.beats.filter(b=>b.manual));assert.deepEqual(refreshed.dynamics,measured.dynamics);assert.equal(refreshMusicAnalysis(refreshed,measured).revision,refreshed.revision+1);assert.equal(measured.revision,0);assert.equal(refreshMusicAnalysis(measured,measured).revision,1);assert.throws(()=>refreshMusicAnalysis(manual,{...measured,sourceHash:'b'.repeat(64)}),/source/);});
 test('actual soft-to-loud audio controls pacing and survives manual correction and recipe reopening',()=>{
  const input=clicks(120,40);for(let i=0;i<input.mono.length/2;i++)input.mono[i]*=.2;
  const measured=analyzeMusic({...input,canonicalSampleRate:48000,canonicalSampleCount:1920000});assert.equal(measured.dynamics.length,40);assert.ok(measured.dynamics[5].energy<measured.dynamics[25].energy*.3);assert.ok(measured.changePoints.some(c=>c.sample===20*48000));
