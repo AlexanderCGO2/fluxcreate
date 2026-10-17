@@ -3,6 +3,20 @@ import assert from 'node:assert/strict';
 import {compileShotTiming,buildBeatStoryboard} from '../src/music-video/timing.mjs';
 import {makeAnimatic} from '../src/music-video/animatic.mjs';
 const hash='a'.repeat(64);
+test('music-led pacing holds calmer passages and cuts faster as intensity rises',()=>{
+ const a={...analysis,duration:40,sampleCount:1920000,beats:Array.from({length:80},(_,i)=>({id:`b${i}`,sample:i*24000,confidence:1})),dynamics:Array.from({length:40},(_,i)=>({startSample:i*48000,endSample:(i+1)*48000,energy:i<20?.1:1,activity:i<20?.2:1}))};
+ const p=buildBeatStoryboard({...draft(),song:{...draft().song,duration:40}},a,'music');const average=shots=>shots.reduce((sum,s)=>sum+s.endFrame-s.startFrame,0)/shots.length;
+ assert.ok(average(p.shots.filter(s=>s.endFrame<=20*24))>average(p.shots.filter(s=>s.startFrame>=20*24))*1.5);
+ assert.ok(new Set(p.shots.map(s=>s.endFrame-s.startFrame)).size>1);assert.equal(compileShotTiming(p,a).coverage.complete,true);
+ assert.deepEqual(buildBeatStoryboard({...draft(),song:{...draft().song,duration:40}},a,'music'),p);
+});
+test('adaptive pacing uses real anchors and avoids short leftover flashes',()=>{
+ for(const duration of [1,2.1,5.1,10.01,180]){const a={...analysis,duration,sampleCount:Math.round(duration*48000),beats:Array.from({length:Math.ceil(duration*2)},(_,i)=>({id:`b${i}`,sample:i*24000,confidence:1}))};const p=buildBeatStoryboard({...draft(),song:{...draft().song,duration}},a,'music');assert.equal(compileShotTiming(p,a).coverage.complete,true);assert.ok(p.shots.length<=120);if(p.shots.length>1)assert.ok(p.shots.at(-1).endFrame-p.shots.at(-1).startFrame>=36);}
+ assert.throws(()=>buildBeatStoryboard(draft(),{...analysis,beats:[]},'music'),/beat|anchor/);
+ assert.throws(()=>buildBeatStoryboard(draft(),analysis,'random'),/pacing/i);
+});
+test('musical change cues prefer a nearby beat without inventing an off-beat cut',()=>{const a={...analysis,dynamics:Array.from({length:10},(_,i)=>({startSample:i*48000,endSample:(i+1)*48000,energy:.5,activity:.5})),changePoints:[{id:'change',sample:3*48000,confidence:.8}]};const p=buildBeatStoryboard(draft(),a,'music');assert.equal(p.shots[0].endFrame,72);assert.equal(compileShotTiming(p,a).coverage.complete,true);});
+test('older maps adapt to changing beat density and preserve reviewed-shot protection',()=>{const a={...analysis,duration:40,sampleCount:1920000,beats:[...Array.from({length:20},(_,i)=>({id:`slow${i}`,sample:i*48000,confidence:1})),...Array.from({length:80},(_,i)=>({id:`fast${i}`,sample:960000+i*12000,confidence:1}))]};const p=buildBeatStoryboard({...draft(),song:{...draft().song,duration:40}},a);const early=p.shots.find(s=>s.startFrame>0&&s.endFrame<480),late=p.shots.find(s=>s.startFrame>480);assert.ok(early.endFrame-early.startFrame>late.endFrame-late.startFrame);assert.throws(()=>buildBeatStoryboard({...draft(),locks:[{shotId:'*',fields:['camera']}]},analysis),/locked/);});
 const analysis={sourceHash:hash,revision:0,sampleRate:48000,sampleCount:480000,duration:10,beats:Array.from({length:21},(_,i)=>({id:`b${i}`,sample:i*24000,confidence:1})),anchors:[],confidence:1};
 const draft=()=>({id:'board',revision:1,name:'Music film',concept:'Glass and light',fps:24,width:1920,height:1080,song:{assetId:'song',hash,duration:10},references:[],analysis,pacing:{minCutsPer10s:2,maxCutsPer10s:5},sections:[],scenes:[],shots:[],generationUnits:[],takes:[],locks:[]});
 test('beat storyboard allows two-second editorial shots and counts internal cuts',()=>{const p=buildBeatStoryboard(draft(),analysis,2);assert.equal(p.shots.length,5);assert.deepEqual(p.shots.map(s=>[s.startFrame,s.endFrame]),[[0,48],[48,96],[96,144],[144,192],[192,240]]);const r=compileShotTiming(p,analysis);assert.equal(r.coverage.complete,true);assert.equal(r.coverage.windows[0].cuts,4);});

@@ -5,21 +5,44 @@ function source(plan,analysis){
  if(plan.fps!==24)fail('Music-video timing requires 24 fps.');
  return Math.ceil(analysis.duration*24);
 }
-export function buildBeatStoryboard(plan,analysis,shotSeconds=3){
+function musicalBoundaries(analysis,beats,end,feel){
+ const rate=analysis.sampleRate,boundaries=[{frame:0,id:null,error:0}],clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ const windows=analysis.dynamics??[];
+ const intensity=seconds=>{
+  const near=windows.filter(w=>w.endSample>seconds*rate&&w.startSample<(seconds+3)*rate);
+  if(near.length)return near.reduce((sum,w)=>sum+.65*w.energy+.35*w.activity,0)/near.length;
+  // Older maps have no energy envelope: use local beat density, never a random pattern.
+  const local=beats.filter(b=>b.sample>=seconds*rate&&b.sample<Math.min(analysis.sampleCount,(seconds+4)*rate));
+  return clamp(local.length/Math.min(4,analysis.duration-seconds)/4,0,1);
+ };
+ while(boundaries.at(-1).frame<end){
+  const start=boundaries.at(-1).frame;
+  const seconds=clamp(5-3*intensity(start/24)+(feel==='energetic'?-.6:feel==='cinematic'?.6:0),2,5),target=start+seconds*24;
+  if(end-target<36)break; // Preserve a usable final hold instead of a tiny leftover flash.
+  const candidates=beats.map(b=>({beat:b,exact:b.sample/rate*24,frame:Math.round(b.sample/rate*24)})).filter(b=>b.frame>=start+48&&b.frame<=start+120&&b.frame<=end-36&&Math.abs(b.frame-target)<=24);
+  if(!candidates.length)fail('The beat map has a gap. Add manual anchors before making shots.');
+  const score=b=>{const cue=(analysis.changePoints??[]).filter(c=>Math.abs(c.sample-b.beat.sample)/rate<=.3).reduce((best,c)=>Math.max(best,c.confidence),0);return Math.abs(b.frame-target)-18*cue;};
+  candidates.sort((a,b)=>score(a)-score(b)||a.frame-b.frame);const next=candidates[0];boundaries.push({frame:next.frame,id:next.beat.id,error:next.frame-next.exact});
+  if(boundaries.length>120)fail('This board exceeds 120 shots.');
+ }
+ boundaries.push({frame:end,id:null,error:0});return boundaries;
+}
+export function buildBeatStoryboard(plan,analysis,shotSeconds='music'){
  const end=source(plan,analysis);
- if(!Number.isFinite(shotSeconds)||shotSeconds<2||shotSeconds>5)fail('Choose a shot length between 2 and 5 seconds.');
+ const adaptive=typeof shotSeconds==='string';
+ if(adaptive?!['music','energetic','cinematic'].includes(shotSeconds):!Number.isFinite(shotSeconds)||shotSeconds<2||shotSeconds>5)fail('Choose music-led, energetic or cinematic pacing.');
  if(plan.shots?.some(s=>s.selectedTakeId)||plan.locks?.length)fail('Keep locked or reviewed shots; create a new board to rebuild timings.');
  const beats=(analysis.beats??[]).filter(b=>Number.isInteger(b.sample)&&b.sample>=0&&b.sample<=analysis.sampleCount&&(b.manual||b.confidence>=.35));
  if(!beats.length)fail('Add manual beat anchors or analyze a song with a clear beat first.');
- const boundaries=[{frame:0,id:null,error:0}];
- for(let seconds=shotSeconds;seconds<analysis.duration-.5;seconds+=shotSeconds){
+ const boundaries=adaptive?musicalBoundaries(analysis,beats,end,shotSeconds):[{frame:0,id:null,error:0}];
+ for(let seconds=shotSeconds;!adaptive&&seconds<analysis.duration-.5;seconds+=shotSeconds){
   const target=seconds*analysis.sampleRate;
   const nearest=beats.reduce((a,b)=>Math.abs(b.sample-target)<Math.abs(a.sample-target)?b:a);
   const exact=nearest.sample/analysis.sampleRate*24,frame=Math.round(exact);
   if(Math.abs(nearest.sample-target)/analysis.sampleRate>1)fail('The beat map has a gap. Add manual anchors before making shots.');
   if(frame>boundaries.at(-1).frame&&frame<end)boundaries.push({frame,id:nearest.id,error:frame-exact});
  }
- boundaries.push({frame:end,id:null,error:0});
+ if(!adaptive)boundaries.push({frame:end,id:null,error:0});
  if(boundaries.length-1>120)fail('This board exceeds 120 shots. Use longer shots.');
  const revision=plan.revision+1,sectionId=`section-${revision}`,sceneId=`scene-${revision}`;
  const shots=boundaries.slice(0,-1).map((b,i)=>({id:`shot-${revision}-${i+1}`,revision:0,sectionId,sceneId,startFrame:b.frame,endFrame:boundaries[i+1].frame,anchorIds:[b.id,boundaries[i+1].id].filter(Boolean),snapErrorFrames:b.error,generationUnitId:null,sourceInFrame:0,narrative:`Shot ${i+1}`,camera:'',look:'',prompt:'',referenceIds:[],performance:false,modelProfile:null,selectedTakeId:null}));

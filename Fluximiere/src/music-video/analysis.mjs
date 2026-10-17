@@ -21,7 +21,7 @@ export function analyzeMusic(input, { signal } = {}) {
   const hop = Math.max(1, Math.round(sampleRate * .005));
   const frames = Math.ceil(mono.length / hop);
   // Reserve input, energy/onset buffers and conservative space for bounded result objects.
-  const workingBytes = mono.byteLength + frames * 8 + MUSIC_ANALYSIS_LIMITS.beats * 512 + 64 * 1024;
+  const workingBytes = mono.byteLength + frames * 8 + MUSIC_ANALYSIS_LIMITS.beats * 512 + 64 * 1024 + 180 * 256;
   if (workingBytes > MUSIC_ANALYSIS_LIMITS.workingBytes) throw new Error('Analysis exceeds the 16 MiB budget. Use a lower-rate mono proxy.');
   const energy = new Float32Array(frames), onset = new Float32Array(frames);
   let maxEnergy = 0, maxOnset = 0, sumEnergy = 0;
@@ -40,17 +40,21 @@ export function analyzeMusic(input, { signal } = {}) {
   if (maxEnergy < 1e-10 || sumEnergy / frames < 1e-12) return { ...base, status:'silent', warnings:['No usable musical onsets were found. Add manual anchors.'] };
   const events = [];
   const minDistance = Math.max(1, Math.round(.09 * sampleRate / hop));
+  const neighborhood = Math.max(1, Math.round(.75 * sampleRate / hop));
   for (let f = 0; f < frames; f++) {
     if (!(f % 256)) abort(signal);
     const strength = onset[f];
-    if (strength < maxOnset * .045 || strength <= 1e-12 || (f && strength < onset[f-1]) || (f+1 < frames && strength <= onset[f+1])) continue;
+    if (strength <= Math.max(1e-12,maxOnset*1e-5) || (f && strength < onset[f-1]) || (f+1 < frames && strength <= onset[f+1])) continue;
+    // Judge local transients against their passage, not the loudest hit in the song.
+    let scale=0;for(let j=Math.max(0,f-neighborhood);j<Math.min(frames,f+neighborhood+1);j++)scale=Math.max(scale,onset[j]);
+    if(strength<scale*.045)continue;
     let local = 0, count = 0;
     for (let j = Math.max(0,f-20); j < f; j++) { local += onset[j]; count++; }
     if (count && strength < local / count * 2.2) continue;
     const previous = events.at(-1);
-    if (previous && f - previous.frame < minDistance) { if (strength > previous.strength) { previous.frame = f; previous.strength = strength; } continue; }
+    if (previous && f - previous.frame < minDistance) { if (strength > previous.strength) { previous.frame = f; previous.strength = strength; previous.scale=scale; } continue; }
     if (events.length === MUSIC_ANALYSIS_LIMITS.beats) throw new Error('Too many onset candidates; use manual musical anchors.');
-    events.push({ frame:f, strength });
+    events.push({ frame:f, strength, scale });
   }
   const intervals = [];
   for (let i=1;i<events.length;i++) { const seconds=(events[i].frame-events[i-1].frame)*hop/sampleRate; if(seconds>=.25&&seconds<=1.5) intervals.push(seconds); }
@@ -69,12 +73,23 @@ export function analyzeMusic(input, { signal } = {}) {
   base.status=base.confidence>=.55?'measured':'uncertain';
   base.warnings.push('Tempo and half/double-time candidates are suggestions. Review the beat map before directing.');
   if(base.status==='uncertain')base.warnings.push('Rhythm confidence is low or tempo varies. Add manual anchors where needed.');
-  base.beats=events.map((e,i)=>({id:`beat-${i}`,sample:Math.min(canonicalSampleCount-1,Math.round(e.frame*hop/sampleRate*canonicalSampleRate)),confidence:Math.min(.8,clamp(e.strength/maxOnset)*Math.max(.2,base.confidence)),manual:false}));
+  base.beats=events.map((e,i)=>({id:`beat-${i}`,sample:Math.min(canonicalSampleCount-1,Math.round(e.frame*hop/sampleRate*canonicalSampleRate)),confidence:Math.min(.8,clamp(e.strength/e.scale)*Math.max(.2,base.confidence)),manual:false}));
   for(let i=8;i<events.length-4;i+=4) {
     const before=(events[i].frame-events[i-4].frame), after=(events[i+4].frame-events[i].frame);
     if(before&&Math.abs(after/before-1)>.18)base.changePoints.push({id:`change-${i}`,sample:base.beats[i].sample,confidence:.4,suggested:true});
   }
   abort(signal);
+  // Bounded one-second summaries keep musical dynamics after PCM is released.
+  const dynamics=[];
+  for(let second=0;second<duration;second++){
+    const from=Math.floor(second*sampleRate/hop),to=Math.min(frames,Math.ceil((second+1)*sampleRate/hop));let sum=0;
+    for(let f=from;f<to;f++)sum+=energy[f];
+    dynamics.push({startSample:Math.round(second*canonicalSampleRate),endSample:Math.min(canonicalSampleCount,Math.round((second+1)*canonicalSampleRate)),energy:Math.sqrt(sum/Math.max(1,to-from)),activity:events.filter(e=>e.frame*hop/sampleRate>=second&&e.frame*hop/sampleRate<second+1).length/Math.min(1,duration-second)});
+  }
+  const percentile=key=>{const sorted=dynamics.map(w=>w[key]).sort((a,b)=>a-b);return sorted[Math.floor((sorted.length-1)*.9)]||sorted.at(-1)||1;},energyScale=percentile('energy'),activityScale=percentile('activity');
+  base.dynamics=dynamics.map(w=>({...w,energy:clamp(w.energy/energyScale),activity:clamp(w.activity/activityScale)}));
+  for(let i=1;i<base.dynamics.length;i++){const before=base.dynamics[i-1],now=base.dynamics[i],change=Math.abs(now.energy-before.energy);if(change>=.3&&!base.changePoints.some(c=>Math.abs(c.sample-now.startSample)<canonicalSampleRate/2))base.changePoints.push({id:`energy-change-${i}`,sample:now.startSample,confidence:Math.min(.8,change),suggested:true});}
+  base.changePoints.sort((a,b)=>a.sample-b.sample);
   return base;
 }
 

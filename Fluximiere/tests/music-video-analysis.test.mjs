@@ -1,7 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {analyzeMusic,applyMusicAnchors} from '../src/music-video/analysis.mjs';
+import {buildBeatStoryboard,compileShotTiming} from '../src/music-video/timing.mjs';
+import {createMusicVideoPlan,validateMusicVideoPlan} from '../src/music-video/model.mjs';
+import {decodeRecipe,encodeRecipe} from '../src/music-video/recipe.mjs';
 const hash='a'.repeat(64);
+test('actual soft-to-loud audio controls pacing and survives manual correction and recipe reopening',()=>{
+ const input=clicks(120,40);for(let i=0;i<input.mono.length/2;i++)input.mono[i]*=.2;
+ const measured=analyzeMusic({...input,canonicalSampleRate:48000,canonicalSampleCount:1920000});assert.equal(measured.dynamics.length,40);assert.ok(measured.dynamics[5].energy<measured.dynamics[25].energy*.3);assert.ok(measured.changePoints.some(c=>c.sample===20*48000));
+ const automatic=buildBeatStoryboard({id:'automatic',revision:0,fps:24,song:{hash,duration:40},shots:[],locks:[]},measured);assert.equal(compileShotTiming(automatic,measured).coverage.complete,true);assert.ok(automatic.shots.some(s=>s.startFrame>0&&s.endFrame<480));
+ const a=applyMusicAnchors(measured,[{startSample:0,endSample:1920000,beats:Array.from({length:80},(_,i)=>i*24000)}],0);assert.deepEqual(a.dynamics,measured.dynamics);
+ const plan=createMusicVideoPlan({song:{assetId:'song',role:'song',hash,mime:'audio/wav',bytes:640044,duration:40,sampleRate:48000,sampleCount:1920000},analysis:a});const board=validateMusicVideoPlan(buildBeatStoryboard(plan,a));
+ const mean=list=>list.reduce((sum,s)=>sum+s.endFrame-s.startFrame,0)/list.length;assert.ok(mean(board.shots.filter(s=>s.endFrame<=480))>mean(board.shots.filter(s=>s.startFrame>=480))*1.5);const reopened=decodeRecipe(encodeRecipe(board));assert.deepEqual(reopened.analysis.dynamics,a.dynamics);assert.equal(compileShotTiming(reopened).coverage.complete,true);
+ for(const dynamics of [[{...a.dynamics[0],energy:2}],a.dynamics.slice(1),[{...a.dynamics[0],endSample:0}]])assert.throws(()=>validateMusicVideoPlan({...plan,analysis:{...a,dynamics}}));
+});
 function clicks(bpm,duration=20,rate=8000){const mono=new Float32Array(duration*rate);for(let t=0;t<duration;t+=60/bpm){const n=Math.round(t*rate);for(let j=0;j<40&&n+j<mono.length;j++)mono[n+j]=(1-j/40)*(j%2?-.8:.8);}return{mono,sampleRate:rate,sourceHash:hash};}
 for(const bpm of [90,120,150])test(`measures ${bpm} BPM clicks in canonical samples`,()=>{const data=clicks(bpm);const a=analyzeMusic({...data,canonicalSampleRate:48000,canonicalSampleCount:960000});assert.equal(a.sampleRate,48000);assert.equal(a.sampleCount,960000);assert.equal(a.duration,20);assert.ok(a.tempoCandidates.some(c=>Math.abs(c.bpm-bpm)<2));assert.ok(a.beats.length>=Math.floor(20*bpm/60)-1);for(const beat of a.beats){const phase=beat.sample/48000/(60/bpm);assert.ok(Math.abs(phase-Math.round(phase))*60/bpm<.015);assert.ok(Number.isFinite(beat.confidence)&&beat.confidence>=0&&beat.confidence<=1);}});
 test('silence has no confidently invented beats or tempo',()=>{const a=analyzeMusic({mono:new Float32Array(8000),sampleRate:8000,sourceHash:hash});assert.equal(a.status,'silent');assert.equal(a.beats.length,0);assert.equal(a.tempoCandidates.length,0);assert.equal(a.confidence,0);});

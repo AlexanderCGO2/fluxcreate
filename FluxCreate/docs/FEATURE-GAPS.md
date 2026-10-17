@@ -109,3 +109,10 @@ The requested Fluximiére music-video mode now has a researched [product and arc
 Each director proposal now chooses reference images, a start frame, or start-and-end frames for every unlocked shot, with a reason, frame prompts and a scene-continuity approach. Decisions use duration, movement, identity and transitions; duration alone does not require an end frame. Continuous-scene intent describes longer actions that could later supply several short editorial cuts, without changing the beat-aligned timing or claiming a shared generated take already exists.
 
 Choices can be reviewed before applying, edited in each storyboard card, saved, locked and exported in the recipe. Older shots remain explicitly unplanned until a decision is made. Visual-plan changes invalidate dependent takes. This is planning only: image/video generation, supported-provider input checks, duration checks and approved-cost execution remain open. Gemini audio capability remains blocked as documented in the preview release; tests use mocked proposals and incur no generation charges. See [verification](RELEASE-VISUAL-PLANNING-2026-10-17.md).
+
+
+## Music-led shot pacing — 17 October 2026
+
+New storyboards default to Follow the music. Bounded one-second relative energy and rhythmic-activity measurements guide local shot length; nearby measured change cues favor cuts on available beats. Energetic/cinematic controls bias the feel instead of imposing a repeated duration. Uniform music may produce repeated lengths; no random variation is added. Older maps fall back to local beat density and show a prompt to reanalyze for energy data. Manual beat corrections retain measured dynamics. Locked/reviewed shots cannot be overwritten by rebuilding.
+
+This remains deterministic audio-feature timing, not semantic verse/chorus or lyric understanding. Final holds can be longer to avoid short leftover flashes; pacing-window diagnostics remain available. Numeric timing calls remain compatible for older callers/tests, but the studio UI uses adaptive modes. See [verification](RELEASE-MUSIC-PACING-2026-10-17.md).
