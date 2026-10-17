@@ -32,3 +32,12 @@ Release gates passed: **776 tests**, both strict TypeScript configurations, nine
 ## Provider contract references
 
 Reviewed [Vercel Chat Completions REST API](https://vercel.com/docs/ai-gateway/sdks-and-apis/openai-chat-completions/rest-api), [live Gateway model catalog](https://ai-gateway.vercel.sh/v1/models), and [Google Gemini 4 Argon](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon). The catalog confirms text/image input for the selected model. Runtime checks enforce this instead of assuming availability. Audio listening is not used by Autoedit.
+
+## Deployment evidence
+
+- Runtime commit: `97e01b705c0a52a8fd1f0e42861936a0f221f524`.
+- Vercel deployment: `dpl_2cDfooGpZ7zoVabQ6f7fkiQPLVBm`, READY in `flux-ai-inc`.
+- Production: [Fluximiére](https://fluxcreate.vercel.app/fluximiere/). Open **Autoedit** beside Music video.
+- Verified 2026-10-17T12:31:53.826Z: 32 live checks passed, including exact browser bundles for all nine apps, five MCP discovery/resource checks, Flux AI deployment readiness and authentication on all deployments.
+- Three additional Autoedit checks passed: exact shared music worker; authenticated route rejects missing inputs before inference; anonymous Autoedit access is blocked. No paid generations were used.
+- The documentation-only follow-up records these results; the deployed runtime is the commit above.
