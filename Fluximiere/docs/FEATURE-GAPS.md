@@ -148,3 +148,10 @@ Gemini multimodal direction is implemented behind strict capability checks, with
 Still open: canonical PCM retention and director FFmpeg/cut-tool execution; multi-section creative timing; frame generation and Pruna takes; approved quotes/spend limits; app ownership/private hosted media; native v3/packages; durable background jobs; take review/assembly and full-song decoded export qualification. Reduced-resolution listening is for direction, not sample-accurate performance alignment. Unapplied direction proposals are temporary; durable resumable passes remain a later milestone. No paid generations were run.
 
 See [implementation status](../../FluxCreate/docs/RELEASE-MUSIC-VIDEO-PREVIEW-2026-10-17.md) and [remaining tasks](../../FluxCreate/docs/superpowers/plans/2026-10-17-fluximiere-music-video-ai.md).
+
+
+## Director image strategies — 17 October 2026
+
+Each director proposal now chooses reference images, a start frame, or start-and-end frames for every unlocked shot, with a reason, frame prompts and a scene-continuity approach. Decisions use duration, movement, identity and transitions; duration alone does not require an end frame. Continuous-scene intent describes longer actions that could later supply several short editorial cuts, without changing the beat-aligned timing or claiming a shared generated take already exists.
+
+Choices can be reviewed before applying, edited in each storyboard card, saved, locked and exported in the recipe. Older shots remain explicitly unplanned until a decision is made. Visual-plan changes invalidate dependent takes. This is planning only: image/video generation, supported-provider input checks, duration checks and approved-cost execution remain open. Gemini audio capability remains blocked as documented in the preview release; tests use mocked proposals and incur no generation charges. See [verification](../../FluxCreate/docs/RELEASE-VISUAL-PLANNING-2026-10-17.md).

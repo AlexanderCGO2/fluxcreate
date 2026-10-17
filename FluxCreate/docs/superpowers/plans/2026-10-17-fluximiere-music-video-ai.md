@@ -172,3 +172,10 @@ Implementation was authorized by the user on 17 October 2026. Paid generation st
 ## Long-song upload amendment — 17 October 2026
 
 User requested uploads beyond 180 seconds. The preview now prepares exactly the first 180 seconds at 48 kHz PCM16 with a linear fade from 175 seconds to silence at the endpoint. Full original bytes are retained separately, downloadable, and referenced in the recipe. Preview, analysis/listening and animatic use the same derivative; short songs remain unchanged. Incremental decoding is bounded to the excerpt. Upload budget is 64 MiB, board budget 128 MiB. This does not extend generated film duration beyond three minutes or close paid-generation milestones. See [release checks](../../RELEASE-LONG-SONGS-2026-10-17.md).
+
+
+## Director image strategies — 17 October 2026
+
+Each director proposal now chooses reference images, a start frame, or start-and-end frames for every unlocked shot, with a reason, frame prompts and a scene-continuity approach. Decisions use duration, movement, identity and transitions; duration alone does not require an end frame. Continuous-scene intent describes longer actions that could later supply several short editorial cuts, without changing the beat-aligned timing or claiming a shared generated take already exists.
+
+Choices can be reviewed before applying, edited in each storyboard card, saved, locked and exported in the recipe. Older shots remain explicitly unplanned until a decision is made. Visual-plan changes invalidate dependent takes. This is planning only: image/video generation, supported-provider input checks, duration checks and approved-cost execution remain open. Gemini audio capability remains blocked as documented in the preview release; tests use mocked proposals and incur no generation charges. See [verification](../../RELEASE-VISUAL-PLANNING-2026-10-17.md).

@@ -102,3 +102,10 @@ The 16 October editor release is published as [7c944c5](https://github.com/Alexa
 ## Planned Music Video AI mode — 17 October 2026
 
 The requested Fluximiére music-video mode now has a researched [product and architecture plan](MUSIC-VIDEO-AI-PLAN.md) and [implementation checklist](superpowers/plans/2026-10-17-fluximiere-music-video-ai.md). It covers concept/character/scene/song input, music analysis, latest-Gemini scene/sub-scene planning with direct FFmpeg/PCM cut tools (no separate audio agent), beat-aligned pacing of 2–5 cuts per 10 seconds, precise audio excerpts, opening-frame generation, Pruna Pro/Pro Reference takes and editable assembly. Durable hosted runs, owner-scoped asset storage and reference-aware provider adapters are prerequisites. **Planning only: no new feature is implemented or deployed by these documents.** Existing editor gaps remain open.
+
+
+## Director image strategies — 17 October 2026
+
+Each director proposal now chooses reference images, a start frame, or start-and-end frames for every unlocked shot, with a reason, frame prompts and a scene-continuity approach. Decisions use duration, movement, identity and transitions; duration alone does not require an end frame. Continuous-scene intent describes longer actions that could later supply several short editorial cuts, without changing the beat-aligned timing or claiming a shared generated take already exists.
+
+Choices can be reviewed before applying, edited in each storyboard card, saved, locked and exported in the recipe. Older shots remain explicitly unplanned until a decision is made. Visual-plan changes invalidate dependent takes. This is planning only: image/video generation, supported-provider input checks, duration checks and approved-cost execution remain open. Gemini audio capability remains blocked as documented in the preview release; tests use mocked proposals and incur no generation charges. See [verification](RELEASE-VISUAL-PLANNING-2026-10-17.md).
