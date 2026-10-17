@@ -18,7 +18,7 @@ Regression tests cover binary validation/history, 48-source metadata with a 500 
 
 Browser testing uses 16 distinct local videos totaling 601,598,011 bytes (about 574 MiB), including a 124,409,761-byte original (about 119 MiB), plus a repeated file. Import, duplicate skipping, Autoedit reload, timeline reload, native project export/import and actual picture/sound export passed. The user's originals were read only and are not included in the repository. The 512 MiB ceiling is validated in code; the largest real source in this test was 119 MiB.
 
-Existing audio playback, scratching, precise export and linked picture/sound browser regressions passed. Final release gates passed: 782 unit tests, both strict TypeScript configurations, all nine app builds, packaged Autoedit acceptance, 36 hosted browser checks and six MCP checks. Audio synchronization/cancellation and ten-minute fractional-frame-rate export passed after the iterator change. Live song-test results are recorded below once completed.
+Existing audio playback, scratching, precise export and linked picture/sound browser regressions passed. Final release gates passed: 782 unit tests, both strict TypeScript configurations, all nine app builds, packaged Autoedit acceptance, 36 hosted browser checks and six MCP checks. Audio synchronization/cancellation and ten-minute fractional-frame-rate export passed after the iterator change. The completed live song-test results are recorded below.
 
 Remaining constraints: ten minutes per imported Autoedit video; soundtrack edits up to three minutes with the existing fade behavior; 96 MiB decoded sound budget; browser codecs; no background completion after closing the tab; no proxy/offline-native acceleration yet. Use current Chrome or Edge for the tested path. Binary originals improve storage and memory behavior but do not make full-resolution decoding free.
 
@@ -31,3 +31,12 @@ The corrected live pass completed in four Gemini requests. An earlier four-reque
 The final full-length 640×360 preview is 42,620,036 bytes, with VP9 video and stereo Opus audio. Independent container inspection reports 180-second picture and sound tracks. Browser playback/decode reports 180.02 seconds of container duration and 180.0135 seconds of decoded sound (codec padding under one frame); non-silent sound and the ending fade were measured. Rendered frames at 12, 90 and 165 seconds were visually inspected. No user media or generated project/preview files are committed to Git.
 
 Reopening the binary project exposed a source-duration hook still assuming text media. It was fixed; a browser regression now verifies manual slip editing and Undo on the actual large original after native-file import. The same hook supplies source measurements for rolling/slide controls.
+
+## Deployment evidence
+
+- Runtime commit: `34cb7e21ef0ba558accd35980f47b1c1286c4612`.
+- Vercel deployment: `dpl_57mRcnFjaY5hDzr9nzZfuQ6XmG7K`, READY in `flux-ai-inc`.
+- Production: [Fluximiére](https://fluxcreate.vercel.app/fluximiere/).
+- Verified 2026-10-17T13:21:04.073Z: 32 live checks passed, including exact browser bundles for all nine apps, five MCP discovery/resource checks, Flux AI deployment readiness and authentication on all deployments.
+- Three additional Autoedit checks passed: exact shared music worker; authenticated route rejects missing inputs before inference; anonymous Autoedit access is blocked. These deployment checks used no paid inference; the authorized pilot above used eight requests.
+- This documentation-only follow-up records the results; the deployed runtime is the commit above.
