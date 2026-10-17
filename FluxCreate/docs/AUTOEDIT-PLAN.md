@@ -1,6 +1,6 @@
 # Fluximiére Autoedit
 
-Requested mode: upload existing videos and a soundtrack; an editor agent analyzes the footage and music, then creates an editable cut aligned with the song. This is separate from Music Video Studio's generated footage workflow. Status: planned, not implemented or deployed.
+Requested mode: upload existing videos and a soundtrack; an editor agent analyzes the footage and music, then creates an editable cut aligned with the song. This is separate from Music Video Studio's generated footage workflow. Status: implementation and verification in progress; core local editing, Gemini sampled-frame direction, browser checkpoints and editable timeline handoff are built. See [release details and limits](RELEASE-AUTOEDIT-2026-10-17.md).
 
 ## User flow
 
