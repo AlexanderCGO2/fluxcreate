@@ -19,3 +19,11 @@ Initial verification: all 763 suite tests and both strict TypeScript checks pass
 Final review found that overlapping manual corrections split anchor records while existing shots keep the original beat identities. Reanalysis now preserves those retained manual beat identities too. A failing-then-passing regression verifies that the saved storyboard still compiles after refreshing a split manual grid. Final checks include this additional regression.
 
 The requested separate uploaded-footage mode is specified in [Autoedit plan](AUTOEDIT-PLAN.md); it is not part of this bug-fix runtime.
+
+## Production verification
+
+Runtime commit: `d30e20e4c1caa109a00535529313546e74135314`. Deployment: `dpl_7wUGkhY76W363UrG3rZss266ErUx`, READY under Flux AI at 2026-10-17T00:38:39.487Z. [Open Fluximiére](https://fluxcreate.vercel.app/fluximiere/).
+
+Final verification passed all 764 suite tests, both strict TypeScript checks, production builds and the packaged reanalysis browser regression. Live verification passed 32 suite checks plus three music worker/route checks; exact deployed browser bundles and the music-analysis worker match the tested build. Authentication remains enabled on every deployment. No paid model requests.
+
+Refresh the page, reopen Music Video Studio, choose **Analyze music again**, then **Create beat storyboard**. Existing media and manual corrections remain saved.
