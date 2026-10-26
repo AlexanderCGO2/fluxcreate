@@ -1,4 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
+import {GenerationModes} from './GenerationModes.jsx';
 import {Music2,LoaderCircle,RefreshCw,ArrowDownToLine,Save,Send} from 'lucide-react';
 import {request} from './client.mjs';
 import {materializeAudioResult} from './audio.mjs';
@@ -12,7 +13,7 @@ import {sendLabResult} from '../../FluxCreate/shared/asset-handoff.mjs';
 import {subscribeConnectionChanges} from '../../FluxCreate/shared/connection-events.mjs';
 import './music.css';
 
-export function MusicControls({visible,onLibraryChange,incomingRecipe,onLoadOther}){
+export function MusicControls({visible,onLibraryChange,incomingRecipe,onLoadOther,onSelectMode,navigationDisabled=false}){
  const[draft,setDraft]=useState({...EMPTY_MUSIC_DRAFT}),[record,setRecord]=useState(null),[ready,setReady]=useState(false),[status,setStatus]=useState(null),[busy,setBusy]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState(''),[result,setResult]=useState(null),[saved,setSaved]=useState(false),[ack,setAck]=useState(false),[target,setTarget]=useState('fluximiere');
  const busyRef=useRef(''),controller=useRef(null),mounted=useRef(true),revision=useRef(null),dirty=useRef(false),loadVersion=useRef(0),statusVersion=useRef(0),root=useRef(null),recordRef=useRef(null),loadedMusicRecipe=useRef(null);
  function adopt(value,{restore=false}={}){recordRef.current=value;revision.current=value?.revision??null;setRecord(value);setAck(false);if(restore){setDraft(value?.draft||{...EMPTY_MUSIC_DRAFT});dirty.current=false;setResult(value?.job?.result||null);setSaved(false);}}
@@ -43,6 +44,7 @@ export function MusicControls({visible,onLibraryChange,incomingRecipe,onLoadOthe
  async function clear(){if(uncertain&&!ack)return;await action('clear',async()=>{if(result&&!saved)throw Error('Save this result to My library before starting a new request.');const next=await clearMusicJob(revision.current);adopt(next);setResult(null);setSaved(false);setNotice('Ready for a new music request.');});}
  return <section className="music-studio" ref={root} aria-label="Music studio"><header className="music-heading"><span className="music-icon"><Music2 size={28}/></span><div><div className="eyebrow">FLUXLAB · MUSIC</div><h1>Give your idea a soundtrack.</h1><p>Original music, ready for your next scene.</p></div></header>
  <div className="music-grid"><section className="prompt-card"><div className="card-heading"><div><h2>Compose a moment</h2><p>ElevenLabs Music v2 · Cloudflare</p></div></div>
+ <GenerationModes value="music" onChange={onSelectMode} disabled={navigationDisabled||!!busy}/>
  <div className={'music-connection '+(status?.available?'ready':'')}><strong>{status?.available?'Cloudflare connected':'Cloudflare music needs a connection'}</strong><p>{status?.available?'Billed to your '+(status.mode==='personal'?'personal':'workspace')+' Cloudflare connection.':status?.reason||'Checking your music connection…'}</p><small>Configure Cloudflare and enable music in General settings.</small><button type="button" disabled={!!busy} onClick={connection}><RefreshCw size={14}/>Check status</button></div>
  <fieldset disabled={!ready||!!busy}><label className="prompt-label" htmlFor="music-prompt">YOUR MUSIC BRIEF <span>{draft.prompt.length} / 2,000</span></label><textarea id="music-prompt" aria-label="Music prompt" maxLength={2000} rows={6} placeholder="Warm piano, soft strings, a hopeful atmosphere. A gentle build for a short brand film…" value={draft.prompt} onChange={e=>change({prompt:e.target.value})}/>
  <div className="music-settings"><label>Length in seconds<input type="number" aria-label="Music length in seconds" min={3} max={60} step={1} value={draft.durationSeconds} onChange={e=>change({durationSeconds:Number(e.target.value)})}/></label><label className="music-check"><input type="checkbox" checked={draft.instrumental} onChange={e=>change({instrumental:e.target.checked})}/>Instrumental only</label></div><p className="music-note">{draft.instrumental?'Create music without vocals.':'Vocals are allowed; their inclusion is chosen by the model.'} One MP3, 3–60 seconds.</p>
