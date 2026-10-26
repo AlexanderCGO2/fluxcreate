@@ -1,0 +1,28 @@
+name: Feature or workflow improvement
+description: Describe a concrete creative workflow and its current obstacle.
+title: "[Feature]: "
+body:
+  - type: input
+    id: studio
+    attributes:
+      label: Studio or cross-app workflow
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to create?
+      description: Explain the input, desired output and where the current workflow stops.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior and acceptance example
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: File compatibility or other constraints
+      description: Specify formats, typical sizes and a practical supported subset.

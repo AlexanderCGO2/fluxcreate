@@ -8,7 +8,9 @@
   },
   "scripts": {
     "build": "node FluxCreate/deploy/build.mjs",
-    "test": "node FluxCreate/deploy/check.mjs"
+    "test": "node FluxCreate/deploy/check.mjs",
+    "secrets:check": "node scripts/check-secrets.mjs",
+    "secrets:history": "node scripts/check-secrets.mjs --history"
   },
   "dependencies": {
     "ai": "5.0.216",

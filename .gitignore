@@ -14,3 +14,22 @@ artifacts/
 **/.staging-dist/
 **/server-dist/
 **/target/
+
+# Public templates are placeholders; all real environments stay ignored.
+!.env.example
+.pnpm-store/
+**/.aws/
+**/.ssh/
+**/.gnupg/
+**/.auth/
+*.log
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.pem
+*.key
+*.p12
+*.pfx
+*.har
+playwright-report/
+test-results/

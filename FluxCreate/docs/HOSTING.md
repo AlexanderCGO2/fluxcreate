@@ -1,6 +1,6 @@
 # FluxCreate hosting
 
-The complete suite lives in the sibling `FluxCreateSuite` release repository. `scripts/prepare-release.mjs` copies only source, documentation, public assets and package manifests from the ten working folders; it never copies `.data`, local environments, browser artifacts, dependencies or Git internals. Internal IDs and source folder names remain unchanged so existing files keep opening after the Fluxfoto, FluxDesign and Fluximiére display rename.
+The complete suite is this monorepo. Install and build from its root; no maintainer-specific sibling folders are required. The legacy sibling-folder assembler refuses to create a nested release inside this workspace. Its copy filter excludes environment files, private configuration, runtime databases, generated bundles and artifacts; existing root documentation and ignore rules are preserved. Internal app IDs remain stable for native project compatibility.
 
 Use Node 24 and the pinned pnpm version. Install with `pnpm install --frozen-lockfile`, then run `pnpm build`. The release build creates nine browser entry points, the bundled Node API and the FluxLab MCP App resource. Vercel serves the generated `dist` directory; one dispatcher routes `/api/<app>/<operation>`.
 
@@ -24,7 +24,7 @@ Projects and generated results are stored in this browser's IndexedDB. Recent do
 
 Localhost and deployed domains have separate browser storage. Export native project files to move existing work to the deployed site. The suite does not yet synchronize projects across devices.
 
-Protect **all deployments** using Vercel Authentication before adding the server-only `AI_GATEWAY_API_KEY`. The shared connection can make billable model requests, so anonymous production access is inappropriate for this personal workspace. `FLUXINI_MODEL` optionally selects the editing model. FluxLab chooses models from the live Gateway catalog. No key is embedded in a browser bundle, file export or MCP UI resource.
+Protect **all deployments** using Vercel Authentication before adding the server-only `AI_GATEWAY_API_KEY`. The shared connection can make billable model requests, so anonymous production access is inappropriate for this personal workspace. `FLUXINI_MODEL` optionally selects the editing model. FluxLab chooses models from the live Gateway catalog. Configured connection credentials stay server-side and are not fields in supported project/recipe exports or the MCP UI. This does not scrub secrets a user types into prompts or document content. Run the repository credential checks before publication.
 
 FluxLab's external MCP App retains local stdio support with the official SDK. The floating helpers also use protected HTTP MCP routes at `/api/<app>/mcp`, with the same deployment authentication and personal connection isolation as the other AI routes. These browser routes require the workspace origin and MCP header; they are not an anonymous public MCP service. The release bundles the MCP App HTML resource so resource reads do not depend on a runtime source-directory layout. See [floating AI implementation](FLOATING-AI-IMPLEMENTATION.md).
 

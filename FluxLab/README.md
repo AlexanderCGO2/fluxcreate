@@ -25,7 +25,7 @@ The local server exposes:
 
 Generation has a two-minute timeout and supports AbortSignal cancellation. Cancelling stops waiting and requests upstream cancellation; a provider may still charge for work already done. A service instance bounds generation per immutable connection scope. This is local concurrency protection, not a distributed quota or billing limit. Set account budgets/access controls for hosted deployment.
 
-The backend reads at most 8 MiB of an upstream JSON response and returns less than 4 MiB. Image payloads are capped at 3.5 million base64 characters, keeping results below Vercel's response limit. Oversized images fail with smaller-output guidance. PNG, JPEG and WebP dimensions are checked before transfer, with an 8192-pixel side limit and a 32-megapixel budget; browser decoding also validates usable assets before saving. Remote image URLs are not fetched: providers must return embedded image data. FluxLab generates one image per request. Optional editor image-edit tools accept one explicit embedded reference with the same format/size/dimension checks; the main FluxLab studio has no reference-upload mode. Music and sound effects remain unavailable. Text may be truncated at the chosen output token limit, with a warning.
+The backend reads at most 8 MiB of an upstream JSON response and returns less than 4 MiB. Image payloads are capped at 3.5 million base64 characters, keeping results below Vercel's response limit. Oversized images fail with smaller-output guidance. PNG, JPEG and WebP dimensions are checked before transfer, with an 8192-pixel side limit and a 32-megapixel budget; browser decoding also validates usable assets before saving. Remote image URLs are not fetched: providers must return embedded image data. FluxLab generates one image per request. Optional editor image-edit tools accept one explicit embedded reference with the same format/size/dimension checks; the main FluxLab studio has no reference-upload mode. Music is available through the separate Cloudflare Music workspace described below; sound-effect generation remains unavailable. Text may be truncated at the chosen output token limit, with a warning.
 
 ## External MCP App
 
@@ -82,7 +82,7 @@ Primary references: [Gateway model discovery](https://vercel.com/docs/ai-gateway
 
 ## Video and audio
 
-The studio has Text, Image, Video and Speech modes. Video offers text-to-video models identified by the live catalog's supported operations, with each model's supported duration/aspect ratio settings. Speech reads a script aloud, with documented voices and MP3/WAV output for the supported Google, Microsoft and OpenAI models present in the live catalog. Saved speech remains an Audio asset. A catalog entry does not guarantee account eligibility or available credits. Music, sound effects, voice cloning, video/audio reference inputs and transcription are not included. The separate editor image-reference path is described above.
+The studio has Image, Text, Video, Speech and Music selectors. Video offers text-to-video models identified by the live catalog's supported operations, with each model's supported duration/aspect ratio settings. Speech reads a script aloud, with documented voices and MP3/WAV output for the supported Google, Microsoft and OpenAI models present in the live catalog. Saved speech remains an Audio asset. A catalog entry does not guarantee account eligibility or available credits. Music uses the separate Cloudflare path below. Sound effects, voice cloning, video/audio reference inputs and transcription are not included. The separate editor image-reference path is described above.
 
 Video uses Gateway's asynchronous start/status protocol. A request ID is saved before submission and reused after an uncertain response; Gateway idempotency prevents a retry of that submission from creating another paid job. Signed job tickets can be checked after a page reload or server restart. Pause stops checking, not the provider render. Ticket recovery lasts seven days and requires the same Gateway connection; rotating its key invalidates earlier tickets. Provider media may expire sooner. Download completed media promptly.
 
@@ -122,3 +122,9 @@ Build, 69 unit checks, 12 studio browser groups, nine media/recovery groups, eig
 ## Music-video director preview
 
 Fluximiére uses the same scoped AI Gateway connection through a bounded multimodal Gemini director route. It currently exposes analysis/beat-grid/timing-preview tools; it does not execute canonical audio cuts or video generation. Live Gemini 4 Argon listening is blocked because Gateway's current catalog does not advertise audio input. See [preview status](../FluxCreate/docs/RELEASE-MUSIC-VIDEO-PREVIEW-2026-10-17.md). No paid pilot has run.
+
+## Music workspace
+
+Music is a peer option beside Image, Text, Video and Speech, with the same selector available inside its composer. Switching preserves the current visual/text draft and the mounted music draft. Save music drafts explicitly for reload recovery.
+
+The implemented path uses ElevenLabs Music v2 through Cloudflare, with one 3–60 second MP3 request, an optional instrumental preference, local request-outcome protection, library saving and reviewed handoff to the motion editors. Configure and enable the Cloudflare connection in General settings. This is not a durable cross-device music job service; uncertain requests are never automatically resubmitted. Provider account access and billing apply. See [Cloudflare setup](../FluxCreate/docs/CLOUDFLARE-AI-GATEWAY.md).

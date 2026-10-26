@@ -11,3 +11,15 @@ dist
 **/server-dist
 **/target
 **/hosted-bundle.mjs
+
+**/.aws
+**/.ssh
+**/.gnupg
+**/.auth
+**/*.sqlite*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.har
+**/*.log
