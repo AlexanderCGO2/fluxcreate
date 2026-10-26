@@ -17,8 +17,8 @@ Prepared 26 October 2026. This is a release checklist, not a public-release anno
 - [x] Redacted current-source/history/build credential-check command.
 - [x] Narrow, fingerprint-based exceptions for independently verified synthetic fixtures.
 - [x] CI configuration with pinned action commits, read-only permissions and no provider secrets.
-- [ ] CI verified on the actual preparation commit on GitHub.
-- [ ] Clean-clone onboarding verified on Windows and Linux.
+- [x] CI verified on preparation commit daa2877: [GitHub run 40300770645](https://github.com/AlexanderCGO2/fluxcreate/actions/runs/40300770645).
+- [x] Fresh-clone install, build and 784 tests passed locally on Windows; clean checkout/install/build/test CI passed on Windows and Linux.
 - [ ] Branch protection and required CI checks configured for the chosen public workflow.
 - [ ] GitHub secret scanning/push protection enabled where available.
 - [ ] GitHub private vulnerability reporting enabled and tested before public visibility.
