@@ -1,4 +1,4 @@
-# Fluxiffects: feature gaps and delivery plan
+# FluxMotion: feature gaps and delivery plan
 
 Initial audit: **9 October 2026**; delivered subsets reconciled **15 October 2026**. Reference product: **Adobe After Effects**. This is a source-based implementation audit, not a claim of feature parity or a usability certification. “Working” means the stated subset exists; “Partial” names its boundary; “Missing” means there is no complete user workflow. Priorities: P0 reliability and honest interoperability, P1 core creation, P2 advanced production, P3 specialist breadth.
 
@@ -6,7 +6,7 @@ The reference scope follows Adobe’s current [workflow overview](https://helpx.
 
 ## Current position
 
-Fluxiffects can create editable motion graphics, mix browser-supported footage, animate properties with bounded custom easing, import real animated 3D scene layers, and render PNG/WebM with sound. It remains substantially narrower than After Effects. The biggest practical gaps are masks/mattes, nested compositions, advanced animation tools, queued movie delivery, professional media/color workflows and a dependable render queue.
+FluxMotion can create editable motion graphics, mix browser-supported footage, animate properties with bounded custom easing, import real animated 3D scene layers, and render PNG/WebM with sound. It remains substantially narrower than After Effects. The biggest practical gaps are masks/mattes, nested compositions, advanced animation tools, queued movie delivery, professional media/color workflows and a dependable render queue.
 
 Evidence reviewed: `src/core.mjs`, `main.jsx`, `renderer.mjs`, `storage.mjs`, `ai-commands.mjs`, `StudioAI.jsx`, `scene-import.mjs`, `Scene3DInspector.jsx`; shared Flux3D loader/compositor; `public/bridge/Export-to-Fluxiffects.jsx`; existing import, rendering, AI, exchange and recovery tests. Existing verification is recorded in the README; it was not all rerun for this audit.
 
@@ -59,7 +59,7 @@ Every stage also needs a usable preset, plain-language controls, saved/undoable 
 
 ## Historical pause and verification record — 9 October
 
-This paragraph records the earlier planning checkpoint, not current integration status. On 9 October, new feature expansion was paused for this planning pass. Unfinished snapshot import controls were removed because the shared browser adapter does not yet exist. The source-retention/placement foundation remains isolated in `core.mjs`, `ai-commands.mjs` and `suite-object.mjs`. **Two new snapshot core tests and the Fluxiffects build pass.** The broader Node regression run passed 64 cases; two suites initially could not access dependency junctions, then passed all 27 of their cases with that access (91 passing cases in total). No paid model requests were made. This does not verify a snapshot UI or constitute a fresh browser regression run. At that checkpoint, floating-helper integration was planned. The current table now reflects delivered `SuiteObjectControls` and `FloatingMotionAI`/shared `FloatingAIHelper` integration; snapshot previews remain ordinary image layers with retained source, not live editable native objects.
+This paragraph records the earlier planning checkpoint, not current integration status. On 9 October, new feature expansion was paused for this planning pass. Unfinished snapshot import controls were removed because the shared browser adapter does not yet exist. The source-retention/placement foundation remains isolated in `core.mjs`, `ai-commands.mjs` and `suite-object.mjs`. **Two new snapshot core tests and the FluxMotion build pass.** The broader Node regression run passed 64 cases; two suites initially could not access dependency junctions, then passed all 27 of their cases with that access (91 passing cases in total). No paid model requests were made. This does not verify a snapshot UI or constitute a fresh browser regression run. At that checkpoint, floating-helper integration was planned. The current table now reflects delivered `SuiteObjectControls` and `FloatingMotionAI`/shared `FloatingAIHelper` integration; snapshot previews remain ordinary image layers with retained source, not live editable native objects.
 
 ## Audio delivery increment — 2026-10-09
 

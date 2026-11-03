@@ -1,10 +1,10 @@
-# Fluxini — Motion + Procedural
+# FluxEffects — Motion + Procedural
 
-A Windows-first procedural editor with an editable graph, water and cloud simulations, seeded particles, animated 3D text and local Flux memory. Claude uses the existing OMMAX AI Gateway connection. No LangChain or LangGraph.
+A Windows-first procedural editor with an editable graph, water and cloud simulations, seeded particles, animated 3D text and local Flux memory. Claude uses the configured AI Gateway connection. No LangChain or LangGraph.
 
 The target now covers the entire Houdini-style toolset. See the [complete-toolset roadmap](docs/FULL-TOOLSET-ROADMAP.md) for implemented capabilities, remaining domains and acceptance gates. Full parity is not implemented.
 
-![Fluxini motion study](artifacts/fluxini-motion-first-look.png)
+See the [suite README](../README.md) for setup and the [branding map](../docs/BRANDING.md) for current display names.
 
 ## Start on this PC
 
@@ -46,7 +46,7 @@ Choose a saved camera or Perspective/Top/Front/Right above the viewport. Saved c
 
 **New** and **Add → Explore FX library** share 43 editable templates in eight families. Search by effect, filter by method and favorite common presets. Water, paint, cloth and particle recipes use their respective physics solvers; cloud and smoke use artistic parcel simulation with GPU density generation when supported. The other templates use procedural motion or geometry. Every card explains its method and limits; the library disables additions that exceed scene budgets. Full production Pyro, FLIP, MPM, rigid-body fracture, hair and crowds remain future solver work, not hidden capabilities of the presets.
 
-**Fonts** opens a local typeface library: six included regular/bold styles, actual outline previews with editable sample text, search, favorites, display names and TTF/OTF/typeface-JSON import. Select a text object and choose **Typeface**, or browse/import directly in its inspector, including the full-screen graph. Imported fonts persist across restarts. Removing an imported style hides it from the library but preserves existing scenes and undo history; reimport restores it. Each file represents a static style. Color fonts, variable axes and complex-script shaping are not supported. Editable scene exports include referenced imported fonts, so copies can be reopened on another Fluxini installation. Old unwrapped project JSON still imports.
+**Fonts** opens a local typeface library: six included regular/bold styles, actual outline previews with editable sample text, search, favorites, display names and TTF/OTF/typeface-JSON import. Select a text object and choose **Typeface**, or browse/import directly in its inspector, including the full-screen graph. Imported fonts persist across restarts. Removing an imported style hides it from the library but preserves existing scenes and undo history; reimport restores it. Each file represents a static style. Color fonts, variable axes and complex-script shaping are not supported. Editable scene exports include referenced imported fonts, so copies can be reopened on another FluxEffects installation. Old unwrapped project JSON still imports.
 
 The research, solver boundaries and next implementation sequence are documented in [FX coverage](docs/IMPLEMENTATION.md#fx-coverage-and-research-september-2026).
 

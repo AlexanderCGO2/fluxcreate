@@ -14,7 +14,7 @@ const shortText = (value, label, max, optional = false) => {
   return value;
 };
 
-/** Reuse the user-authorized Fluxini connection read-only. Never expose credentials or local paths. */
+/** Reuse the user-authorized FluxEffects connection read-only. Never expose credentials or local paths. */
 const snapshotConnection=value=>value===undefined?undefined:Object.freeze({apiKey:typeof value?.apiKey==='string'&&value.apiKey.length<=4096&&!/\s/.test(value.apiKey)?value.apiKey:'',model:typeof value?.model==='string'&&value.model.length<=200&&value.model?value.model:'anthropic/claude-sonnet-5',scopeId:typeof value?.scopeId==='string'?value.scopeId.slice(0,200):'',available:value?.available!==false,cloudflare:snapshotCloudflare(value?.cloudflare)});
 const connectionScope=value=>value===undefined?'suite':createHash('sha256').update(value.apiKey+'\0'+value.scopeId).digest('hex');
 export async function connectionStatus(connection) {
@@ -25,8 +25,8 @@ export async function connectionStatus(connection) {
       const {loadConnection} = await import(pathToFileURL(path.join(fluxini, 'server/connection.mjs')).href);
       await loadConnection(process.env.FLUXINI_DATA_DIR || path.join(fluxini, '.data'));
     }
-  } catch {reason = 'The existing Flux connection is unavailable. Check the Fluxini connection settings.';}
-  if (!process.env.AI_GATEWAY_API_KEY) reason ||= 'Connect Fluxini to AI Gateway to enable live AI here.';
+  } catch {reason = 'The existing Flux connection is unavailable. Check the FluxEffects connection settings.';}
+  if (!process.env.AI_GATEWAY_API_KEY) reason ||= 'Connect FluxEffects to AI Gateway to enable live AI here.';
   return {available: !!process.env.AI_GATEWAY_API_KEY, provider: 'Flux / AI Gateway', model: configuredModel(), ...(reason ? {reason} : {})};
 }
 

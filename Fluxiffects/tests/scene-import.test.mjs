@@ -6,7 +6,7 @@ import {isNativeScene, prepareSceneAsset} from '../src/scene-import.mjs';
 import {createDemoProject as createScene} from '../../Flux3D/src/model.mjs';
 import {createBlankProject, createLayer, getComp, parseProject} from '../src/core.mjs';
 
-// Fluxiffects uses Flux3D's loader and installed Three dependency.
+// FluxMotion uses Flux3D's loader and installed Three dependency.
 const sceneRequire = createRequire(new URL('../../Flux3D/package.json', import.meta.url));
 const THREE = sceneRequire('three');
 const {GLTFExporter} = await import(pathToFileURL(sceneRequire.resolve('three/addons/exporters/GLTFExporter.js')).href);

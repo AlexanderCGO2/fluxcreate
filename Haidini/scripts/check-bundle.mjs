@@ -6,7 +6,7 @@ await mkdir('.test-data',{recursive:true});
 const dir=await mkdtemp(path.resolve('.test-data/bundle-'));
 const app=await createWorkbench({dataDir:dir,webDir:path.resolve('dist'),port:0});
 try{
-  const page=await fetch(app.origin);assert.equal(page.status,200);assert.ok((await page.text()).includes('Fluxini'));
+  const page=await fetch(app.origin);assert.equal(page.status,200);assert.ok((await page.text()).includes('FluxEffects'));
   const session=await (await fetch(app.origin+'/api/session')).json();assert.equal(session.app,'fluxini');
   const projects=await (await fetch(app.origin+'/api/projects',{headers:{'x-fluxini-token':session.token}})).json();assert.equal(projects.length,1);
   assert.equal(app.memory.history(app.projects.get(projects[0].id).project).length,1);

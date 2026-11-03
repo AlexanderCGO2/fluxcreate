@@ -11,14 +11,14 @@ export function readExchange(markdown){
 }
 export function readExchangeMetadata(envelope){try{return validateExchange(envelope);}catch(error){throw new ProjectError(error.message||'The saved exchange metadata is invalid.');}}
 export function preparePackage(pack,fonts){
-  if(pack?.format!=='fluxini-project-v1')throw new ProjectError('This file does not contain a Fluxini scene.');
+  if(pack?.format!=='fluxini-project-v1')throw new ProjectError('This file does not contain a FluxEffects scene.');
   const project=parseProject(pack.project),assets=fonts.prepareAssets(pack.fonts);
   for(const node of project.graph.nodes.filter(n=>n.type==='text'))if(!assets.some(asset=>asset.id===node.params.font))fonts.get(node.params.font);
   return {project,assets};
 }
 export function prepareExchange(markdown,fonts,restoreOriginal=false){
   const exchange=readExchange(markdown);
-  if(restoreOriginal&&!exchangeSummary(exchange).canRestoreOriginal)throw new ProjectError('This file has no earlier Fluxini scene to restore.');
+  if(restoreOriginal&&!exchangeSummary(exchange).canRestoreOriginal)throw new ProjectError('This file has no earlier FluxEffects scene to restore.');
   let result;
   try{result=toFluxini(exchange,{restoreOriginal});}catch(error){throw new ProjectError(error.message||'This exchange file could not be converted.');}
   const prepared=preparePackage(result.package,fonts);

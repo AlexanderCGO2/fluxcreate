@@ -24,5 +24,6 @@
   "devDependencies": {
     "esbuild": "0.25.12",
     "@playwright/test": "1.63.0"
-  }
+  },
+  "license": "AGPL-3.0-only"
 }

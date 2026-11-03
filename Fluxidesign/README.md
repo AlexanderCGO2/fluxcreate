@@ -17,9 +17,9 @@ Keyboard shortcuts: Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z redo, Ctrl/Cmd+S save, Ctr
 
 ## Compatible formats
 
-`.fluxidesign` files use the `fluxcreate-project` version 1 envelope, containing the complete native publication and a portable Fluxiffects scene. Each page becomes a composition. Open that file in Fluxfoto or Fluximiére through their project importer; text, shapes, and image frames remain editable where the destination supports them. Reopen in FluxDesign for its native page guides and typography settings.
+`.fluxidesign` files use the `fluxcreate-project` version 1 envelope, containing the complete native publication and a portable FluxMotion scene. Each page becomes a composition. Open that file in FluxFoto or FluxVideo through their project importer; text, shapes, and image frames remain editable where the destination supports them. Reopen in FluxDesign for its native page guides and typography settings.
 
-The Open action also accepts FluxCreate files from the other editors, native Fluxiffects projects, After Effects bridge JSON, and `.flux.md` exchange files. Conversion previews report limitations before replacing the current document, and Undo recovers the previous document. Flux Exchange Markdown exports all pages for Fluxini and Fluxiffects as well as the other suite apps. Do not use Markdown as the only backup: the full native project is the fidelity-preserving copy for this editor.
+The Open action also accepts FluxCreate files from the other editors, native FluxMotion projects, After Effects bridge JSON, and `.flux.md` exchange files. Conversion previews report limitations before replacing the current document, and Undo recovers the previous document. Flux Exchange Markdown exports all pages for FluxEffects and FluxMotion as well as the other suite apps. Do not use Markdown as the only backup: the full native project is the fidelity-preserving copy for this editor.
 
 Exports:
 
@@ -48,7 +48,7 @@ Animation imported from a motion document is sampled at time zero. Unsupported p
 
 ## AI Studio
 
-Ask Flux uses the already configured Fluxini / AI Gateway connection through the shared local server. It can refine the current page, work only on selected frames, create editable text or shapes, and add new pages. An explain mode returns suggestions without changing the document. Each proposal is previewed before applying and becomes one undo step.
+Ask Flux uses the already configured FluxEffects / AI Gateway connection through the shared local server. It can refine the current page, work only on selected frames, create editable text or shapes, and add new pages. An explain mode returns suggestions without changing the document. Each proposal is previewed before applying and becomes one undo step.
 
 Only the chosen page's editable properties, the explicit request, and the creative brief are sent to the provider. Embedded media and file paths are removed; other pages are excluded. Locked frames and selection scope are enforced locally. AI cannot execute code or write image sources. Unavailable gateway credits or configuration are reported; there is no fake generated fallback.
 
@@ -66,7 +66,7 @@ If browser storage cannot be read or the saved publication fails validation, aut
 
 Native, IDML, PDF and exchange imports are prepared before one complete replacement. Canceling, switching pages, opening another document, or using New/Undo invalidates an older pending import. Image replacement also checks the current frame and lock after decoding.
 
-`node ../FluxCreate/scripts/editor-recovery-smoke.mjs` verifies both FluxDesign and Fluximiére recovery, original-data downloads, failed reads, media additions during recovery, delayed import races and atomic batches in isolated Edge sessions.
+`node ../FluxCreate/scripts/editor-recovery-smoke.mjs` verifies both FluxDesign and FluxVideo recovery, original-data downloads, failed reads, media additions during recovery, delayed import races and atomic batches in isolated Edge sessions.
 
 PDF color fidelity: PNG files carrying ICC, gamma/chromaticity, orientation or animation metadata are normalized through the browser to RGB PNG with an explicit conversion notice; ordinary profile-free/sRGB PNG stays directly embedded. An independent Adobe RGB PNG fixture exposed and verified this correction.
 

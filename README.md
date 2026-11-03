@@ -6,19 +6,19 @@ FluxCreate is an early creative suite for images, page layouts, video, motion, p
 
 The aim is simple: keep creative work editable, make handoffs between tools understandable, and let AI help without taking control away from the person making the work.
 
-> **Release status:** preparing for an open-source release. The repository is currently private and a license has **not** been selected. Public visibility alone will not grant open-source reuse rights. Licensing recommendations remain proposals; see [release readiness](docs/OPEN-SOURCE-READINESS.md).
+> **Release status:** early software preparing for a public open-source release. Apps use **AGPL-3.0-only**; the standalone FluxExchange package uses **Apache-2.0**. The repository is currently private. See [licensing](docs/LICENSING.md), [release readiness](docs/OPEN-SOURCE-READINESS.md) and [Support](SUPPORT.md).
 
-[Get started](#get-started) · [The studios](#the-studios) · [File compatibility](#file-compatibility) · [AI and privacy](#ai-and-privacy) · [Contribute](CONTRIBUTING.md) · [Roadmap](FluxCreate/docs/FEATURE-GAPS.md)
+[Get started](#get-started) · [The studios](#the-studios) · [File compatibility](#file-compatibility) · [AI and privacy](#ai-and-privacy) · [Architecture](#architecture) · [Support](SUPPORT.md) · [Contribute](CONTRIBUTING.md) · [Governance](GOVERNANCE.md) · [Roadmap](FluxCreate/docs/FEATURE-GAPS.md)
 
 ## The studios
 
 | Studio | What you can do today | Source |
 | --- | --- | --- |
-| **Fluxfoto** | Edit photos and layered artwork; rearrange layers; paint, erase, select and mask; adjust Levels/Curves; import supported PSD/PSB content and export layered raster PSD | [Fluxoto](Fluxoto/) |
+| **FluxFoto** | Edit photos and layered artwork; rearrange layers; paint, erase, select and mask; adjust Levels/Curves; import supported PSD/PSB content and export layered raster PSD | [Fluxoto](Fluxoto/) |
 | **FluxDesign** | Arrange pages, text and image frames; use margins, columns, guides and alignment; import supported IDML/PDF content; export PDFs with documented fallbacks | [Fluxidesign](Fluxidesign/) |
-| **Fluximiére** | Edit a video/audio timeline; trim, slip, roll and slide within supported constraints; scrub/scratch audio; use Autoedit and music-video planning; export picture with stereo sound | [Fluximiere](Fluximiere/) |
-| **Fluxiffects** | Animate layers and keyframes; apply effects; work with supported 3D scenes and imported motion; use source objects; export bounded video with audio | [Fluxiffects](Fluxiffects/) |
-| **Fluxini** | Build procedural scenes and simulations; edit node graphs; work with particles, source objects and exchange scenes | [Haidini](Haidini/) |
+| **FluxVideo** | Edit a video/audio timeline; trim, slip, roll and slide within supported constraints; scrub/scratch audio; use Autoedit and music-video planning; export picture with stereo sound | [Fluximiere](Fluximiere/) |
+| **FluxMotion** | Animate layers and keyframes; apply effects; work with supported 3D scenes and imported motion; use source objects; export bounded video with audio | [FluxMotion](Fluxiffects/) |
+| **FluxEffects** | Build procedural scenes and simulations; edit node graphs; work with particles, source objects and exchange scenes | [Haidini](Haidini/) |
 | **Flux3D** | Compose 3D scenes; transform multiple objects; import/export supported geometry; make bounded vertex edits to meshes | [Flux3D](Flux3D/) |
 | **FluxLab** | Generate text, images, video, speech and music through configured providers; keep a local library and recipes; hand results to editors; expose MCP tools and an MCP App | [FluxLab](FluxLab/) |
 | **FluxAgents** | Design and simulate workflows; branch, join and review steps; keep local versioned workflows; run supported local workflows with persisted approvals and outputs | [FluxAgents](FluxAgents/) |
@@ -49,7 +49,7 @@ A cross-app source object is typically a rendered snapshot with recoverable sour
 
 ### Install and build
 
-While the repository is private, cloning requires access to it.
+If the repository is private or access-restricted, cloning requires permission. A 404 does not by itself establish whether a repository was removed or renamed. Contact [build@flux-ai.co](mailto:build@flux-ai.co) if access is unavailable.
 
 ```sh
 git clone https://github.com/AlexanderCGO2/fluxcreate.git
@@ -85,12 +85,12 @@ Windows users may use `FluxCreate/Start-FluxCreate.cmd` if the Codex-bundled Nod
 | Workspace | Local address | Hosted path |
 | --- | --- | --- |
 | Home | [localhost:4325](http://localhost:4325/) | `/` |
-| Fluxfoto | [localhost:4321](http://localhost:4321/) | `/fluxoto/` |
+| FluxFoto | [localhost:4321](http://localhost:4321/) | `/fluxoto/` |
 | FluxDesign | [localhost:4322](http://localhost:4322/) | `/fluxidesign/` |
-| Fluximiére | [localhost:4323](http://localhost:4323/) | `/fluximiere/` |
+| FluxVideo | [localhost:4323](http://localhost:4323/) | `/fluximiere/` |
 | Flux3D | [localhost:4324](http://localhost:4324/) | `/flux3d/` |
-| Fluxiffects | [localhost:4320](http://localhost:4320/) | `/fluxiffects/` |
-| Fluxini | [127.0.0.1:4318](http://127.0.0.1:4318/) | `/fluxini/` |
+| FluxMotion | [localhost:4320](http://localhost:4320/) | `/fluxiffects/` |
+| FluxEffects | [127.0.0.1:4318](http://127.0.0.1:4318/) | `/fluxini/` |
 | FluxLab | [localhost:4326](http://localhost:4326/) | `/fluxlab/` |
 | FluxAgents | [localhost:4327](http://localhost:4327/) | `/fluxagents/` |
 
@@ -98,13 +98,27 @@ Use the same browser profile, hostname and port to return to existing browser pr
 
 ### Your first workflow, without AI
 
-1. Open Fluxfoto and explore its sample artwork or import a small photo.
+1. Open FluxFoto and explore its sample artwork or import a small photo.
 2. Select a layer, change its appearance and rearrange it in the layer stack.
 3. Download the native project as a backup, then export an image.
-4. Import that image into FluxDesign or Fluximiére.
+4. Import that image into FluxDesign or FluxVideo.
 5. Save a native project in the destination app too.
 
 This verifies import, editing and export without connecting an account or making a paid request. For scene and media handoffs, use each studio's supported exchange/export controls and review the destination preview.
+
+## Creative workflows
+
+These examples connect existing supported features. They are starting points to explore with your own small, redistributable test assets, not promises of lossless round trips or full professional feature parity.
+
+| Start with | Suggested path | What remains editable / what to review |
+| --- | --- | --- |
+| A photograph and campaign copy | FluxFoto layers/masks -> exported image -> FluxDesign page -> PDF | Keep each native project; the exported image does not carry every photo-editing control into the layout |
+| Source clips and a song | FluxVideo Autoedit proposal -> manual timeline changes -> video export | Review cuts, source ranges and sound; proposed edits remain adjustable |
+| A supported 3D scene/object | Flux3D or FluxEffects exchange -> FluxMotion composition -> motion export | Review imported geometry/material/motion support and retain original scene data |
+| AI-generated text or media | FluxLab -> supported studio handoff -> native editing | A generated asset is not automatically a full native document |
+| A repeatable local process | FluxAgents design/simulation -> supported local run -> reviewed output | Approvals and output inspection remain part of the supported workflow; hosted autonomy is separate work |
+
+Download native projects before experimenting with conversions. The [integration review](FluxCreate/docs/INTEGRATION-REVIEW.md) describes the actual handoff boundaries.
 
 ## File compatibility
 
@@ -113,8 +127,8 @@ Native files preserve the source editor's supported model. Exchange formats tran
 | Format / workflow | Current boundary |
 | --- | --- |
 | PNG, JPEG, WebP and supported SVG | Raster/vector input depends on the studio; output options vary |
-| PSD / PSB → Fluxfoto | Bounded layered import; not complete Photoshop fidelity |
-| Fluxfoto → PSD | Layered raster output; text, shapes and masks are not native Photoshop text/path/mask controls |
+| PSD / PSB → FluxFoto | Bounded layered import; not complete Photoshop fidelity |
+| FluxFoto → PSD | Layered raster output; text, shapes and masks are not native Photoshop text/path/mask controls |
 | IDML / PDF → FluxDesign | Supported subsets with conversion limits; INDD is not a general native reader |
 | FluxDesign → PDF | Supported vector/searchable text output with reported fallbacks; not full CMYK/prepress |
 | Premiere projects, supported XML and EDL | Supported timeline mappings; relinking and omitted effects/structures may be required |
@@ -123,13 +137,13 @@ Native files preserve the source editor's supported model. Exchange formats tran
 | MP4, WebM and audio input | Browser codec support applies even when the file extension is accepted |
 | Video output | Bounded timestamped WebCodecs WebM with audio, plus explicit compatibility paths where supported |
 | `.flux.md` | Human-readable Markdown with a validated exchange payload; not universal lossless project interchange |
-| Native Fluximiére projects | Large-media binary container embeds original bytes; older JSON projects remain readable; other apps do not directly read every container variant |
+| Native FluxVideo projects | Large-media binary container embeds original bytes; older JSON projects remain readable; other apps do not directly read every container variant |
 
 Use [the integration review](FluxCreate/docs/INTEGRATION-REVIEW.md), [FluxExchange](FluxExchange/README.md) and individual [feature-gap reports](FluxCreate/docs/FEATURE-GAPS.md) for exact limits.
 
 ### Video and Autoedit
 
-Fluximiére Autoedit accepts up to **48 unique source videos**, **512 MiB per source** and **2 GiB total source media**, subject to available browser storage and supported codecs. Autoedit sources are limited to ten minutes each. Soundtrack edits use up to three minutes; longer songs retain the original and use a faded excerpt for the edit.
+FluxVideo Autoedit accepts up to **48 unique source videos**, **512 MiB per source** and **2 GiB total source media**, subject to available browser storage and supported codecs. Autoedit sources are limited to ten minutes each. Soundtrack edits use up to three minutes; longer songs retain the original and use a faded excerpt for the edit.
 
 Autoedit sends bounded sampled images and measured music features for direction; it does not upload all original videos. Proposed cuts remain editable. Music-video planning is a separate workflow, and its planned generated-frame/video pipeline is not a finished autonomous production system.
 
@@ -176,12 +190,27 @@ Read-only catalog tools and billable generation tools are distinct. Same-origin 
 ## Storage and recovery
 
 - Browser projects/results normally use **IndexedDB** in the current origin.
-- Local Fluxini and FluxAgents services use **SQLite** for their supported local persistence.
+- Local FluxEffects and FluxAgents services use **SQLite** for their supported local persistence.
 - Download native projects and required media for portable backups.
 - Browser data can be removed by clearing site data, private browsing or quota pressure.
 - Cross-app transfer receipts and local job recovery are not cross-device synchronization.
 - Video jobs can retain provider tickets, but provider media expires and recovery depends on the original connection.
 - Closing a tab does not turn a browser render into a durable cloud job.
+
+## Architecture
+
+FluxCreate is a monorepo with nine browser entry points: the home app and eight studios. Browser editors handle interactive document work; Node.js services provide the supported local/hosted API features and provider connections.
+
+| Component | Responsibility | Important boundary |
+| --- | --- | --- |
+| Studio editors | Document state, selection, previews, timeline/scene/canvas interactions | Supported model and undo/recovery behavior vary by app |
+| Shared FluxCreate code | Navigation, appearance, settings, launch/build and hosted API dispatch | Deployment access is separate from application identity |
+| FluxExchange | Validated exchange payloads and scene utilities | Conversion supports documented subsets, not every source property |
+| FluxLab and MCP | Provider catalog, generation tools, library/recipes and supported editor assistance | Tool discovery does not authorize a paid request |
+| FluxAgents | Workflow design, simulation and supported persisted local execution | Local execution is not a durable multi-tenant hosted scheduler |
+| Persistence | Browser IndexedDB and documented local SQLite services | Port/origin-local storage is not cloud synchronization |
+
+Keep server credentials out of browser build variables. Treat imported documents, prompts, model outputs and MCP arguments as untrusted input. Use the existing validated operations and provider adapters when extending the suite.
 
 ## Hosting
 
@@ -189,7 +218,7 @@ The repository includes [vercel.json](vercel.json) and one API dispatcher. Build
 
 **Keep deployment authentication enabled before configuring a shared billable AI connection.** Application accounts, tenant ownership and a durable hosted background runtime remain separate work. Vercel deployment access does not provide those features.
 
-Follow [HOSTING.md](FluxCreate/docs/HOSTING.md) for setup, secrets, persistence, MCP and media limits. The existing hosted workspace is authenticated; source availability will not automatically make it a public demo.
+Follow [HOSTING.md](FluxCreate/docs/HOSTING.md) for setup, secrets, persistence, MCP and media limits. The documented hosted setup uses deployment authentication; verify the actual deployment controls before use. Source availability will not automatically make it a public demo.
 
 ## Development
 
@@ -200,9 +229,11 @@ pnpm secrets:check
 pnpm secrets:history
 ```
 
-`pnpm test` runs the current unit/API/contract suites and both Fluxini TypeScript checks. Browser checks are separate, use isolated profiles and generally require Microsoft Edge; see each app's scripts. Tests use injected providers rather than paid generation.
+`pnpm test` runs the current unit/API/contract suites and both FluxEffects TypeScript checks. Browser checks are separate, use isolated profiles and generally require Microsoft Edge; see each app's scripts. Tests use injected providers rather than paid generation.
 
-The last relocation verification passed 782 tests, type checks and all nine app builds. That is a dated baseline, not a claim that every feature or provider was tested on every platform. Fresh-install and hosted CI results for a release must be checked on its actual commit.
+The recorded open-source preparation verification on **26 October 2026** passed **784 tests**, both FluxEffects TypeScript checks, the suite builds and fresh-clone Windows/Linux checks. See [the verification record](docs/OPEN-SOURCE-READINESS.md). These are historical results, not a new test run or certification of every browser, feature or live provider. Qualify each release on its actual commit.
+
+The repository also includes a redacted credential checker for current files, reachable fetched history and generated assets. After a build, run `node scripts/check-secrets.mjs --build`. Read [credential-check scope and limitations](docs/CREDENTIAL-CHECKS.md); a passing pattern scan is not proof that every possible secret format is absent.
 
 ### Repository map
 
@@ -222,7 +253,7 @@ scripts/         repository checks
 .github/         CI, issue forms and pull-request guidance
 ```
 
-Internal directory names retain earlier app IDs for project compatibility. Work directly in this monorepo. The legacy sibling-folder release assembler is not the normal contributor build or development command.
+The display names are **FluxFoto, FluxDesign, FluxVideo, FluxMotion, FluxEffects, Flux3D, FluxLab and FluxAgents**. See the [branding and compatibility map](docs/BRANDING.md). Internal directory names retain earlier app IDs for project compatibility. Work directly in this monorepo. The legacy sibling-folder release assembler is not the normal contributor build or development command.
 
 ## Roadmap and limitations
 
@@ -232,16 +263,35 @@ Near-term work includes stronger cross-app asset handling, larger-media performa
 
 Managed AI credit packages and Stripe billing are **planned**, not a shipped payment service. The [monetization proposal](FluxCreate/docs/MONETIZATION-PLAN.md) and [credit plan](FluxCreate/docs/STRIPE-CREDITS-PLAN.md) describe possible hosted services alongside personal provider connections.
 
+## Help and community
+
+Start with [SUPPORT.md](SUPPORT.md) for installation, missing projects, media compatibility, AI failures and reporting instructions. Ordinary help is best effort; there is no promised response time or production support SLA.
+
+| Document | Purpose |
+| --- | --- |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Setup, focused changes, verification and contribution boundaries |
+| [GOVERNANCE.md](GOVERNANCE.md) | Decision authority, proposals, reviews, disputes and releases |
+| [MAINTAINERS.md](MAINTAINERS.md) | Current responsibilities, appointments, handover and continuity |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Expected behavior, private reporting, conflicts and moderation |
+| [SUPPORT.md](SUPPORT.md) | Help routes, troubleshooting and response expectations |
+| [SECURITY.md](.github/SECURITY.md) | Private vulnerability and credential-exposure reporting |
+
+Private contact: **[build@flux-ai.co](mailto:build@flux-ai.co)**. For conduct reports, read the Code of Conduct's confidentiality and conflict-of-interest limits first. There is no appointed independent conduct reviewer yet. Do not include keys, private media or sensitive allegations in public issues.
+
+The owner supplied this address; preparing these documents did not send a test message or establish an email-response guarantee.
+
 ## Contribute
 
-Start with [CONTRIBUTING.md](CONTRIBUTING.md). Useful contributions include reproducible bug reports, documented format fixtures you can redistribute, focused editor improvements, accessibility fixes and accurate compatibility documentation.
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), follow the [Code of Conduct](CODE_OF_CONDUCT.md), and read [governance](GOVERNANCE.md) before proposing major shared changes. Contributions must follow the license of the component they modify and include the necessary redistribution rights. Useful contributions include reproducible bug reports, documented format fixtures you can redistribute, focused editor improvements, accessibility fixes and accurate compatibility documentation.
 
 Do not include API keys, private project files, personal footage, account cookies or provider tickets in issues or pull requests. Run the credential checks before sharing a branch. Follow the private-reporting guidance in [SECURITY.md](.github/SECURITY.md) for sensitive findings.
 
 ## License and release status
 
-**No open-source license has been adopted yet.** Proposed directions include AGPL-3.0 for the apps with separately reviewed permissive exchange components, or Apache-2.0 throughout. These are recommendations, not grants of rights.
+**Applications and shared suite code: [AGPL-3.0-only](LICENSE). Standalone FluxExchange: [Apache-2.0](FluxExchange/LICENSE).** The project owner approved this policy on 3 November 2026. Existing third-party materials retain their own licenses.
 
-Dependency licenses do not automatically license this repository's own code, artwork or sample media. Copyright ownership, asset rights, contributor terms and the final license must be resolved before announcing an open-source release.
+Both licenses allow commercial use. AGPL has corresponding-source requirements for covered distributed versions and an additional source-offer requirement for modified versions used over a network. Apache permits broader reuse while retaining its requirements. Read [LICENSING.md](docs/LICENSING.md) for scope, contributions, user-created work and commercial-service boundaries.
+
+The license choice does not finish the dependency and asset review. Copyright ownership, dependency compatibility, sample-media rights and notices remain public-release gates. The repository remains private during preparation; no public launch is announced here.
 
 See [the release checklist](docs/OPEN-SOURCE-READINESS.md). Nothing in this README changes repository visibility or the hosted deployment's access controls.

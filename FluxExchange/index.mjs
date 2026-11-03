@@ -35,18 +35,18 @@ function snapshot(app, input, fonts) {
   let result;
   if (app === 'fluxini') {
     const pack = input?.format === 'fluxini-project-v1' ? input : { format: 'fluxini-project-v1', project: input, fonts: fonts ?? [] };
-    assert(isObject(pack.project), 'Fluxini project is missing.');
+    assert(isObject(pack.project), 'FluxEffects project is missing.');
     const native = { ...pack.project }; delete native.exchange;
     result = safeClone({ format: 'fluxini-project-v1', project: native, fonts: pack.fonts ?? [] });
-    assert(result.project.schemaVersion === 2 && isObject(result.project.graph) && Array.isArray(result.project.graph.nodes) && Array.isArray(result.project.graph.edges) && isObject(result.project.timeline), 'invalid Fluxini project structure.');
-    assert(result.project.graph.nodes.length <= 64 && result.project.graph.edges.length <= 128 && Array.isArray(result.fonts) && result.fonts.length <= 100, 'Fluxini project or font budget exceeded.');
+    assert(result.project.schemaVersion === 2 && isObject(result.project.graph) && Array.isArray(result.project.graph.nodes) && Array.isArray(result.project.graph.edges) && isObject(result.project.timeline), 'invalid FluxEffects project structure.');
+    assert(result.project.graph.nodes.length <= 64 && result.project.graph.edges.length <= 128 && Array.isArray(result.fonts) && result.fonts.length <= 100, 'FluxEffects project or font budget exceeded.');
   } else {
-    assert(isObject(input), 'Fluxiffects project is missing.');
+    assert(isObject(input), 'FluxMotion project is missing.');
     const native = { ...input }; delete native.exchange;
     result = safeClone(native);
-    assert(['fluxiffects', 'fluxiffects-ae'].includes(result.format) && result.version === 1 && Array.isArray(result.compositions) && Array.isArray(result.assets), 'invalid Fluxiffects project structure.');
-    assert(result.compositions.length > 0 && result.compositions.length <= 100 && result.assets.length <= 2000, 'Fluxiffects composition or asset budget exceeded.');
-    for (const comp of result.compositions) assert(isObject(comp) && Array.isArray(comp.layers) && comp.layers.length <= 2000, 'invalid Fluxiffects composition layers.');
+    assert(['fluxiffects', 'fluxiffects-ae'].includes(result.format) && result.version === 1 && Array.isArray(result.compositions) && Array.isArray(result.assets), 'invalid FluxMotion project structure.');
+    assert(result.compositions.length > 0 && result.compositions.length <= 100 && result.assets.length <= 2000, 'FluxMotion composition or asset budget exceeded.');
+    for (const comp of result.compositions) assert(isObject(comp) && Array.isArray(comp.layers) && comp.layers.length <= 2000, 'invalid FluxMotion composition layers.');
     // Blob URLs are tied to one browser session and cannot be a portable file reference.
     for (const asset of result.assets) if (typeof asset.src === 'string' && /^blob:/i.test(asset.src)) { asset.src = ''; asset.missing = true; }
   }
@@ -82,7 +82,7 @@ export function encodeExchange({ app, project, fonts, previous, brief, notes, ca
   const comp = app === 'fluxiffects' ? source.compositions.find(c => c.id === source.activeCompId) ?? source.compositions[0] : null;
   const envelope = validateEnvelope({ format: 'flux-exchange', version: 1, sourceApp: app, name: text(app === 'fluxini' ? source.project.name : source.name, 'Untitled handoff').slice(0, 200), brief: brief ?? prior?.brief ?? '', notes: notes ?? prior?.notes ?? '', canvas: canvas ?? (comp ? { ...prior?.canvas, width: comp.width, height: comp.height } : prior?.canvas ?? {}), snapshots: { ...prior?.snapshots, [app]: source } });
   const serialized = JSON.stringify(envelope, null, 2);
-  const output = `# ${prose(envelope.name)}\n\nFlux Exchange v1 · ${app === 'fluxini' ? 'Fluxini' : 'Fluxiffects'}\n\n## Creative brief\n\n${prose(envelope.brief) || 'No creative brief added.'}\n\n## Handoff notes\n\n${prose(envelope.notes) || 'No handoff notes added.'}\n\n## Project data\n\nThe JSON block is authoritative. Notes above are a readable copy; edit brief and notes inside the block to change the imported handoff. Native snapshots preserve their own app’s editable data. Conversion reports describe differences. Large footage should travel separately and be relinked.\n\n\`\`\`flux-exchange\n${serialized}\n\`\`\`\n`;
+  const output = `# ${prose(envelope.name)}\n\nFlux Exchange v1 · ${app === 'fluxini' ? 'FluxEffects' : 'FluxMotion'}\n\n## Creative brief\n\n${prose(envelope.brief) || 'No creative brief added.'}\n\n## Handoff notes\n\n${prose(envelope.notes) || 'No handoff notes added.'}\n\n## Project data\n\nThe JSON block is authoritative. Notes above are a readable copy; edit brief and notes inside the block to change the imported handoff. Native snapshots preserve their own app’s editable data. Conversion reports describe differences. Large footage should travel separately and be relinked.\n\n\`\`\`flux-exchange\n${serialized}\n\`\`\`\n`;
   fileLimit(output); return output;
 }
 /** Parse only the explicitly typed fence. Markdown is never evaluated or converted to HTML. */
@@ -104,7 +104,7 @@ export function validateExchange(value) { return envelopeOf(value); }
 function uniqueWarnings() { const warnings = [], seen = new Set(); return { warnings, warn(message) { if (!seen.has(message)) { seen.add(message); warnings.push(message); } } }; }
 function nativeResult(envelope, app, restoreOriginal, report) {
   if (envelope.sourceApp === app || (restoreOriginal && envelope.snapshots[app])) {
-    if (envelope.sourceApp !== app) report.warn(`Restored the preserved ${app === 'fluxini' ? 'Fluxini' : 'Fluxiffects'} original. Edits made in the other app are not included in this restore.`);
+    if (envelope.sourceApp !== app) report.warn(`Restored the preserved ${app === 'fluxini' ? 'FluxEffects' : 'FluxMotion'} original. Edits made in the other app are not included in this restore.`);
     return snapshot(app, envelope.snapshots[app]);
   }
   if (restoreOriginal) report.warn('No original snapshot exists for this app; converted the current source instead.');
@@ -119,7 +119,7 @@ function hex(value, fallback, label, warn) {
   return fallback;
 }
 const fluxiniDefaults = {
-  text: { text: 'FLUXINI', font: 'helvetiker_bold', size: 2.1, depth: .3, tracking: .12, color: '#dae9bc', opacity: 1, scale: 1, x: 0, y: 0, z: 0 },
+  text: { text: 'FluxEffects', font: 'helvetiker_bold', size: 2.1, depth: .3, tracking: .12, color: '#dae9bc', opacity: 1, scale: 1, x: 0, y: 0, z: 0 },
   shape: { shape: 'sphere', radius: 1, width: 6, height: .5, depth: 6, scale: 1, color: '#7b94a0', opacity: 1, x: 0, y: 0, z: 0 },
   transform: { x: 0, y: 0, z: 0, rotateX: 0, rotateZ: 0, rotateY: 0, scale: 1 },
   output: {},
@@ -136,26 +136,26 @@ export function toFluxini(input, { restoreOriginal = false } = {}) {
   if (native) return { package: native, warnings, exchange };
   const source = exchange.snapshots.fluxiffects, comp = source.compositions.find(c => c.id === source.activeCompId) ?? source.compositions[0], unit = exchange.canvas.pixelsPerUnit;
   const duration = bounded(comp.duration, 8, 1, 999999, 'Duration', warn), fps = Math.round(bounded(comp.fps, 30, 12, 60, 'Frame rate', warn));
-  if (fps !== comp.fps) warn(`Frame rate changed to ${fps} fps for Fluxini.`);
+  if (fps !== comp.fps) warn(`Frame rate changed to ${fps} fps for FluxEffects.`);
   const project = { schemaVersion: 2, id: id(), workspaceId: 'local', branchId: 'main', name: text(source.name, 'Flux handoff').trim().slice(0, 100) || 'Flux handoff', revision: 0, graph: { nodes: [], edges: [] }, timeline: { duration, fps }, locks: [], animations: [] };
   const addTrack = (nodeId, param, keys, convert, label) => {
     if (!Array.isArray(keys) || !keys.length) return;
-    assert(keys.length <= 24, `${label} has more than 24 keys. Simplify its animation before importing into Fluxini.`);
+    assert(keys.length <= 24, `${label} has more than 24 keys. Simplify its animation before importing into FluxEffects.`);
     assert(project.animations.length < 128, 'the converted scene would exceed 128 animation tracks.');
     const normalized = new Map();
     for (const key of keys) {
       if (!Number.isFinite(key.time) || key.time < 0 || key.time > duration) { warn(`${label}: keys outside the scene duration were omitted.`); continue; }
-      if(key.easing&&!EASINGS.has(key.easing))warn(`${label}: ${text(key.easing).slice(0,80)} easing was approximated as linear in Fluxini; exact controls remain in the source snapshot.`);
+      if(key.easing&&!EASINGS.has(key.easing))warn(`${label}: ${text(key.easing).slice(0,80)} easing was approximated as linear in FluxEffects; exact controls remain in the source snapshot.`);
       normalized.set(key.time, { time: key.time, value: convert(key.value), easing: EASINGS.has(key.easing) ? key.easing.replaceAll('-', ' ') : 'linear' });
     }
     if (normalized.size) project.animations.push({ nodeId, param, keys: [...normalized.values()].sort((a, b) => a.time - b.time) });
   };
   const layers = comp.layers;
-  if (source.compositions.length > 1) warn('Only the active composition became a Fluxini scene. Other compositions remain in the preserved source.');
+  if (source.compositions.length > 1) warn('Only the active composition became a FluxEffects scene. Other compositions remain in the preserved source.');
   warn('2D artwork becomes a 3D scene: shading, camera framing, fonts, and depth can change its appearance.');
   for (let index = 0; index < layers.length; index++) {
     const layer = layers[index], label = text(layer.name, `Layer ${index + 1}`), type = layer.type;
-    if (!['text', 'rectangle', 'ellipse', 'solid'].includes(type)) { warn(`${label}: ${type} layers remain in the source snapshot; Fluxini cannot render this layer type.`); continue; }
+    if (!['text', 'rectangle', 'ellipse', 'solid'].includes(type)) { warn(`${label}: ${type} layers remain in the source snapshot; FluxEffects cannot render this layer type.`); continue; }
     const keys = isObject(layer.keyframes) ? layer.keyframes : {}, sx = num(layer.scaleX, 1), sy = num(layer.scaleY, 1), rotation = num(layer.rotation);
     const needsTransform = rotation !== 0 || keys.rotation?.length;
     assert(project.graph.nodes.length + 1 + (needsTransform ? 1 : 0) <= 63, 'the converted scene would exceed 64 nodes. Reduce the number of layers.');
@@ -197,7 +197,7 @@ export function toFluxini(input, { restoreOriginal = false } = {}) {
     addTrack(positionId, 'y', keys.y, value => bounded((comp.height / 2 - num(value)) / unit, 0, -50, 50, `${label} Y animation`, warn), `${label} Y`);
     addTrack(nodeId, 'opacity', keys.opacity, value => bounded(value, 1, 0, 1, `${label} opacity animation`, warn), `${label} opacity`);
     addTrack(nodeId, 'color', keys.fill, value => hex(value, color, label, warn), `${label} color`);
-    if (keys.fill?.length) warn('Color animation uses linear-light interpolation in Fluxini; intermediate colors may differ.');
+    if (keys.fill?.length) warn('Color animation uses linear-light interpolation in FluxEffects; intermediate colors may differ.');
     for (const property of Object.keys(keys)) if (!['x', 'y', 'opacity', 'fill', 'rotation'].includes(property) && keys[property]?.length) warn(`${label}: ${property} animation remains in the source snapshot.`);
   }
   project.graph.nodes.push(fiNode('exchange_output', 'output', 'Scene output', {}, 0));
@@ -211,13 +211,13 @@ export function toFluxiffects(input, { restoreOriginal = false } = {}) {
   if (native) return { project: native, warnings, exchange };
   const source = exchange.snapshots.fluxini.project, { width, height, pixelsPerUnit: unit } = exchange.canvas;
   const duration = bounded(source.timeline.duration, 8, .01, 86400, 'Composition duration', warn), fps = bounded(source.timeline.fps, 30, 1, 240, 'Frame rate', warn);
-  const comp = { id: id(), name: text(source.name, 'Fluxini handoff'), width, height, fps, duration, background: '#f6f5fa', layers: [] };
-  const project = { format: 'fluxiffects', version: 1, id: id(), name: text(source.name, 'Fluxini handoff'), activeCompId: comp.id, compositions: [comp], assets: [] };
+  const comp = { id: id(), name: text(source.name, 'FluxEffects handoff'), width, height, fps, duration, background: '#f6f5fa', layers: [] };
+  const project = { format: 'fluxiffects', version: 1, id: id(), name: text(source.name, 'FluxEffects handoff'), activeCompId: comp.id, compositions: [comp], assets: [] };
   const nodes = new Map(source.graph.nodes.map(node => [node.id, node])), edges = source.graph.edges, tracks = source.animations ?? [];
-  const output = source.graph.nodes.find(node => node.type === 'output'); assert(output, 'Fluxini scene has no output node.');
-  assert(new Set(source.graph.nodes.map(node => node.id)).size === source.graph.nodes.length, 'Fluxini node IDs must be unique.');
+  const output = source.graph.nodes.find(node => node.type === 'output'); assert(output, 'FluxEffects scene has no output node.');
+  assert(new Set(source.graph.nodes.map(node => node.id)).size === source.graph.nodes.length, 'FluxEffects node IDs must be unique.');
   let visitedBranches = 0;
-  warn('This is a flat editable projection, not a camera render. For the full 3D appearance, render PNG or WebM in Fluxini and import that footage.');
+  warn('This is a flat editable projection, not a camera render. For the full 3D appearance, render PNG or WebM in FluxEffects and import that footage.');
   const addTrack = (layer, property, nodeId, param, convert) => {
     const track = tracks.find(entry => entry.nodeId === nodeId && entry.param === param);
     if (!track) return;
@@ -225,15 +225,15 @@ export function toFluxiffects(input, { restoreOriginal = false } = {}) {
     for (const key of track.keys ?? []) {
       if (!Number.isFinite(key.time) || key.time < 0 || key.time > duration) { warn(`${layer.name}: animation outside the composition duration was omitted.`); continue; }
       const easing = text(key.easing, 'linear').replaceAll(' ', '-');
-      if(!EASINGS.has(easing))warn(`${layer.name}: ${easing.slice(0,80)} easing was approximated as linear in Fluxiffects; exact controls remain in the source snapshot.`);
+      if(!EASINGS.has(easing))warn(`${layer.name}: ${easing.slice(0,80)} easing was approximated as linear in FluxMotion; exact controls remain in the source snapshot.`);
       keys.set(key.time, { id: id(), time: key.time, value: convert(key.value), easing: EASINGS.has(easing) ? easing : 'linear' });
     }
     if (keys.size) layer.keyframes[property] = [...keys.values()].sort((a, b) => a.time - b.time);
   };
   const visit = (nodeId, context = { x: 0, y: 0, scale: 1, rotation: 0, visible: true, color: null, opacity: 1, wrapped: false }, path = new Set()) => {
     assert(++visitedBranches <= 4096, 'graph has too many connected branches to project.');
-    assert(!path.has(nodeId), 'Fluxini graph contains a cycle.');
-    assert(path.size <= 64, 'Fluxini graph is too deep.');
+    assert(!path.has(nodeId), 'FluxEffects graph contains a cycle.');
+    assert(path.size <= 64, 'FluxEffects graph is too deep.');
     const node = nodes.get(nodeId); assert(node, 'a connection references a missing node.');
     const nextPath = new Set(path).add(nodeId), p = node.params ?? {}, label = text(node.label, node.type), visible = context.visible && node.visible !== false;
     if (['transform', 'material', 'textAnimate'].includes(node.type)) {
@@ -245,7 +245,7 @@ export function toFluxiffects(input, { restoreOriginal = false } = {}) {
         if (num(p.rotateX) || num(p.rotateY) || num(p.z)) warn(`${label}: 3D depth and out-of-plane rotations were flattened.`);
       } else if (node.type === 'material') { next.color = p.color ?? next.color; next.opacity *= num(p.opacity, 1); warn(`${label}: physical shading was reduced to fill color and opacity.`); }
       else warn(`${label}: procedural character animation was not transferred; the text remains editable.`);
-      if (tracks.some(track => track.nodeId === node.id)) warn(`${label}: wrapper animation remains in the native Fluxini snapshot.`);
+      if (tracks.some(track => track.nodeId === node.id)) warn(`${label}: wrapper animation remains in the native FluxEffects snapshot.`);
       const parents = edges.filter(edge => edge.target === node.id && ['scene', 'text'].includes(edge.input));
       for (const parent of parents) visit(parent.source, next, nextPath);
       return;
@@ -281,11 +281,11 @@ export function toFluxiffects(input, { restoreOriginal = false } = {}) {
     addTrack(layer, 'opacity', node.id, 'opacity', value => clamp(num(value, 1) * context.opacity, 0, 1));
     if (!context.color) addTrack(layer, 'fill', node.id, 'color', value => hex(value, layer.fill, label, warn));
     for (const track of tracks.filter(track => track.nodeId === node.id)) if (!['x', 'y', 'scale', 'rotateZ', 'opacity', 'color'].includes(track.param)) warn(`${label}: ${track.param} animation remains in the source snapshot.`);
-    if (tracks.some(track => track.nodeId === node.id && track.param === 'color')) warn('Color animation uses sRGB interpolation in Fluxiffects; intermediate colors may differ.');
+    if (tracks.some(track => track.nodeId === node.id && track.param === 'color')) warn('Color animation uses sRGB interpolation in FluxMotion; intermediate colors may differ.');
     comp.layers.push(layer);
   };
   for (const connection of edges.filter(edge => edge.target === output.id && edge.input === 'scene')) visit(connection.source);
-  if (!comp.layers.length) warn('No editable 2D layers were found. Export the Fluxini scene as PNG or WebM, then import that footage. The original graph remains preserved.');
+  if (!comp.layers.length) warn('No editable 2D layers were found. Export the FluxEffects scene as PNG or WebM, then import that footage. The original graph remains preserved.');
   return { project, warnings, exchange };
 }
 export function inspectExchange(input) {

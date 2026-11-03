@@ -21,7 +21,7 @@ export function createVideoService({fetchImpl,credential,snapshotConnection,mode
   if(body.aspectRatio!==undefined&&(typeof body.aspectRatio!=='string'||!/^\d{1,2}:\d{1,2}$/.test(body.aspectRatio)||!body.aspectRatio.split(':').every(n=>Number(n)>0)))fail('Choose a supported video aspect ratio.');
   return {kind:'video',model:body.model,prompt:body.prompt.trim(),requestId:body.requestId.toLowerCase(),...(body.duration===undefined?{}:{duration:body.duration}),...(body.aspectRatio===undefined?{}:{aspectRatio:body.aspectRatio})};
  }
- async function keyFor(connection){let key;try{key=await credential(connection);}catch{fail('The existing Flux connection is unavailable. Check its settings in Fluxini.',503);}if(!key)fail('Connect Fluxini to AI Gateway before generating.',503);return key;}
+ async function keyFor(connection){let key;try{key=await credential(connection);}catch{fail('The existing Flux connection is unavailable. Check its settings in FluxEffects.',503);}if(!key)fail('Connect FluxEffects to AI Gateway before generating.',503);return key;}
  const signature=(key,value)=>createHmac('sha256',createHmac('sha256',key).update('fluxlab-video-ticket-v1').digest()).update(value).digest();
  function sign(key,value){const body=Buffer.from(JSON.stringify(value)).toString('base64url');return body+'.'+signature(key,body).toString('base64url');}
  function verify(key,ticket,kind){

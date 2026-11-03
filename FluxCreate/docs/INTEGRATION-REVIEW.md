@@ -15,7 +15,7 @@ The suite has a shared app registry, navigation, appearance, General Settings, p
 | FluxLab → editors | Reviewed text/image insertion; video/audio into motion/video apps | Popup/opener transfer, origin-specific storage, limited compatible receivers |
 | FluxAgents → editors | Same text handoff protocol | Local source-origin omission was found and fixed in this release |
 | FluxAgents → FluxLab | New explicit prompt review and insertion | Does not start paid generation or create a new model result automatically |
-| Flux3D → Fluxiffects | Existing 3D scene/GLB rendering and supported motion | Not a general object link or full Blender scene conversion |
+| Flux3D → FluxMotion | Existing 3D scene/GLB rendering and supported motion | Not a general object link or full Blender scene conversion |
 | Other app objects in layers | Bounded source/provenance foundation is partly implemented | General placement, source refresh and all-app rendering are not complete |
 | Shared AI | Existing app-specific command planning plus FluxLab generation | Floating selection-aware helper and browser MCP transport are planned, not shipped |
 | Gateway settings | Encrypted, request-scoped browser connection | No account-bound credential vault or unattended personal-credential use |
@@ -64,7 +64,7 @@ The suite has a shared app registry, navigation, appearance, General Settings, p
 
 **Plan:** define `native editable`, `portable editable`, `rendered snapshot` and `unsupported` outcomes. An embedded object records stable ID, source app/version, original source reference, preview, chosen page/composition/time, dimensions, fidelity warnings and content hash. Validate recursive embedding depth and total bytes. Prefer asset references to nested base64 copies.
 
-**Placement:** add `Place from studio` separately from `Open project`; opening replaces a document, placing appends an object. Preview and choose page/frame/time before insertion. For Flux3D/Fluxini snapshots use a textured plane; real geometry continues through supported geometry import. For Fluxfoto use an image layer; for Fluxiffects use footage or an existing supported scene layer.
+**Placement:** add `Place from studio` separately from `Open project`; opening replaces a document, placing appends an object. Preview and choose page/frame/time before insertion. For Flux3D/Fluxini snapshots use a textured plane; real geometry continues through supported geometry import. For FluxFoto use an image layer; for FluxMotion use footage or an existing supported scene layer.
 
 **Editing source:** explicit Open source / Download source / Replace source / Refresh preview, with revision and undo. Begin with manual refresh. Automatic subscriptions come only after identity and asset versioning.
 
@@ -80,7 +80,7 @@ The suite has a shared app registry, navigation, appearance, General Settings, p
 
 ### P1 — Floating AI helper through FluxLab MCP
 
-**Requested experience:** a consistent floating helper in Fluxfoto, Fluxiffects, Fluxini and Flux3D, with a clearly named current selection and available actions. Extend to the remaining editors through adapters, not copied UI.
+**Requested experience:** a consistent floating helper in FluxFoto, FluxMotion, FluxEffects and Flux3D, with a clearly named current selection and available actions. Extend to the remaining editors through adapters, not copied UI.
 
 **Plan:** implement a same-origin, authenticated MCP transport using the official SDK and existing FluxLab tool dispatcher. Separate context queries from mutation proposals. An edit tool returns bounded commands; the app renders a preview and applies only after explicit review. Generation creates a reviewed asset. Pixel editing/upscaling must declare required reference image/mask, supported model, output constraints, cost and cancellation behavior.
 
@@ -98,7 +98,7 @@ The suite has a shared app registry, navigation, appearance, General Settings, p
 
 ### P1 — Common rendering and timing semantics
 
-**Evidence:** apps disagree on top-left versus anchor coordinates, scene units, page selection, frame time, blend names, text layout and opacity conventions. Fluximiére exports are currently silent; that is a functional release gap, not merely a compatibility warning.
+**Evidence:** apps disagree on top-left versus anchor coordinates, scene units, page selection, frame time, blend names, text layout and opacity conventions. FluxVideo exports are currently silent; that is a functional release gap, not merely a compatibility warning.
 
 **Plan:** explicit coordinate/time/color metadata in conversion adapters; reference fixtures for transformations, transparent edges, masks, blend modes, embedded motion, fonts and audio sync. Separate static preview generation from full animation export. Preserve unsupported source alongside the converted result.
 

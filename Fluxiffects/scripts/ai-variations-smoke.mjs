@@ -43,7 +43,7 @@ const review=()=>page.getByRole('dialog',{name:'A new direction. Your decision.'
 const preferenceDialog=()=>page.getByRole('dialog',{name:'Creative preferences',exact:true});
 async function copy(){await page.keyboard.press('Escape');const wait=page.waitForEvent('download');await page.keyboard.press('Control+s');const file=await wait;return JSON.parse(await fs.readFile(await file.path(),'utf8'));}
 async function persisted(){await saved();return page.evaluate(()=>new Promise((resolve,reject)=>{const open=indexedDB.open('fluxiffects-studio',1);open.onsuccess=()=>{const db=open.result,request=db.transaction('projects').objectStore('projects').get('current');request.onsuccess=()=>{resolve(request.result);db.close();};request.onerror=()=>reject(request.error);};open.onerror=()=>reject(open.error);}));}
-async function openAI(){if(!await page.getByLabel('Flux AI assistant',{exact:true}).count())await button('Ask Flux').click();await page.getByText('Using your Fluxini AI connection',{exact:true}).waitFor();}
+async function openAI(){if(!await page.getByLabel('Flux AI assistant',{exact:true}).count())await button('Ask Flux').click();await page.getByText('Using your FluxEffects AI connection',{exact:true}).waitFor();}
 async function preferences(){await button('Creative preferences').click();await preferenceDialog().waitFor();}
 async function closePreferences(){await button('Close creative preferences').click();}
 async function addRule(name,text){await page.getByLabel('Rule name',{exact:true}).fill(name);await page.getByLabel('Style rule',{exact:true}).fill(text);await button('Save rule').click();await page.getByLabel(`Include ${name}`,{exact:true}).waitFor();}

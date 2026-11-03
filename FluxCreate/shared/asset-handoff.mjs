@@ -4,7 +4,7 @@ import {appURL} from './registry.mjs';
 import {isHosted} from './hosting.mjs';
 
 export const LAB_VIDEO_LIMITS={bytes:64*1024*1024,dimension:8192,pixels:33554432,duration:86400};
-export function validateLabTarget(appId,result){if(!acceptsArtifact(appId,result.kind))throw Error(appId==='fluxlab'?'Send text to FluxLab as a prompt draft.':['audio','video'].includes(result.kind)?'Send video and audio to Fluximiére or Fluxiffects.':'Choose a compatible FluxCreate workspace.');return true;}
+export function validateLabTarget(appId,result){if(!acceptsArtifact(appId,result.kind))throw Error(appId==='fluxlab'?'Send text to FluxLab as a prompt draft.':['audio','video'].includes(result.kind)?'Send video and audio to FluxVideo or FluxMotion.':'Choose a compatible FluxCreate workspace.');return true;}
 export function validateLabResult(value){
  if(!value||!['text','image','video','audio'].includes(value.kind)||typeof value.id!=='string'||!value.id.length||value.id.length>200)throw Error('This FluxLab result is not supported.');
  const result={id:value.id,kind:value.kind,model:String(value.model||'').slice(0,160),prompt:String(value.prompt||'').slice(0,6000),createdAt:String(value.createdAt||'').slice(0,50)};

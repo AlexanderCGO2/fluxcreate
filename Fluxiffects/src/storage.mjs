@@ -7,7 +7,7 @@ function database() {
     req.onupgradeneeded = () => {if(!req.result.objectStoreNames.contains('projects'))req.result.createObjectStore('projects');};
     req.onsuccess = () => {if(failed)req.result.close();else resolve(req.result);};
     req.onerror = () => {failed=true;reject(req.error||Error('Local storage could not open.'));};
-    req.onblocked = () => {failed=true;reject(Error('Another Fluxiffects tab is blocking local storage.'));};
+    req.onblocked = () => {failed=true;reject(Error('Another FluxMotion tab is blocking local storage.'));};
   });
 }
 export async function readSession() {

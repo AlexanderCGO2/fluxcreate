@@ -3,7 +3,7 @@ import {MEDIA_FILE_BYTES,MEDIA_TOTAL_BYTES} from './local-media.mjs';
 const encoder=new TextEncoder(),MAGIC='FLUXIMIERE-BINARY-1\n',HEADER_LIMIT=4*1024*1024;
 export async function embedProjectMedia(raw){
  const project=validateProject(raw);
- if(project.assets.reduce((n,a)=>n+(a.blob?.size??Math.ceil(a.src.length*.75)),0)>90*1024*1024)throw Error('Flux Exchange text export supports up to 90 MiB of media. Use the Fluximiére project export to preserve larger originals.');
+ if(project.assets.reduce((n,a)=>n+(a.blob?.size??Math.ceil(a.src.length*.75)),0)>90*1024*1024)throw Error('Flux Exchange text export supports up to 90 MiB of media. Use the FluxVideo project export to preserve larger originals.');
  const assets=[];for(const a of project.assets){if(!a.blob){assets.push(a);continue;}const bytes=new Uint8Array(await a.blob.arrayBuffer()),pieces=[];for(let i=0;i<bytes.length;i+=32768)pieces.push(String.fromCharCode(...bytes.subarray(i,i+32768)));const {blob,...rest}=a;assets.push({...rest,src:`data:${blob.type};base64,${btoa(pieces.join(''))}`});}
  return validateProject({...project,assets});
 }

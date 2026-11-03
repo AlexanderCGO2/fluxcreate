@@ -2,9 +2,13 @@
 
 Thanks for helping make creative work easier to move between tools.
 
+Follow the [Code of Conduct](CODE_OF_CONDUCT.md). [Governance](GOVERNANCE.md) explains decision authority and proposals; [Maintainers](MAINTAINERS.md) lists responsibilities; [Support](SUPPORT.md) covers help and troubleshooting.
+
 ## Release status and licensing
 
-The repository is being prepared for open source. No project license or contribution agreement has been adopted yet. Before accepting outside code for the public release, the maintainer must confirm contribution terms and redistribution rights. Do not assume that proposed licensing in planning documents is already effective.
+Applications and shared suite code use [AGPL-3.0-only](LICENSE). The standalone [FluxExchange](FluxExchange/LICENSE) package uses Apache-2.0. Submit only work you have the right to contribute under the applicable component license. Disclose separately licensed material and retain its notices. No copyright assignment, mandatory DCO workflow or separate CLA has been adopted. Read [LICENSING.md](docs/LICENSING.md).
+
+Public release still requires dependency, asset and ownership review. A contribution does not authorize publication of private customer files or third-party media.
 
 ## Set up
 
@@ -63,9 +67,13 @@ Only contribute sample assets you have permission to distribute. Record their or
 
 ## Pull requests
 
-Include the problem, resulting behavior, relevant validation and known limitations. Do not claim full Adobe/Blender/Houdini compatibility for a supported subset. Keep dependency changes pinned and update the lockfile intentionally.
+Include the problem, resulting behavior, relevant validation and known limitations. For shared format, architecture, credential, billing or governance changes, use the written-proposal process in [GOVERNANCE.md](GOVERNANCE.md) before substantial implementation. Do not claim full Adobe/Blender/Houdini compatibility for a supported subset. Keep dependency changes pinned and update the lockfile intentionally.
 
 Use a branch such as `codex/short-description` or another descriptive feature branch. Check the proposed diff before submitting; passing automation is not a replacement for reviewing its contents.
+
+## AI-assisted contributions
+
+AI assistance is welcome, but the contributor remains responsible for understanding the change, checking provenance and redistribution rights, protecting confidential input and verifying behavior. Disclose material generated changes when it helps reviewers assess risk. Do not submit model output as proof of correctness or treat an AI reviewer as an independent accountable maintainer.
 
 ## Security reports
 

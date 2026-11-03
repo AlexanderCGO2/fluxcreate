@@ -4,13 +4,13 @@ FluxCreate is an early project preparing for a public release. There is no suppo
 
 ## Private reporting
 
-While this repository remains private, authorized collaborators can contact its owner through the existing private collaboration channel. Do not put raw keys, session cookies, private user media or unnecessary exploit details in issue attachments.
+Email [build@flux-ai.co](mailto:build@flux-ai.co) with the subject **FluxCreate security report** for private routing. The project owner supplied this address; delivery and response time have not been verified by preparing this document. Start with a redacted description and arrange any sensitive evidence privately. Do not send raw keys, session cookies, private user media or unnecessary exploit details.
 
-Before making the repository public, the maintainer must enable and verify GitHub private vulnerability reporting. Once enabled, use **Security -> Report a vulnerability**:
+Maintain the private contact route above during preparation. When the repository becomes public, enable and verify GitHub private vulnerability reporting before broad promotion. Once enabled, use **Security -> Report a vulnerability**:
 
 https://github.com/AlexanderCGO2/fluxcreate/security/advisories/new
 
-That route is a planned reporting channel, not a claim that it is currently enabled. If it is unavailable, request a private contact route without publishing the sensitive details.
+That route is a planned reporting channel, not a claim that it is currently enabled. If it is unavailable, use the project email above without publishing sensitive details. Conduct concerns follow [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md); ordinary help follows [SUPPORT.md](../SUPPORT.md).
 
 ## What to include
 

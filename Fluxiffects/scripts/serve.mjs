@@ -38,11 +38,11 @@ export function serve(port = Number(process.env.PORT || 4320), {aiService = crea
     try {
       const actualPort=server.address()?.port;
       const hosts=new Set([`localhost:${actualPort}`,`127.0.0.1:${actualPort}`]);
-      if(!hosts.has(req.headers.host)){json(res,403,{error:'Use the local Fluxiffects address.'});return;}
+      if(!hosts.has(req.headers.host)){json(res,403,{error:'Use the local FluxMotion address.'});return;}
       let pathname;try{pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);}catch{throw new RequestError('The requested address is not valid.');}
       if(pathname.startsWith('/api/')){
         const allowedOrigins=new Set([...hosts].map(host=>`http://${host}`));
-        if((req.headers.origin&&!allowedOrigins.has(req.headers.origin))||req.headers['sec-fetch-site']==='cross-site'){json(res,403,{error:'This action must originate from your local Fluxiffects workspace.'});return;}
+        if((req.headers.origin&&!allowedOrigins.has(req.headers.origin))||req.headers['sec-fetch-site']==='cross-site'){json(res,403,{error:'This action must originate from your local FluxMotion workspace.'});return;}
         if(await handleSettings(req,res,pathname.slice(4)))return;
         const connection=await resolveRequestConnection(req);
         if(pathname==='/api/mcp')return mcp(req,res,{connection});
@@ -71,7 +71,7 @@ export function serve(port = Number(process.env.PORT || 4320), {aiService = crea
       json(res,status,{error:known?error.message:'The local operation could not be completed.'});
     }
   });
-  server.listen(port, '127.0.0.1', () => console.log(`Fluxiffects is ready at http://localhost:${server.address().port}`));
+  server.listen(port, '127.0.0.1', () => console.log(`FluxMotion is ready at http://localhost:${server.address().port}`));
   return server;
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) serve();

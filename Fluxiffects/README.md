@@ -1,12 +1,12 @@
-# Fluxiffects
+# FluxMotion
 
-A standalone, local motion design editor with a calm, Apple-inspired interface. Fluxiffects has its own project folder, build, launcher, and browser storage. Version 0.3 adds reusable creative preferences and three editable AI directions to the existing Fluxini exchange and composition assistant.
+A standalone, local motion design editor with a calm, Apple-inspired interface. FluxMotion has its own project folder, build, launcher, and browser storage. Version 0.3 adds reusable creative preferences and three editable AI directions to the existing FluxEffects exchange and composition assistant.
 
 ## Open the studio
 
 Double-click **Start-Fluxiffects.cmd**, or open **http://localhost:4320** while the local server is running.
 
-Keep the sibling `FluxExchange`, `FluxCreate`, and `Flux3D` projects beside this directory. They supply the exchange codec, suite integration, and shared 3D loader/compositor. Install Flux3D's dependencies before building Fluxiffects from source. From this directory, with Node.js 22+ and pnpm installed:
+Keep the sibling `FluxExchange`, `FluxCreate`, and `Flux3D` projects beside this directory. They supply the exchange codec, suite integration, and shared 3D loader/compositor. Install Flux3D's dependencies before building FluxMotion from source. From this directory, with Node.js 22+ and pnpm installed:
 
 ```sh
 pnpm install
@@ -35,15 +35,15 @@ For development, `pnpm dev` watches source changes; refresh the browser after an
 - **Flux Exchange:** readable `.flux.md` import/export for both studios, creative briefs, handoff notes, compatibility reports, and explicit recovery of saved native source snapshots.
 - **Ask Flux:** refine selected layers or the active composition, create a new editable composition from a brief, or explain a scene. Review animated before/after previews and individual changes before applying; every applied proposal is one undoable edit.
 
-## Exchange with Fluxini
+## Exchange with FluxEffects
 
-FluxLab can send saved MP4/WebM videos and MP3/WAV audio directly to Fluxiffects. Review the playable preview and choose **Add to project** to create a media layer. The transfer carries the original saved file, up to 64 MiB, rather than an expiring generation link. Canceling the preview leaves the composition unchanged. Embedded sources remain in native project copies; audio plays in the editor and is included in the WebM sound mix.
+FluxLab can send saved MP4/WebM videos and MP3/WAV audio directly to FluxMotion. Review the playable preview and choose **Add to project** to create a media layer. The transfer carries the original saved file, up to 64 MiB, rather than an expiring generation link. Canceling the preview leaves the composition unchanged. Embedded sources remain in native project copies; audio plays in the editor and is included in the WebM sound mix.
 
-Choose **Exchange** in Fluxiffects, add a brief and handoff notes, and save a `.flux.md` file. In Fluxini, import that file and review the conversion report. To return, choose **Export → Exchange** in Fluxini and import the resulting file into Fluxiffects.
+Choose **Exchange** in FluxMotion, add a brief and handoff notes, and save a `.flux.md` file. In FluxEffects, import that file and review the conversion report. To return, choose **Export → Exchange** in FluxEffects and import the resulting file into FluxMotion.
 
 Markdown carries readable context and one versioned JSON block with the authoritative scene data. Text, basic shapes, placement, colors and supported animation convert into editable elements. Each export saves that studio's current native source and retains the other studio's latest source snapshot. Returning a file converts the latest work by default; **Recover saved source** explicitly opens the older native copy. Keep earlier handoff files for historical versions.
 
-2D composition and procedural 3D features do not have exact equivalents. Conversion reports explain approximations and unsupported content. For a faithful particle, fluid, or procedural effect, export a PNG or WebM from Fluxini and import it as media here; keep the Markdown alongside it for source recovery. Exchange files are limited to 16 MB. See [the format and compatibility specification](../FluxExchange/README.md).
+2D composition and procedural 3D features do not have exact equivalents. Conversion reports explain approximations and unsupported content. For a faithful particle, fluid, or procedural effect, export a PNG or WebM from FluxEffects and import it as media here; keep the Markdown alongside it for source recovery. Exchange files are limited to 16 MB. See [the format and compatibility specification](../FluxExchange/README.md).
 
 ## AI inside the editor
 
@@ -53,7 +53,7 @@ Open **Ask Flux** and choose **Refine**, **Create**, or **Understand**. Choose t
 
 Choose **Explore → Three directions** to generate three alternatives in one AI request. Compare their animated previews, then apply the direction you prefer. Each alternative starts from the same scene, and the chosen result remains one undoable edit. This works for both refining a scene and creating a new composition. Three directions can take longer than one; each is limited to 16 edit commands. Understand returns one explanation.
 
-The local server reads the existing Fluxini AI Gateway connection; it does not copy or expose credentials. The configured Fluxini model is reused without automatic fallback. AI requests send your prompt, brief, explicitly selected preference text and chosen scene properties. Media bytes, file paths, unrelated compositions, AE metadata, unselected preferences and saved exchange snapshots are excluded from the provider context. A configured connection still requires a successful provider request; errors appear in the panel without applying changes.
+The local server reads the existing FluxEffects AI Gateway connection; it does not copy or expose credentials. The configured FluxEffects model is reused without automatic fallback. AI requests send your prompt, brief, explicitly selected preference text and chosen scene properties. Media bytes, file paths, unrelated compositions, AE metadata, unselected preferences and saved exchange snapshots are excluded from the provider context. A configured connection still requires a successful provider request; errors appear in the panel without applying changes.
 
 Proposals use validated typed commands, respect locked layers and selection scope, and are rejected if the scene changed while the request was running. AI cannot execute expressions or scripts. See [AI architecture, limits and next steps](docs/ai.md).
 
@@ -67,20 +67,20 @@ Choose **Import → 3D scenes & motion** and open a `.flux3d`, native Flux3D `.j
 
 Native Flux3D imports retain the saved scene and initial view. GLB/glTF imports retain supported standard animation clips, including transforms, skins and morph targets. They use a fitted initial view; camera controls apply relative offsets. Source textures and buffers must be embedded: external resource URLs, separate `.bin` files and compressed formats requiring extra decoder plugins are not loaded. Re-export as a self-contained GLB when needed. Import is limited to 64 MB per scene. PNG and WebM exports render the 3D layers at the composition time.
 
-Each imported scene is a single composited layer. Internal objects are edited in Flux3D or the original 3D application; separate scene layers do not share depth, lights or shadows. Native `.blend` files require export to GLB/glTF first. The After Effects bridge still supports 2D properties only; its AE cameras and 3D layers are not converted into this scene format. Other 2D suite editors report and skip live 3D layers during conversion; use a PNG render when a flat image is needed. Markdown preserves the original Fluxiffects source snapshot subject to its 16 MB limit.
+Each imported scene is a single composited layer. Internal objects are edited in Flux3D or the original 3D application; separate scene layers do not share depth, lights or shadows. Native `.blend` files require export to GLB/glTF first. The After Effects bridge still supports 2D properties only; its AE cameras and 3D layers are not converted into this scene format. Other 2D suite editors report and skip live 3D layers during conversion; use a PNG render when a flat image is needed. Markdown preserves the original FluxMotion source snapshot subject to its 16 MB limit.
 
 ## After Effects import
 
 **Native `.aep` and `.aepx` projects are not decoded directly by this version.** The included bridge runs inside an installed copy of After Effects and exports an editable `.fluxiffects.json` project.
 
 1. Open the original project in After Effects.
-2. In Fluxiffects choose **Import → After Effects project → Download AE bridge**.
+2. In FluxMotion choose **Import → After Effects project → Download AE bridge**.
 3. In AE choose **File → Scripts → Run Script File** and run `Export-to-Fluxiffects.jsx`.
-4. Import the exported JSON into Fluxiffects and relink missing footage from the Media panel.
+4. Import the exported JSON into FluxMotion and relink missing footage from the Media panel.
 
 The bridge transfers supported 2D compositions, text, solids, footage references, layer timing, parenting and transform keyframes. Effects metadata, expressions and unsupported properties are retained as inert metadata with import warnings. Spatial/temporal Bézier behavior is approximated; shape paths, nested composition rendering, 3D, cameras, masks, track mattes and third-party effects are not reproduced. Text/font substitution can affect layout.
 
-See [the detailed compatibility guide](docs/after-effects-import.md), [the bridge script](public/bridge/Export-to-Fluxiffects.jsx), and [a sample bridge project](public/examples/after-effects-sample.json). The script has been validated against a mocked AE scripting host and the real Fluxiffects importer; execution inside a real installed After Effects host has not yet been verified.
+See [the detailed compatibility guide](docs/after-effects-import.md), [the bridge script](public/bridge/Export-to-Fluxiffects.jsx), and [a sample bridge project](public/examples/after-effects-sample.json). The script has been validated against a mocked AE scripting host and the real FluxMotion importer; execution inside a real installed After Effects host has not yet been verified.
 
 ## Keeping your work
 
@@ -123,7 +123,7 @@ The tests exercise model validation, interpolation, native/AE import and roundtr
 
 This release is a motion editor with composited 3D scene layers, not a feature-complete replacement for After Effects. It does not yet have vector path/mask editing, track mattes, precomposition rendering, a shared 3D world across scene layers, mesh/rig editing, expression execution, tracking/rotoscoping, plugin hosting, MP4 encoding, reverse/animated time remapping, or a native desktop installer. Bounded cubic Bézier easing and multi-key editing/copy/paste are available; spatial paths and overshooting tangents remain unsupported. Font selection uses installed/system fonts; it does not include proprietary Adobe fonts.
 
-After Effects is a trademark of Adobe. Fluxiffects is an independent project and is not affiliated with Adobe.
+After Effects is a trademark of Adobe. FluxMotion is an independent project and is not affiliated with Adobe.
 
 ## Audio export
 

@@ -30,7 +30,7 @@ try{
  source=await context.newPage();await source.goto(origin+'/fluxlab/');await source.addScriptTag({url:origin+'/music-handoff-test.js'});
  const fixture=await source.evaluate(async encoded=>{const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0)),ctx=new AudioContext();try{const decoded=await ctx.decodeAudioData(bytes.buffer);return {duration:decoded.duration,channels:decoded.numberOfChannels,sampleRate:decoded.sampleRate};}finally{await ctx.close();}},encoded);
  assert.ok(fixture.duration>2.9&&fixture.duration<3.2);check('The actual MP3 fixture decodes to approximately three seconds before any handoff.');
- for(const [app,name]of [['fluximiere','Fluximiére'],['fluxiffects','Fluxiffects']]){
+ for(const [app,name]of [['fluximiere','FluxVideo'],['fluxiffects','FluxMotion']]){
   const text='Keep this existing editable title in '+name;
   let dest=await handoff(app,{id:'music-prior-'+app,kind:'text',text,model:'test/fixture',prompt:'Existing project content',createdAt:new Date().toISOString()});await accept(dest);await expect.poll(async()=>JSON.stringify(await saved(dest,app))).toContain(text);await dest.close();
   dest=await handoff(app,{id:'music-result-'+app,kind:'audio',operation:'music',gateway:'cloudflare',model:'elevenlabs/music-v2',prompt:'Simulated three-second instrumental score',durationSeconds:3,instrumental:true,createdAt:new Date().toISOString(),encoded,duration:fixture.duration});

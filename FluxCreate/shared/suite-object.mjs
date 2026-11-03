@@ -25,7 +25,7 @@ export async function readSuiteObject(file,{signal}={}){
  else if(app==='fluximiere'){const {validateProject,toMotion}=await import('../../Fluximiere/src/model.mjs');project=toMotion(validateProject(project));mode='motion';}
  else{
   if(!/^\s*\{/.test(text)){const exchange=decodeExchange(text);app=exchange.sourceApp;kind='exchange';}
-  else{const raw=JSON.parse(text);if(raw.format==='flux3d-project'){const {validateProject}=await import('../../Flux3D/src/model.mjs');project=validateProject(raw);app='flux3d';mode='scene';}else if(raw.schemaVersion||raw.project?.schemaVersion)throw Error('For a Fluxini scene, save a Flux Exchange (.flux.md) file in Fluxini first. The supported scene and original graph travel together.');else app='fluxiffects';}
+  else{const raw=JSON.parse(text);if(raw.format==='flux3d-project'){const {validateProject}=await import('../../Flux3D/src/model.mjs');project=validateProject(raw);app='flux3d';mode='scene';}else if(raw.schemaVersion||raw.project?.schemaVersion)throw Error('For a FluxEffects scene, save a Flux Exchange (.flux.md) file in FluxEffects first. The supported scene and original graph travel together.');else app='fluxiffects';}
   if(!mode){const converted=readMotion(text);project=converted.project;warnings=converted.warnings||[];mode='motion';}
  }
  checkEmbeddedMedia(project);checkpoint(signal);
@@ -38,7 +38,7 @@ export async function renderSuiteObject(opened,view=opened.view,{signal}={}){
  checkpoint(signal);let canvas,sourceView={...view};
  try{
   if(opened.mode==='photo'){
-   if(opened.project.layers.some(l=>l.visible&&l.type==='image'&&!l.src))throw Error('A visible source photo is missing. Relink it in Fluxfoto before placing this canvas.');
+   if(opened.project.layers.some(l=>l.visible&&l.type==='image'&&!l.src))throw Error('A visible source photo is missing. Relink it in FluxFoto before placing this canvas.');
    const {readyImages,drawProject}=await import('../../Fluxoto/src/renderer.mjs');await readyImages(opened.project);checkpoint(signal);
    canvas=document.createElement('canvas');drawProject(canvas,opened.project,{rasterSize:boundedSize(opened.project.width,opened.project.height)});
   }else if(opened.mode==='page'){
