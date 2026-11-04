@@ -32,7 +32,8 @@ for (const id of PUBLIC_DEMO_APP_IDS) {
       const top = relative.split(path.sep)[0];
       if (file.endsWith('.map') || path.basename(file) === '.gitkeep') return false;
       if (['', 'index.html', 'main.js', 'main.css', 'favicon.svg'].includes(top)) return true;
-      return (id === 'fluxidesign' && top === 'pdfjs') ||
+      return (id === 'fluxoto' && top === 'AG-PSD-LICENSE.txt') ||
+        (id === 'fluxidesign' && top === 'pdfjs') ||
         (id === 'fluxiffects' && ['bridge', 'examples'].includes(top));
     },
   });
