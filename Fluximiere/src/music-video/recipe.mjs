@@ -2,7 +2,7 @@ import {MUSIC_VIDEO_LIMITS,validateMusicVideoPlan} from './model.mjs';
 const bytes=text=>new TextEncoder().encode(text).byteLength;
 export function encodeRecipe(raw){
   const plan=validateMusicVideoPlan(raw);
-  const text='# Fluximiére music video recipe\n\nMedia files are stored separately. Import this recipe with its matching local assets.\n\n```fluxmusicvideo-json\n'+JSON.stringify(plan,null,2)+'\n```\n';
+  const text='# FluxVideo music video recipe\n\nMedia files are stored separately. Import this recipe with its matching local assets.\n\n```fluxmusicvideo-json\n'+JSON.stringify(plan,null,2)+'\n```\n';
   if(bytes(text)>MUSIC_VIDEO_LIMITS.recipeBytes)throw new Error('Music video recipe is too large');return text;
 }
 export function decodeRecipe(text){

@@ -1,6 +1,6 @@
 # FluxCreate implementation plan
 
-> Working-source update (2026-10-10): the approved batch now includes four-editor source-object controls, durable browser handoff/history, the floating MCP helper, bounded reference edits, Fluxfoto selection masks, Fluxini design alignment, Fluximiére audio/precise export, Fluxiffects real-time audio export and FluxAgents branching. The status notes below identify completed subsets and remaining acceptance work; no full milestone or native-product parity is implied.
+> Working-source update (2026-10-10): the approved batch now includes four-editor source-object controls, durable browser handoff/history, the floating MCP helper, bounded reference edits, FluxFoto selection masks, FluxEffects design alignment, FluxVideo audio/precise export, FluxMotion real-time audio export and FluxAgents branching. The status notes below identify completed subsets and remaining acceptance work; no full milestone or native-product parity is implied.
 
 Prepared 2026-10-09; updated 2026-10-10. The earlier review release published the plan; subsequent authorized implementation is recorded below. The [release record](RELEASE-2026-10-09.md) records the published commit, tests and remaining boundaries. Unfinished milestone items remain the backlog. The first [parallel workstreams](PARALLEL-GAP-PLAN.md) are published in suite 2f0d045. The [second batch](PARALLEL-GAP-BATCH-2.md) is published as suite 090d81d; its [production record](RELEASE-PARALLEL-2026-10-10.md) includes 67 protected live checks.
 
@@ -14,8 +14,8 @@ Use the [app gap index](FEATURE-GAPS.md), each linked app report and the [integr
 
 This increment was delivered before the current implementation batch; its publication record is in [OPTIMIZATIONS.md](OPTIMIZATIONS.md). The original release scope was:
 
-1. Finish the already-started Fluxfoto drag ordering. Verify mouse, touch, keyboard, insertion markers, long-list scrolling, locked layers, cancellation, pixel stacking, one-step undo/redo and reload.
-2. Finish bounded PSD export. Preserve separate rendered layers and normal layer properties. Verify actual PSD bytes, independent reader decode, canvas pixels and reimport. Document text/vector/mask rasterization, RGB/8-bit limitations and the canvas-eraser appearance fallback. Native Fluxfoto remains the complete editable backup.
+1. Finish the already-started FluxFoto drag ordering. Verify mouse, touch, keyboard, insertion markers, long-list scrolling, locked layers, cancellation, pixel stacking, one-step undo/redo and reload.
+2. Finish bounded PSD export. Preserve separate rendered layers and normal layer properties. Verify actual PSD bytes, independent reader decode, canvas pixels and reimport. Document text/vector/mask rasterization, RGB/8-bit limitations and the canvas-eraser appearance fallback. Native FluxFoto remains the complete editable backup.
 3. Fix FluxAgents local text delivery to editors. Include localhost/loopback source-port tests, actual popup/opener exchange, review and document insertion.
 4. Add FluxLab as a text destination with an explicit prompt-draft review. Do not start paid generation from a navigation action.
 5. Keep the then-partial embedded-source/MCP foundations clearly labelled. Placement and the floating helper were not part of that earlier release; their verified current subsets are recorded below.
@@ -45,12 +45,12 @@ This increment was delivered before the current implementation batch; its public
 
 **Depends on:** selection/mutation and artifact contracts from Milestone 1.
 
-**Implemented subset:** shared source-file review, supported page/composition/frame choice, actual bounded renders, placement, original-source download/open, replacement and refresh in Fluxfoto, Fluxiffects, Fluxini and Flux3D. Native save/reload, transforms, undo and stale/cancel checks are covered. These are rendered snapshots with recoverable source; Fluxini source files use Flux Exchange rather than arbitrary native graph evaluation. Live source synchronization, shared asset references and broader native fidelity remain open.
+**Implemented subset:** shared source-file review, supported page/composition/frame choice, actual bounded renders, placement, original-source download/open, replacement and refresh in FluxFoto, FluxMotion, FluxEffects and Flux3D. Native save/reload, transforms, undo and stale/cancel checks are covered. These are rendered snapshots with recoverable source; FluxEffects source files use Flux Exchange rather than arbitrary native graph evaluation. Live source synchronization, shared asset references and broader native fidelity remain open.
 
 1. Complete the bounded source descriptor and recursive-size checks. Store source identity, original file, selected page/composition/time, fidelity, preview hash and warnings.
 2. Build actual renderer adapters for photo artwork, publication pages, motion frames, video frames and supported 3D/procedural scenes. Never use a placeholder as a successful render.
 3. Add a shared Place from studio review with file selection, page/frame/time selection, preview and warnings.
-4. Integrate Fluxfoto image layers, Fluxiffects footage/scene layers, Fluxini preview planes and Flux3D preview planes. Existing real geometry imports remain a separate higher-fidelity path.
+4. Integrate FluxFoto image layers, FluxMotion footage/scene layers, FluxEffects preview planes and Flux3D preview planes. Existing real geometry imports remain a separate higher-fidelity path.
 5. Add source badges, Download/Open source, Replace source and Refresh preview. Replacement keeps destination transforms; refresh creates a history entry.
 6. Export portable previews while retaining recoverable native source in native projects. Move media into shared asset references as Milestone 4 becomes available.
 
@@ -62,7 +62,7 @@ This increment was delivered before the current implementation batch; its public
 
 **Depends on:** Milestone 1; uses Milestone 2 provenance. **Primary code:** shared floating UI/client, FluxLab MCP dispatcher, authenticated app routes and editor adapters.
 
-**Implemented subset:** All four requested editors mount the official-SDK MCP helper with planner preview/apply, explanation, stale revision/selection rejection and cancellation. Fluxfoto and Fluxiffects also review/insert generated text/images and edit selected embedded image sources; Fluxini reviews/inserts text and image planes and can reference-edit a selected studio plane preview. Flux3D currently supports editable proposals and explanation only. Local and hosted same-origin routes preserve immutable personal connection isolation; removed/expired personal credentials never fall back silently. Documented/live-capable reference-image models use a genuine image-edit request and preserve the original. [Focused evidence](FLOATING-AI-IMPLEMENTATION.md) covers mocks and actual editor adapters. **Still open:** paid provider smoke, mask-guided actions, genuine AI upscale, durable cross-instance paid jobs and reconciled costs; duplicate protection is process-local.
+**Implemented subset:** All four requested editors mount the official-SDK MCP helper with planner preview/apply, explanation, stale revision/selection rejection and cancellation. FluxFoto and FluxMotion also review/insert generated text/images and edit selected embedded image sources; FluxEffects reviews/inserts text and image planes and can reference-edit a selected studio plane preview. Flux3D currently supports editable proposals and explanation only. Local and hosted same-origin routes preserve immutable personal connection isolation; removed/expired personal credentials never fall back silently. Documented/live-capable reference-image models use a genuine image-edit request and preserve the original. [Focused evidence](FLOATING-AI-IMPLEMENTATION.md) covers mocks and actual editor adapters. **Still open:** paid provider smoke, mask-guided actions, genuine AI upscale, durable cross-instance paid jobs and reconciled costs; duplicate protection is process-local.
 
 1. Implement the actual MCP browser transport through the official SDK. Keep existing stdio MCP App compatibility. Route on the current protected app origin and pass request-scoped credentials.
 2. Deliver one floating helper with current-selection name/preview, scope, available actions, prompt, progress/cancel and a review panel. Reuse each editor's validated command application.
@@ -91,11 +91,11 @@ This increment was delivered before the current implementation batch; its public
 
 **Exit:** budgets are enforced, leaks do not accumulate across open/delete/relink cycles, and representative interaction improves measurably without reducing export fidelity.
 
-## Milestone 5 — Fluximiére audio, scrubbing and export
+## Milestone 5 — FluxVideo audio, scrubbing and export
 
-**Implemented subset:** exported sound is no longer a blanket gap. Fluximiére has bounded PCM playback, AudioWorklet scrub/scratch and shuttle, real worker-generated waveforms/output meter, offline stereo mixing and deterministic timestamped WebCodecs VP8/VP9 + Opus export, with an explicit real-time compatibility option. Short and ten-minute decoded marker fixtures verify timing. See [AUDIO-ENGINE.md](../../Fluximiere/docs/AUDIO-ENGINE.md) and the original [audio/desktop plan](AUDIO-DESKTOP-PLAN.md).
+**Implemented subset:** exported sound is no longer a blanket gap. FluxVideo has bounded PCM playback, AudioWorklet scrub/scratch and shuttle, real worker-generated waveforms/output meter, offline stereo mixing and deterministic timestamped WebCodecs VP8/VP9 + Opus export, with an explicit real-time compatibility option. Short and ten-minute decoded marker fixtures verify timing. See [AUDIO-ENGINE.md](../../Fluximiere/docs/AUDIO-ENGINE.md) and the original [audio/desktop plan](AUDIO-DESKTOP-PLAN.md).
 
-**Still open:** hardware listening and latency/device/load measurements, chunked long-source/proxy decode, professional routing/loudness/pan, pitch-preserving stretch, MP4 and recoverable native/background exports. Fluxiffects separately includes animated-gain/fade stereo audio in its 60-second/60-fps real-time WebM; deterministic Fluximiére encoding is not claimed for Fluxiffects.
+**Still open:** hardware listening and latency/device/load measurements, chunked long-source/proxy decode, professional routing/loudness/pan, pitch-preserving stretch, MP4 and recoverable native/background exports. FluxMotion separately includes animated-gain/fade stereo audio in its 60-second/60-fps real-time WebM; deterministic FluxVideo encoding is not claimed for FluxMotion.
 
 1. Establish an audio clock, routing/mix bus, clip source ranges, gain/fade/mute/solo semantics and real peak data.
 2. Implement decoded audio caching with bounded memory; derive waveforms from actual samples.
@@ -114,11 +114,11 @@ These can proceed independently once shared mutation and asset contracts are sta
 
 | App | First slice | Second slice | Later specialist work |
 |---|---|---|---|
-| Fluxfoto | Combined selections, isolated pixel clipboard/fill, flat multiselect, source-preserving per-photo RGB Levels/source histogram and photo relink/replacement implemented within bounds | Separate adjustment layers, per-channel/output Levels, Curves; clone/heal and selected-photo painting | Smart Objects, vector paths/styles, rich typography, RAW/ICC/16-bit; deeper editable PSD writing |
+| FluxFoto | Combined selections, isolated pixel clipboard/fill, flat multiselect, source-preserving per-photo RGB Levels/source histogram and photo relink/replacement implemented within bounds | Separate adjustment layers, per-channel/output Levels, Curves; clone/heal and selected-photo painting | Smart Objects, vector paths/styles, rich typography, RAW/ICC/16-bit; deeper editable PSD writing |
 | FluxDesign | Whole-frame styles, overset review and bounded vector/searchable PDF implemented; per-edge margins/columns, nonprinting guides, alignment and snapping now source-verified | Rich text runs/threading, parent pages, multi-selection/distribution, bleed and font diagnostics | Embedded/subset PDF fonts, broader shaping, print preflight, tables/long-document features |
-| Fluximiére | Audio/scrub/waveforms/precise WebCodecs export, scoped ripple editing and bounded source-time slip implemented; roll/slide, linked A/V and broader snapping remain | Proxies, captions, transitions and sequence diagnostics | Scopes/LUTs, advanced retiming/multicam, richer XML interchange |
-| Fluxiffects | Bounded real-time stereo export, custom temporal Bézier easing and one-property/layer multi-key move/delete implemented; committed exports and duplicate/split ignore drag previews | Masks/mattes, precompositions, cross-property/layer key editing, spatial/overshoot curves | Tracking/expressions/advanced effects and richer AE bridge; deterministic export/recoverable render queue |
-| Fluxini | Shared design/graph dock, search/diagnostics/repair and bounded multi-node selection/layout/duplicate/delete implemented; temporary selections do not affect evaluation or revision | Encapsulated/reusable groups, deterministic simulation caches and budgets; broader heavy-work cancellation | Broader procedural tools/interchange and production render/simulation job controls |
+| FluxVideo | Audio/scrub/waveforms/precise WebCodecs export, scoped ripple editing and bounded source-time slip implemented; roll/slide, linked A/V and broader snapping remain | Proxies, captions, transitions and sequence diagnostics | Scopes/LUTs, advanced retiming/multicam, richer XML interchange |
+| FluxMotion | Bounded real-time stereo export, custom temporal Bézier easing and one-property/layer multi-key move/delete implemented; committed exports and duplicate/split ignore drag previews | Masks/mattes, precompositions, cross-property/layer key editing, spatial/overshoot curves | Tracking/expressions/advanced effects and richer AE bridge; deterministic export/recoverable render queue |
+| FluxEffects | Shared design/graph dock, search/diagnostics/repair and bounded multi-node selection/layout/duplicate/delete implemented; temporary selections do not affect evaluation or revision | Encapsulated/reusable groups, deterministic simulation caches and budgets; broader heavy-work cancellation | Broader procedural tools/interchange and production render/simulation job controls |
 | Flux3D | Multi-object batch edits, explicit primitive mesh conversion and bounded vertex selection/local translation implemented; hierarchy and edge/face/topology operations remain | UV/textures/material slots, animation authoring | Rigging/modifiers, lighting/environment/render tools and large-scene acceleration |
 | FluxLab | Same-origin MCP/reference editing, named recipes/explicit variations/filters, protected unsent-draft recovery and reviewed recipe JSON import implemented; paid provider verification and mask/upscale remain | Music integration, thumbnails/organization, multi-draft history and portable bulk library | Multi-device assets, durable remote AI jobs and richer cost accounting |
 | FluxAgents | Text/boolean branching and durable local artifacts, unresolved-start recovery and named immutable workflow versions implemented; opening changes only the draft | Version diffs/archives, richer typed data/canvas; durable cloud milestone, schedules/webhooks/connectors | Bounded autonomous agents, team approvals, evaluations and actual-cost reconciliation |
@@ -142,7 +142,7 @@ These can proceed independently once shared mutation and asset contracts are sta
 
 ## Milestone 8 — Optional desktop acceleration
 
-**Decision depends on measurements from Milestones 4–5.** Reuse the web UI/document contracts. Prototype a local companion or Tauri desktop shell with a narrowly scoped media/compute service for disk caches, decode/proxy creation, long-running exports and selected heavy simulation/render tasks. Fluxini already contains desktop scaffolding worth inspecting before introducing another packaging stack.
+**Decision depends on measurements from Milestones 4–5.** Reuse the web UI/document contracts. Prototype a local companion or Tauri desktop shell with a narrowly scoped media/compute service for disk caches, decode/proxy creation, long-running exports and selected heavy simulation/render tasks. FluxEffects already contains desktop scaffolding worth inspecting before introducing another packaging stack.
 
 Benchmark identical fixtures in browser and prototype. Decide between system WebView and a bundled engine using codec consistency, audio-device behavior, deployment size and maintenance cost. Bundle only licensed, versioned native tools; avoid a general shell-command bridge. Preserve file/asset formats so projects can move between hosted and local editions.
 
@@ -152,7 +152,7 @@ Benchmark identical fixtures in browser and prototype. Decide between system Web
 
 Keep a milestone checklist with links to tests and files, and a current supported-format matrix. Before each release, rerun the affected behavior and shared integration contracts; broaden testing when shared state or formats change. Record deployed commit, URL, authentication state, tested cases and known limitations. Never update a status to Working because its UI exists or its package builds.
 
-## Parallel visual milestone — Fluxini suite consistency
+## Parallel visual milestone — FluxEffects suite consistency
 
 The first pass in [DESIGN-CONSISTENCY.md](../../Haidini/docs/DESIGN-CONSISTENCY.md) is implemented and locally verified: shared header/app switching with preserved scene picker, persisted neutral light/dark tokens, consistent fields/dialogs/AI panel, and pointer/keyboard graph resizing with readable focus/fit/fullscreen behavior. Checks cover 1600/1280 desktops and the supported 1000 × 720 minimum, both themes, scene-data/revision preservation, graph editing/history, export/cancel and settings. Deeper inspector grouping, object-list sizing refinements, shared modal consolidation and mobile certification remain separate work.
 
@@ -164,7 +164,7 @@ PDF color fidelity: PNG files carrying ICC, gamma/chromaticity, orientation or a
 
 ## Second parallel batch source gate — 2026-10-10
 
-The eight increments in [PARALLEL-GAP-BATCH-2.md](PARALLEL-GAP-BATCH-2.md) are implemented and individually tested. Fluxfoto Levels preserve source bytes and use explicit Apply; its neutral/disabled regression compares exact fresh PNG exports. Design guides never enter PDF/rendered artwork unless a frame moves. Slip and keyframe drags have cancellation and committed-state export checks. Flux3D vertex offsets retain topology/UVs and reject degeneracy. Fluxini batch organization uses ordinary atomic patches with a 32-command bound. Lab restores/imports without generation; Agents versions leave active and unresolved runs pinned.
+The eight increments in [PARALLEL-GAP-BATCH-2.md](PARALLEL-GAP-BATCH-2.md) are implemented and individually tested. FluxFoto Levels preserve source bytes and use explicit Apply; its neutral/disabled regression compares exact fresh PNG exports. Design guides never enter PDF/rendered artwork unless a frame moves. Slip and keyframe drags have cancellation and committed-state export checks. Flux3D vertex offsets retain topology/UVs and reject degeneracy. FluxEffects batch organization uses ordinary atomic patches with a 32-command bound. Lab restores/imports without generation; Agents versions leave active and unresolved runs pinned.
 
 Sources are frozen and assembled. The complete matrix passed all 536 checks (470 across the eight apps, plus 18 Exchange and 48 shared suite checks), with zero failures or skips. All nine app builds plus MCP/server, 36 hosted browser checks and six packaged MCP checks pass. Publication, deployment and protected production verification remain pending in the [release record](RELEASE-PARALLEL-2026-10-10.md). Production remains suite 2f0d045 until that deployment is completed. No full milestone or original-product parity is claimed.
 

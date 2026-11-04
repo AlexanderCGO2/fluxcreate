@@ -6,7 +6,7 @@ FluxCreate's shared AI studio. Generate text, images, video and spoken audio wit
 
 Use Node 24 or newer. Install the pinned dependencies with pnpm, run `pnpm build`, then `pnpm start`. FluxLab opens at `http://localhost:4326`. `pnpm build` builds the main studio and the separate MCP App UI.
 
-Connect Fluxini to AI Gateway first, or set `AI_GATEWAY_API_KEY` in the server environment. FluxLab reuses `Haidini/server/connection.mjs` and the existing `FLUXINI_DATA_DIR` / `FLUXINI_FLUX_ENV` configuration. Keys are loaded on the server and never returned to the browser, MCP client or generated result. Connection status means that a key is configured; it is not a paid verification of model access or available credits.
+Connect FluxEffects to AI Gateway first, or set `AI_GATEWAY_API_KEY` in the server environment. FluxLab reuses `Haidini/server/connection.mjs` and the existing `FLUXINI_DATA_DIR` / `FLUXINI_FLUX_ENV` configuration. Keys are loaded on the server and never returned to the browser, MCP client or generated result. Connection status means that a key is configured; it is not a paid verification of model access or available credits.
 
 Text generation uses Gateway Chat Completions. Dedicated image models use Image Generations. The optional editor reference-image tool uses the documented Image Edits endpoint for explicitly integrated models whose catalog metadata accepts images. Image-capable language models use Chat Completions with image/text modalities. Model/provider restrictions still apply; a model may reject a selected size or require additional account access. Use Automatic image size for multimodal language models. Each generation can incur charges on the connected Gateway account. Catalog discovery is read-only.
 
@@ -25,7 +25,7 @@ The local server exposes:
 
 Generation has a two-minute timeout and supports AbortSignal cancellation. Cancelling stops waiting and requests upstream cancellation; a provider may still charge for work already done. A service instance bounds generation per immutable connection scope. This is local concurrency protection, not a distributed quota or billing limit. Set account budgets/access controls for hosted deployment.
 
-The backend reads at most 8 MiB of an upstream JSON response and returns less than 4 MiB. Image payloads are capped at 3.5 million base64 characters, keeping results below Vercel's response limit. Oversized images fail with smaller-output guidance. PNG, JPEG and WebP dimensions are checked before transfer, with an 8192-pixel side limit and a 32-megapixel budget; browser decoding also validates usable assets before saving. Remote image URLs are not fetched: providers must return embedded image data. FluxLab generates one image per request. Optional editor image-edit tools accept one explicit embedded reference with the same format/size/dimension checks; the main FluxLab studio has no reference-upload mode. Music and sound effects remain unavailable. Text may be truncated at the chosen output token limit, with a warning.
+The backend reads at most 8 MiB of an upstream JSON response and returns less than 4 MiB. Image payloads are capped at 3.5 million base64 characters, keeping results below Vercel's response limit. Oversized images fail with smaller-output guidance. PNG, JPEG and WebP dimensions are checked before transfer, with an 8192-pixel side limit and a 32-megapixel budget; browser decoding also validates usable assets before saving. Remote image URLs are not fetched: providers must return embedded image data. FluxLab generates one image per request. Optional editor image-edit tools accept one explicit embedded reference with the same format/size/dimension checks; the main FluxLab studio has no reference-upload mode. Music is available through the separate Cloudflare Music workspace described below; sound-effect generation remains unavailable. Text may be truncated at the chosen output token limit, with a warning.
 
 ## External MCP App
 
@@ -50,7 +50,7 @@ Example client configuration (replace the absolute path):
 }
 ```
 
-The stdio process resolves the sibling Fluxini connection or its server environment. The same dispatcher also serves the official-SDK HTTP transport described below. Default stdio tools remain unchanged; optional editor-aware tools are added only to editor routes. Build the MCP UI before connecting an Apps-capable host.
+The stdio process resolves the sibling FluxEffects connection or its server environment. The same dispatcher also serves the official-SDK HTTP transport described below. Default stdio tools remain unchanged; optional editor-aware tools are added only to editor routes. Build the MCP UI before connecting an Apps-capable host.
 
 ## Same-origin browser MCP and floating helpers
 
@@ -62,12 +62,12 @@ The shared helper captures document/selection revision, shows the current object
 
 | Editor | Implemented helper actions |
 |---|---|
-| Fluxfoto | Edit/explain, reviewed text/image insertion, reference edit of a selected photo source |
-| Fluxiffects | Edit/explain, reviewed text/image insertion, reference edit of a selected embedded image layer |
-| Fluxini | Edit/explain, reviewed text and image-plane insertion, reference edit of a selected studio-plane preview |
+| FluxFoto | Edit/explain, reviewed text/image insertion, reference edit of a selected photo source |
+| FluxMotion | Edit/explain, reviewed text/image insertion, reference edit of a selected embedded image layer |
+| FluxEffects | Edit/explain, reviewed text and image-plane insertion, reference edit of a selected studio-plane preview |
 | Flux3D | Validated editable proposals and explanation |
 
-Editor routes expose `fluxcreate_edit` and, when the service supports it, `fluxlab_image_edit`. The latter accepts `{model,prompt,referenceImage}` with one PNG/JPEG/WebP data URL and calls Gateway `/v1/images/edits`. An explicit documented adapter and image-input catalog metadata are both required. Results are header-validated and decoded before comparison/insertion as a separate copy. Fluxini retains its 48-character text-node limit. Masks, guaranteed region preservation, fixed upscale factors and actual AI upscaling are not supported. Paid provider/account output has not been smoke-tested.
+Editor routes expose `fluxcreate_edit` and, when the service supports it, `fluxlab_image_edit`. The latter accepts `{model,prompt,referenceImage}` with one PNG/JPEG/WebP data URL and calls Gateway `/v1/images/edits`. An explicit documented adapter and image-input catalog metadata are both required. Results are header-validated and decoded before comparison/insertion as a separate copy. FluxEffects retains its 48-character text-node limit. Masks, guaranteed region preservation, fixed upscale factors and actual AI upscaling are not supported. Paid provider/account output has not been smoke-tested.
 
 Non-catalog MCP tool calls carry a UUID in `_meta["fluxcreate/requestId"]`. A bounded, connection-scoped process ledger reuses identical in-flight/completed requests and retains uncertain failures; it rejects reuse with changed arguments. The helper never automatically retries paid work. The ledger lasts 30 minutes in the current process and does not survive a restart or coordinate separate hosted instances. Cancellation cannot guarantee provider cancellation or refunds. Durable paid-job recovery and cloud artifacts remain future work. See [the complete helper evidence and limits](../FluxCreate/docs/FLOATING-AI-IMPLEMENTATION.md).
 
@@ -82,7 +82,7 @@ Primary references: [Gateway model discovery](https://vercel.com/docs/ai-gateway
 
 ## Video and audio
 
-The studio has Text, Image, Video and Speech modes. Video offers text-to-video models identified by the live catalog's supported operations, with each model's supported duration/aspect ratio settings. Speech reads a script aloud, with documented voices and MP3/WAV output for the supported Google, Microsoft and OpenAI models present in the live catalog. Saved speech remains an Audio asset. A catalog entry does not guarantee account eligibility or available credits. Music, sound effects, voice cloning, video/audio reference inputs and transcription are not included. The separate editor image-reference path is described above.
+The studio has Image, Text, Video, Speech and Music selectors. Video offers text-to-video models identified by the live catalog's supported operations, with each model's supported duration/aspect ratio settings. Speech reads a script aloud, with documented voices and MP3/WAV output for the supported Google, Microsoft and OpenAI models present in the live catalog. Saved speech remains an Audio asset. A catalog entry does not guarantee account eligibility or available credits. Music uses the separate Cloudflare path below. Sound effects, voice cloning, video/audio reference inputs and transcription are not included. The separate editor image-reference path is described above.
 
 Video uses Gateway's asynchronous start/status protocol. A request ID is saved before submission and reused after an uncertain response; Gateway idempotency prevents a retry of that submission from creating another paid job. Signed job tickets can be checked after a page reload or server restart. Pause stops checking, not the provider render. Ticket recovery lasts seven days and requires the same Gateway connection; rotating its key invalidates earlier tickets. Provider media may expire sooner. Download completed media promptly.
 
@@ -95,7 +95,7 @@ HTTP additions (prefix with `/api/fluxlab` when hosted):
 - `GET /api/video/content?ticket=...`: bounded MP4/WebM stream. The server accepts signed provider job references, never an arbitrary client URL; public HTTPS/DNS checks apply to provider media downloads.
 - `POST /api/audio/generate`: `{kind:'audio',model,prompt,voice?,outputFormat?}` → audio result with a validated MP3/WAV data URI. Browser decoding precedes Blob storage.
 
-Fluximiére receives video and audio in its source bin; Fluxiffects receives video and audio layers. The destination shows a decoded preview before Add. Original media files travel as Blobs and remain available after the destination reloads. Existing editor export/audio limits still apply.
+FluxVideo receives video and audio in its source bin; FluxMotion receives video and audio layers. The destination shows a decoded preview before Add. Original media files travel as Blobs and remain available after the destination reloads. Existing editor export/audio limits still apply.
 
 MCP adds `fluxlab_video_start`, `fluxlab_video_status`, and `fluxlab_audio_generate`. Speech is returned as standard MCP audio content, playable in the MCP App. Video tools return compact job metadata and a studio link for playback, library saving, download and handoff. Start FluxLab locally to open that link; optionally configure `FLUXLAB_PUBLIC_URL=https://your-deployment/fluxlab/` when that studio uses the same Gateway key. The App retains its strict host bridge/CSP and does not fetch arbitrary provider media. Keep the video ticket or studio link if closing the MCP view.
 
@@ -121,4 +121,10 @@ Build, 69 unit checks, 12 studio browser groups, nine media/recovery groups, eig
 
 ## Music-video director preview
 
-Fluximiére uses the same scoped AI Gateway connection through a bounded multimodal Gemini director route. It currently exposes analysis/beat-grid/timing-preview tools; it does not execute canonical audio cuts or video generation. Live Gemini 4 Argon listening is blocked because Gateway's current catalog does not advertise audio input. See [preview status](../FluxCreate/docs/RELEASE-MUSIC-VIDEO-PREVIEW-2026-10-17.md). No paid pilot has run.
+FluxVideo uses the same scoped AI Gateway connection through a bounded multimodal Gemini director route. It currently exposes analysis/beat-grid/timing-preview tools; it does not execute canonical audio cuts or video generation. Live Gemini 4 Argon listening is blocked because Gateway's current catalog does not advertise audio input. See [preview status](../FluxCreate/docs/RELEASE-MUSIC-VIDEO-PREVIEW-2026-10-17.md). No paid pilot has run.
+
+## Music workspace
+
+Music is a peer option beside Image, Text, Video and Speech, with the same selector available inside its composer. Switching preserves the current visual/text draft and the mounted music draft. Save music drafts explicitly for reload recovery.
+
+The implemented path uses ElevenLabs Music v2 through Cloudflare, with one 3–60 second MP3 request, an optional instrumental preference, local request-outcome protection, library saving and reviewed handoff to the motion editors. Configure and enable the Cloudflare connection in General settings. This is not a durable cross-device music job service; uncertain requests are never automatically resubmitted. Provider account access and billing apply. See [Cloudflare setup](../FluxCreate/docs/CLOUDFLARE-AI-GATEWAY.md).

@@ -1,5 +1,5 @@
 #target aftereffects
-/* Fluxiffects bridge v1. Export the open AE project with File > Scripts > Run Script File. */
+/* FluxMotion bridge v1. Export the open AE project with File > Scripts > Run Script File. */
 (function () {
     // ES3 syntax and a private serializer keep this independent of host JSON support.
     var project;
@@ -243,7 +243,7 @@
             layer.aeMetadata.textAnimators = propertyMetadata(animators, 0);
             warning(layer, "Text animators are retained as metadata and are not rendered.");
         }
-        warning(layer, "Text uses a single font style. Confirm font availability, paragraph layout, and glyph placement in Fluxiffects.");
+        warning(layer, "Text uses a single font style. Confirm font availability, paragraph layout, and glyph placement in FluxMotion.");
     }
     function blendMode(source, layer) {
         var mode = read(function () { return source.blendingMode; }, null);
@@ -296,7 +296,7 @@
                 layer.type = asset.type;
                 layer.assetId = asset.id;
                 layer.muted = !read(function () { return source.audioEnabled; }, false);
-                warning(layer, "Relink the original media file in Fluxiffects; media bytes are not embedded in this export.");
+                warning(layer, "Relink the original media file in FluxMotion; media bytes are not embedded in this export.");
                 if (asset.missing) { warning(layer, "The media is also offline in After Effects."); }
                 if (layer.type !== "image") {
                     var rate = 100 / source.stretch;
@@ -320,7 +320,7 @@
         var effects = property(source, "ADBE Effect Parade");
         if (effects && effects.numProperties) {
             layer.aeMetadata.effects = propertyMetadata(effects, 0);
-            warning(layer, "AE effects and plug-in parameters are retained as metadata. Apply equivalent Fluxiffects effects manually.");
+            warning(layer, "AE effects and plug-in parameters are retained as metadata. Apply equivalent FluxMotion effects manually.");
         }
         var masks = property(source, "ADBE Mask Parade");
         if (masks && masks.numProperties) {
@@ -370,7 +370,7 @@
             if (item instanceof CompItem) { project.compositions.push(exportComp(item)); }
         }
         if (!project.compositions.length) { alert("This project has no compositions to export."); return; }
-        var file = File.saveDialog("Export editable project to Fluxiffects", "JSON files:*.json");
+        var file = File.saveDialog("Export editable project to FluxMotion", "JSON files:*.json");
         if (!file) { return; }
         if (!/\.json$/i.test(file.name)) { file = new File(file.fsName + ".fluxiffects.json"); }
         file.encoding = "UTF-8";
@@ -380,9 +380,9 @@
         try { if (!file.write(json(project))) { throw new Error("The project file could not be written: " + file.error); } }
         finally { file.close(); }
         alert("Exported " + project.compositions.length + " composition(s) to:\n" + file.fsName +
-            "\n\nImport this JSON file in Fluxiffects." +
+            "\n\nImport this JSON file in FluxMotion." +
             (project.warnings.length ? "\n" + project.warnings.length + " compatibility notes are included in the import report." : ""));
     } catch (error) {
-        alert("Fluxiffects export failed:\n" + error.toString() + "\nLine: " + read(function () { return error.line; }, "unknown"));
+        alert("FluxMotion export failed:\n" + error.toString() + "\nLine: " + read(function () { return error.line; }, "unknown"));
     }
 }());

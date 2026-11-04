@@ -19,4 +19,4 @@ export async function selectedPixels(raw,selection,{layerId,fill,feather=0,signa
   try{crop.getContext('2d').drawImage(canvas,left,top,crop.width,crop.height,0,0,crop.width,crop.height);const src=crop.toDataURL('image/png');if(src.length>45000000)throw Error('This pixel clipboard is too large. Select a smaller area.');return{x:left,y:top,width:crop.width,height:crop.height,src,name:fill===undefined?layer.name+' pixels':'Selection fill'};}finally{crop.width=crop.height=1;}
  }finally{canvas.width=canvas.height=mask.width=mask.height=1;}
 }
-export function pastePixels(project,clipboard){if(!clipboard)throw Error('Copy pixels in Fluxfoto first.');const layer=newLayer('image',clipboard);return{layerId:layer.id,project:validateProject({...project,layers:[layer,...project.layers]})};}
+export function pastePixels(project,clipboard){if(!clipboard)throw Error('Copy pixels in FluxFoto first.');const layer=newLayer('image',clipboard);return{layerId:layer.id,project:validateProject({...project,layers:[layer,...project.layers]})};}

@@ -24,7 +24,7 @@ export function muxWebM(frames:EncodedFrame[],width:number,height:number,fps:num
  if(!frames.length||!frames[0].key)throw new Error('The encoder did not produce an initial keyframe.');
  const header=master(0x1a45dfa3,[number(0x4286,1),number(0x42f7,1),number(0x42f2,4),number(0x42f3,8),string(0x4282,'webm'),number(0x4287,4),number(0x4285,2)]);
  const duration=(frames.at(-1)!.timestamp+frames.at(-1)!.duration)/1000;
- const info=master(0x1549a966,[number(0x2ad7b1,1000000),string(0x4d80,'Fluxini'),string(0x5741,'Fluxini'),float(0x4489,duration)]);
+ const info=master(0x1549a966,[number(0x2ad7b1,1000000),string(0x4d80,'FluxEffects'),string(0x5741,'FluxEffects'),float(0x4489,duration)]);
  const tracks=master(0x1654ae6b,[master(0xae,[number(0xd7,1),number(0x73c5,1),number(0x83,1),number(0x9c,0),string(0x86,codec),number(0x23e383,Math.round(1e9/fps)),master(0xe0,[number(0xb0,width),number(0xba,height)])])]);
  const clusters:Uint8Array[]=[];let base=-1,blocks:Uint8Array[]=[];
  const flush=()=>{if(blocks.length)clusters.push(master(0x1f43b675,[number(0xe7,base),...blocks]));blocks=[];};
@@ -37,7 +37,7 @@ export function abortable<T>(promise:Promise<T>,signal:AbortSignal):Promise<T>{
  return new Promise((resolve,reject)=>{const abort=()=>reject(new DOMException('Export cancelled.','AbortError'));signal.addEventListener('abort',abort,{once:true});promise.then(resolve,reject).finally(()=>signal.removeEventListener('abort',abort));});
 }
 export async function encodeVideo(canvas:HTMLCanvasElement,fps:number,schedule:ReturnType<typeof renderSchedule>,render:(time:number)=>Promise<void>,signal:AbortSignal,progress:(frame:number,total:number)=>void){
- if(typeof VideoEncoder==='undefined'||typeof VideoFrame==='undefined')throw new Error('Frame rendering needs WebCodecs. Open Fluxini in current Edge or Chrome.');
+ if(typeof VideoEncoder==='undefined'||typeof VideoFrame==='undefined')throw new Error('Frame rendering needs WebCodecs. Open FluxEffects in current Edge or Chrome.');
  let config:VideoEncoderConfig|undefined,codec:'V_VP8'|'V_VP9'='V_VP9';
  for(const candidate of ['vp09.00.10.08','vp8']){const proposal:VideoEncoderConfig={codec:candidate,width:canvas.width,height:canvas.height,framerate:fps,bitrate:Math.max(2000000,Math.min(24000000,canvas.width*canvas.height*fps*.16)),latencyMode:'realtime'};if((await VideoEncoder.isConfigSupported(proposal)).supported){config=proposal;codec=candidate==='vp8'?'V_VP8':'V_VP9';break;}}
  if(!config)throw new Error('No supported VP8/VP9 video encoder is available at this size.');

@@ -35,8 +35,8 @@ try{
  }
  report.checks.push('70 px shared header; readable neutral light/dark chrome at 1600×1000 and 1280×800; actual theme passed to Settings; export choices/cancel preserved');
  await page.reload();await page.waitForFunction(()=>document.querySelector('.status-bar')?.textContent.includes('7 characters'));assert.equal(await page.locator('html').getAttribute('data-fluxini-theme'),'dark');
- await button('Switch FluxCreate app').click();const apps=page.getByRole('navigation',{name:'FluxCreate apps'});assert.equal(await apps.locator('a[aria-current=page] strong').textContent(),'Fluxini');assert((await apps.locator('a').count())>=8);await page.keyboard.press('Escape');assert.equal(await apps.count(),0);
- report.checks.push('Appearance persists after reload; registry-backed app switcher shows active Fluxini and closes with Escape');
+ await button('Switch FluxCreate app').click();const apps=page.getByRole('navigation',{name:'FluxCreate apps'});assert.equal(await apps.locator('a[aria-current=page] strong').textContent(),'FluxEffects');assert((await apps.locator('a').count())>=8);await page.keyboard.press('Escape');assert.equal(await apps.count(),0);
+ report.checks.push('Appearance persists after reload; registry-backed app switcher shows active FluxEffects and closes with Escape');
  await button('Graph').click();await page.locator('.react-flow__node').first().waitFor();await page.waitForTimeout(400);
  const scale=()=>page.locator('.react-flow__viewport').evaluate(el=>new DOMMatrix(getComputedStyle(el).transform).a);
  assert((await scale())>=.79,'Default graph text retains a readable scale');

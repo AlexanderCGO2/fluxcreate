@@ -27,7 +27,7 @@ export function createProject() {
   ]};
 }
 export function validateProject(raw) {
-  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.format!=='fluximiere'||![1,2].includes(raw.version))throw new Error('Choose a Fluximiére project.');
+  if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.format!=='fluximiere'||![1,2].includes(raw.version))throw new Error('Choose a FluxVideo project.');
   const p={format:'fluximiere',version:raw.version,id:id(raw.id),name:str(raw.name,'Untitled sequence'),width:num(raw.width,1920,16,8192,'Width'),height:num(raw.height,1080,16,8192,'Height'),fps:num(raw.fps,30,1,120,'Frame rate'),duration:num(raw.duration,16,0.1,86400,'Duration'),background:color(raw.background,'#101019'),assets:[],clips:[]};
   if(!Array.isArray(raw.assets)||raw.assets.length>500||!Array.isArray(raw.clips)||raw.clips.length>2000)throw new Error('This project has too many assets or clips.');
   const seen=new Set();
@@ -297,7 +297,7 @@ export function planSlideEdit(project,{clipId,startTime,deltaFrames,leftDuration
 }
 
 export function toMotion(project) {
-  const p=validateProject(project);if(p.assets.some(a=>a.blob))throw Error('Binary media needs a Fluximiére project export. Flux Exchange text export cannot carry these originals yet.');const motion=createBlankProject({name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background});
+  const p=validateProject(project);if(p.assets.some(a=>a.blob))throw Error('Binary media needs a FluxVideo project export. Flux Exchange text export cannot carry these originals yet.');const motion=createBlankProject({name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background});
   motion.id=p.id;motion.assets=p.assets.map(a=>({...a}));if(p.brief)motion.brief=p.brief;
   getComp(motion).layers=[...p.clips].reverse().sort((a,b)=>trackOrder(a.track)-trackOrder(b.track)).map(c=>{
     const layer=createLayer(c.type==='title'?'text':c.type==='card'||c.type==='shape'?'rectangle':c.type,{id:c.id,name:c.name,start:c.start,end:c.start+c.duration,x:c.x,y:c.y,width:c.width,height:c.height,anchorX:c.width/2,anchorY:c.height/2,text:c.text,fontSize:c.fontSize,textAlign:c.align,fill:c.color,cornerRadius:0,rotation:c.rotation,locked:c.locked,opacity:c.opacity,assetId:c.assetId,sourceIn:c.sourceIn,playbackRate:c.playbackRate,volume:c.volume,muted:c.muted,fadeIn:c.fadeIn,fadeOut:c.fadeOut});
@@ -310,7 +310,7 @@ export function fromMotion(input) {
   const {project:motion,warnings}=parseProject(JSON.stringify(input)),comp=getComp(motion),p={format:'fluximiere',version:1,id:uid(),name:motion.name,width:comp.width,height:comp.height,fps:comp.fps,duration:comp.duration,background:COLOR.test(comp.background)?comp.background:'#101019',assets:[],clips:[],brief:motion.brief??''};
   p.assets=motion.assets.filter(a=>a.type!=='model3d').map(a=>({...a,src:a.src?.startsWith('data:')?a.src:'',missing:!a.src?.startsWith('data:')}));
   for(const layer of [...comp.layers].reverse()){
-    if(layer.type==='scene3d'){warnings.push(`${layer.name}: live 3D scenes stay editable in Fluxiffects. Export PNG or WebM there for Fluximiére; keep the original project for geometry and animation.`);continue;}
+    if(layer.type==='scene3d'){warnings.push(`${layer.name}: live 3D scenes stay editable in FluxMotion. Export PNG or WebM there for FluxVideo; keep the original project for geometry and animation.`);continue;}
     if(layer.type==='null')continue;
     const type=layer.type==='text'?'title':['video','image','audio'].includes(layer.type)?layer.type:'shape';
     if(layer.end<=Math.max(0,layer.start))continue;
@@ -326,7 +326,7 @@ export function fromMotion(input) {
 export function timecode(seconds,fps=30){const frame=Math.max(0,Math.round(seconds*Math.round(fps))),f=Math.round(fps),s=Math.floor(frame/f);return [Math.floor(s/3600),Math.floor(s/60)%60,s%60,frame%f].map(v=>String(v).padStart(2,'0')).join(':');}
 export function exportEDL(project){
   const p=validateProject(project),clips=p.clips.filter(c=>c.track==='V1').sort((a,b)=>a.start-b.start),warnings=[];
-  if(p.clips.some(c=>c.linkId))warnings.push('Picture/sound links are not retained in EDL. Keep the native Fluximiére project.');
+  if(p.clips.some(c=>c.linkId))warnings.push('Picture/sound links are not retained in EDL. Keep the native FluxVideo project.');
   if(p.fps!==Math.round(p.fps))throw new Error('EDL export currently requires an integer frame rate.');
   if(clips.some((c,i)=>i&&c.start<clips[i-1].start+clips[i-1].duration-1/p.fps))throw new Error('EDL requires non-overlapping cuts on V1.');
   if(clips.some(c=>c.playbackRate!==1))throw new Error('EDL export requires 100% playback speed.');
@@ -373,4 +373,4 @@ export function getAIContext(project,{selection=[],scope='composition'}={}){
   const p=validateProject(project),clips=scope==='selection'?p.clips.filter(c=>selection.includes(c.id)):p.clips;
   return {name:p.name,width:p.width,height:p.height,fps:p.fps,duration:p.duration,background:p.background,clips:clips.map(c=>({...c})),assets:p.assets.filter(a=>clips.some(c=>c.assetId===a.id)).map(({id,type,width,height,duration,missing})=>({id,type,width,height,duration,missing}))};
 }
-export const AI_SPEC={description:'Fluximiére is a video timeline. Return commands for editable cuts and titles. Times are seconds. V1 contains visual footage; V2 contains titles; A1 contains audio. Do not create media URLs or pretend to generate video.',commands:[{type:'updateClip',clipId:'existing id',properties:{start:2,duration:4,fadeIn:0.4,fadeOut:0.5}},{type:'addTitle',properties:{text:'A new beginning',name:'Opening',start:0,duration:4,fontSize:110,color:'#ffffff',x:960,y:540}},{type:'splitClip',clipId:'existing id',time:3},{type:'deleteClip',clipId:'existing id'},{type:'duplicateClip',clipId:'existing id',start:6},{type:'updateSequence',properties:{name:'New name',duration:20,background:'#101019'}}],rules:'Linked clips carry linkId. They require explicit unlinking in the editor before timing, source, speed, split, duplicate or deletion changes. Do not unmute a linked video: its audio member owns sound. Use only supported property names. Preserve locked clips. Selection scope must not add titles or update the sequence. Numeric ranges: start 0..86400, duration .01..86400, speed .1..16, opacity and volume 0..1, fontSize 1..2000. Fades cannot exceed duration. Colors must be #RRGGBB. Make at most 40 commands.'};
+export const AI_SPEC={description:'FluxVideo is a video timeline. Return commands for editable cuts and titles. Times are seconds. V1 contains visual footage; V2 contains titles; A1 contains audio. Do not create media URLs or pretend to generate video.',commands:[{type:'updateClip',clipId:'existing id',properties:{start:2,duration:4,fadeIn:0.4,fadeOut:0.5}},{type:'addTitle',properties:{text:'A new beginning',name:'Opening',start:0,duration:4,fontSize:110,color:'#ffffff',x:960,y:540}},{type:'splitClip',clipId:'existing id',time:3},{type:'deleteClip',clipId:'existing id'},{type:'duplicateClip',clipId:'existing id',start:6},{type:'updateSequence',properties:{name:'New name',duration:20,background:'#101019'}}],rules:'Linked clips carry linkId. They require explicit unlinking in the editor before timing, source, speed, split, duplicate or deletion changes. Do not unmute a linked video: its audio member owns sound. Use only supported property names. Preserve locked clips. Selection scope must not add titles or update the sequence. Numeric ranges: start 0..86400, duration .01..86400, speed .1..16, opacity and volume 0..1, fontSize 1..2000. Fades cannot exceed duration. Colors must be #RRGGBB. Make at most 40 commands.'};

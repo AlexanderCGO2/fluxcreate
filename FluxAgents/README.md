@@ -9,7 +9,7 @@ A visual workflow studio for FluxCreate. Build editable flows, test them without
 - Portable `.fluxagent.json` and `.fluxagent.md` files. Markdown has one authoritative `flux-agent` JSON block. Imported files remain inactive. Credentials and run histories are never included in graph exports.
 - Deterministic, visibly labeled simulation. It calls no AI model, previews reviews/delays and records decisions, skipped branches and typed text/boolean results in browser history. Conditions on simulated model text do not predict live model routing.
 - Real local background runs, SQLite run/operation ledger, persisted decisions/skips, versioned step artifacts, approval pauses and delay deadlines, cancellation and restart recovery. Successful writing results are reused after restart. A crash or failed request with an uncertain model outcome pauses for explicit retry; retries keep prior reservations and call counts.
-- Downloadable run records/text, and editable-text handoff to FluxDesign, Fluxfoto, Fluxiffects, Fluximiére and FluxLab prompt review. Simulation handoffs include a visible simulation label.
+- Downloadable run records/text, and editable-text handoff to FluxDesign, FluxFoto, FluxMotion, FluxVideo and FluxLab prompt review. Simulation handoffs include a visible simulation label.
 
 ## Run locally
 

@@ -11,7 +11,7 @@ const project = createBlankProject({name: 'Neutral directions fixture'});
 const original = structuredClone(project), service = createAIService();
 const status = await service.status();
 safeStatus = {provider: status.provider, model: status.model};
-assert.equal(status.available, true, 'The existing Fluxini connection must be configured.');
+assert.equal(status.available, true, 'The existing FluxEffects connection must be configured.');
 const started = Date.now();
 liveRequests++;
 const result = await service.plan({

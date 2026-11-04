@@ -1,8 +1,8 @@
-# Fluxini: feature gaps and delivery plan
+# FluxEffects: feature gaps and delivery plan
 
 Audit date: **9 October 2026**. Reference product: **Houdini**. This report extends the existing [complete-toolset roadmap](FULL-TOOLSET-ROADMAP.md) with explicit status, gaps and acceptance criteria. It supersedes any reading of attractive templates as evidence of solver or production-feature parity.
 
-The current official [Houdini 22 documentation index](https://www.sidefx.com/docs/houdini/) separates geometry, animation, characters, simulation, rendering, compositing and pipeline tools. Fluxini has a functioning subset across graph-based motion design and bounded simulation; it does not implement the full Houdini operator ecosystem.
+The current official [Houdini 22 documentation index](https://www.sidefx.com/docs/houdini/) separates geometry, animation, characters, simulation, rendering, compositing and pipeline tools. FluxEffects has a functioning subset across graph-based motion design and bounded simulation; it does not implement the full Houdini operator ecosystem.
 
 Evidence inspected: `src/engine/catalog.ts`, `project.ts`, `evaluator.ts`, `animation.ts`, simulation engines/controllers, viewport/material tools, graph/inspector/timeline UI, local project/history/memory services, hosted browser API, exchange bridge, export code and the existing verification scripts. Existing test evidence is documented in the README and roadmap; this audit did not rerun every solver/browser suite.
 
@@ -31,7 +31,7 @@ Evidence inspected: `src/engine/catalog.ts`, `project.ts`, `evaluator.ts`, `anim
 | Lighting/cameras | Working subset: three light types, shadows, saved animated perspective cameras, view presets and gizmos | Area lights, HDR environments, physical exposure/lenses, depth of field, motion blur and multi-shot camera management | P2 |
 | Rendering | Partial: real-time Three.js appearance, PNG and exact-frame WebM | Offline/path-traced backend, managed color, HDR/EXR, render passes, image sequences, audio mixing, denoising and farm queue | P1/P2 |
 | Solaris/USD equivalent | Missing | USD scene composition/layers/variants, asset resolution and MaterialX/USD rendering bridges | P3 |
-| Copernicus/compositing equivalent | Missing | Image graph, masks, color operations, keying and GPU image dependencies; Fluxiffects integration is the practical near-term route | P2 |
+| Copernicus/compositing equivalent | Missing | Image graph, masks, color operations, keying and GPU image dependencies; FluxMotion integration is the practical near-term route | P2 |
 | PDG/TOPs/HQueue equivalent | Missing | Headless cooking, task dependency scheduler, cache publishing, batch/farm execution and artifact versioning | P3 |
 | Scripting/Houdini Engine equivalent | Missing | Supported custom operators, sandboxed expressions, scripting API and DCC/game engine integrations; arbitrary VEX/Python/HDA execution is absent | P3 |
 | Interchange | Working subset: `.flux.md`, native JSON/font package, current-frame GLB, PNG/WebM | Lossless Houdini `.hip`/HDA reading is absent; full animation exports, editable cross-app object adapters and relinkable assets remain incomplete | P0/P1 |

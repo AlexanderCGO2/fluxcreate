@@ -34,14 +34,14 @@ test('native save, autosave normalization and reopen preserve the shared brief a
   assert.deepEqual(native(reopened), reopened);
 });
 
-test('latest Fluxini edits survive handoff and native Fluxiffects reopen while source remains recoverable', () => {
+test('latest FluxEffects edits survive handoff and native FluxMotion reopen while source remains recoverable', () => {
   const source = sourceProject(), initial = exported('fluxiffects', source, { brief: source.brief });
   const converted = toFluxini(initial); parseFluxini(converted.package.project);
   const title = converted.package.project.graph.nodes.find(node => node.type === 'text');
-  title.params.text = 'Edited in Fluxini'; title.params.x = 2;
+  title.params.text = 'Edited in FluxEffects'; title.params.x = 2;
   const returning = exported('fluxini', converted.package, { previous: initial, brief: 'Continue the current motion.' });
   const current = storedConversion(returning), reopened = native(current);
-  assert.equal(getComp(reopened).layers[0].text, 'Edited in Fluxini');
+  assert.equal(getComp(reopened).layers[0].text, 'Edited in FluxEffects');
   assert.equal(getComp(reopened).layers[0].x, 1160);
   assert.equal(reopened.brief, 'Continue the current motion.');
   assert.equal(reopened.exchange.snapshots.fluxiffects.compositions[0].layers[0].text, 'Original title');

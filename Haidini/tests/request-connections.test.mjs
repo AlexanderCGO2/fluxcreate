@@ -45,7 +45,7 @@ for(const [name,make,body] of cases){
  });
 }
 
-test('Fluxini snapshot supplies the personal provider key/model and rejects explicit missing credentials',async t=>{
+test('FluxEffects snapshot supplies the personal provider key/model and rejects explicit missing credentials',async t=>{
  const old=process.env.AI_GATEWAY_API_KEY;process.env.AI_GATEWAY_API_KEY='synthetic-owner';t.after(()=>{if(old===undefined)delete process.env.AI_GATEWAY_API_KEY;else process.env.AI_GATEWAY_API_KEY=old;});
  const project=createProject(crypto.randomUUID(),'blank'),memory={assemble:()=>({tokenEstimate:0})};let calls=0;
  const generate=async args=>{calls++;assert.equal(args.model.modelId,A.model);const headers=await args.model.config.headers();assert.equal(headers.authorization,'Bearer '+A.apiKey);assert.ok(!args.prompt.includes(A.apiKey));return {object:{summary:'Name this study',commands:[{op:'projectName',name:'A personal study'}]}};};

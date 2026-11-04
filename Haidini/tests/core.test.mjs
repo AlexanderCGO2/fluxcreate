@@ -59,7 +59,7 @@ test('character reveal staggers and wave motion is reversible by scrubbing',()=>
 });
 test('undo and graph identities survive restart; new edits discard redo',async t=>{
   const dir=await temp(),memory=new FluxMemory(path.join(dir,'memory.sqlite'));let store=new ProjectStore(path.join(dir,'projects.sqlite'),memory);t.after(async()=>{store.close();memory.close();await rm(dir,{recursive:true,force:true});});
-  const p=store.get(store.list()[0].id).project;let s=store.patch(p.id,makePatch(p));s=store.move(p.id,s.project.revision,-1);assert.equal(node(s.project,'title').params.text,'FLUXINI');assert.equal(s.project.revision,2);assert.equal(s.canRedo,true);
+  const p=store.get(store.list()[0].id).project;let s=store.patch(p.id,makePatch(p));s=store.move(p.id,s.project.revision,-1);assert.equal(node(s.project,'title').params.text,'FluxEffects');assert.equal(s.project.revision,2);assert.equal(s.canRedo,true);
   store.close();store=new ProjectStore(path.join(dir,'projects.sqlite'),memory);s=store.move(p.id,2,1);assert.equal(node(s.project,'title').params.text,'HELLO');s=store.move(p.id,3,-1);s=store.patch(p.id,makePatch(s.project,[{op:'set',nodeId:'sparks',param:'count',value:2000}]));assert.equal(s.project.revision,5);assert.equal(s.canRedo,false);assert.equal(memory.history(p).length,6);
 });
 test('a legacy database and its undo snapshots remain readable without rewriting the source',async t=>{

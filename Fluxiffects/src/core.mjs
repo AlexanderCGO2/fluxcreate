@@ -1,6 +1,6 @@
 import {normalizeSuiteSource} from '../../FluxCreate/shared/suite-source.mjs';
 import { validateExchange } from '@flux-studio/exchange';
-/** The serializable, renderer-independent Fluxiffects project model. */
+/** The serializable, renderer-independent FluxMotion project model. */
 export const EASINGS = Object.freeze({linear: 'Linear', 'ease-in': 'Ease in', 'ease-out': 'Ease out', 'ease-in-out': 'Easy ease', hold: 'Hold'});
 export const SCENE3D_DEFAULTS = Object.freeze({modelX: 0, modelY: 0, modelZ: 0, modelRotationX: 0, modelRotationY: 0, modelRotationZ: 0, modelScale: 1, cameraYaw: 0, cameraPitch: 0, cameraZoom: 1, modelClip: 0, modelLoop: true});
 export const SCENE3D_RANGES = Object.freeze({modelX: [-1000000, 1000000], modelY: [-1000000, 1000000], modelZ: [-1000000, 1000000], modelRotationX: [-36000, 36000], modelRotationY: [-36000, 36000], modelRotationZ: [-36000, 36000], modelScale: [0.001, 1000], cameraYaw: [-36000, 36000], cameraPitch: [-89, 89], cameraZoom: [0.01, 1000]});
@@ -44,7 +44,7 @@ export function createDemoProject() {
   getComp(project).layers = [
     animated(createLayer('text', {name: 'Ideas, in motion.', text: 'Ideas,\nin motion.', x: 180, y: 285, width: 1050, height: 420, fontSize: 155, fontWeight: 600, letterSpacing: -7, anchorX: 0, anchorY: 0}), {y: [[0, 335], [1.1, 285]], opacity: [[0, 0], [0.85, 1]]}),
     animated(createLayer('text', {name: 'A little movement', text: 'A LITTLE MOVEMENT. ENDLESS POSSIBILITY.', x: 190, y: 210, width: 1110, height: 55, fontSize: 22, fontWeight: 600, letterSpacing: 3.4, fill: '#797780', anchorX: 0, anchorY: 0}), {opacity: [[0.2, 0], [1.05, 1]]}),
-    createLayer('text', {name: 'Made in Fluxiffects', text: 'Made in Fluxiffects', x: 190, y: 890, width: 600, height: 50, fontSize: 27, fontWeight: 400, letterSpacing: 0, fill: '#84818b', anchorX: 0, anchorY: 0}),
+    createLayer('text', {name: 'Made in FluxMotion', text: 'Made in FluxMotion', x: 190, y: 890, width: 600, height: 50, fontSize: 27, fontWeight: 400, letterSpacing: 0, fill: '#84818b', anchorX: 0, anchorY: 0}),
     animated(createLayer('ellipse', {name: 'Pearl', x: 1432, y: 352, width: 150, height: 150, fill: '#ece5ff', gradient: {from: '#fffaff', to: '#b7adfa', angle: 130}, effects: [{id: uid(), type: 'shadow', enabled: true, amount: 20}]}), {y: [[0, 305], [1.4, 352], [4, 322], [8, 352]]}),
     animated(createLayer('ellipse', {name: 'Coral orbit', x: 1512, y: 680, width: 295, height: 295, fill: '#f6b9d3', gradient: {from: '#ffd8e5', to: '#d584c2', angle: 135}, effects: [{id: uid(), type: 'shadow', enabled: true, amount: 18}]}), {y: [[0, 745], [1.3, 680], [4.5, 650], [8, 680]], scaleX: [[0, 0.7], [1.3, 1]], scaleY: [[0, 0.7], [1.3, 1]]}),
     animated(createLayer('rectangle', {name: 'Lilac ribbon', x: 1362, y: 570, width: 310, height: 580, cornerRadius: 155, rotation: -27, fill: '#a499ee', gradient: {from: '#d8ceff', to: '#7466dc', angle: 115}, effects: [{id: uid(), type: 'shadow', enabled: true, amount: 22}]}), {rotation: [[0, -39], [1.4, -27], [4, -22], [8, -27]], y: [[0, 680], [1.3, 570]]}),
@@ -332,7 +332,7 @@ function normalizeAsset(input, warnings, counters) {
 
 /** Validate imported files using a whitelist; never hydrate executable expressions or HTML. */
 export function parseProject(text) {
-  if (typeof text !== 'string') throw new Error('Choose a Fluxiffects project or an After Effects bridge JSON file.');
+  if (typeof text !== 'string') throw new Error('Choose a FluxMotion project or an After Effects bridge JSON file.');
   if (text.length > 200000000) throw new Error('Project is too large. Keep project JSON under 200 MB and relink larger media separately.');
   let data;
   try {data = JSON.parse(text.replace(/^\uFEFF/, ''));} catch {throw new Error('This file is not valid JSON. Binary .aep projects need the included After Effects export script.');}
@@ -342,7 +342,7 @@ export function parseProject(text) {
     if (data.version !== 1 || !['fluxoto', 'fluxidesign', 'fluximiere', 'flux3d'].includes(data.app)) fail('this FluxCreate project version or app is not supported.');
     object(data.project, 'source project');
     if (!data.motion) throw new Error(data.app === 'flux3d' ? 'Use Import → 3D scenes & motion to add this Flux3D document as a live 3D layer.' : 'This FluxCreate project has no portable composition. Export a new native project from its source app.');
-    if (!['fluxiffects', 'fluxiffects-ae'].includes(data.motion.format)) fail('the FluxCreate portable scene must be a Fluxiffects composition.');
+    if (!['fluxiffects', 'fluxiffects-ae'].includes(data.motion.format)) fail('the FluxCreate portable scene must be a FluxMotion composition.');
     suiteWarning = `Imported the portable composition from ${data.app}. Open the original file in its source app to recover its complete native project.`;
     data = object(data.motion, 'portable composition');
   }

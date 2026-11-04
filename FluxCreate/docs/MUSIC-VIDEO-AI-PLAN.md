@@ -1,10 +1,10 @@
-# Fluximiére Music Video AI — product and architecture plan
+# FluxVideo Music Video AI — product and architecture plan
 
 Status: proposed design, 17 October 2026. Planning only; no model generations, infrastructure provisioning or product implementation have been performed for this feature. This is a new addition to the editor gap program, not a claim that its existing gaps are closed.
 
 ## Intended result
 
-Give Fluximiére a Music Video mode that takes a video concept, a character image, scene reference images and a song. One Gemini director analyzes the song and visual references, develops the treatment and scene/sub-scene plan, and calls tools to measure beats, cut exact audio excerpts, request opening frames and Pruna takes, and preview the edit. There is no separate audio agent. Approved takes become a normal, editable Fluximiére timeline.
+Give FluxVideo a Music Video mode that takes a video concept, a character image, scene reference images and a song. One Gemini director analyzes the song and visual references, develops the treatment and scene/sub-scene plan, and calls tools to measure beats, cut exact audio excerpts, request opening frames and Pruna takes, and preview the edit. There is no separate audio agent. Approved takes become a normal, editable FluxVideo timeline.
 
 Success means a coherent, music-led video that the person can revise one shot at a time, with retained source media, visible costs, reliable recovery and no loss of manual edits. Character consistency and musical performance are quality targets to assess, not guarantees made from a model name.
 
@@ -40,7 +40,7 @@ The existing FluxLab video adapter cannot deliver this by changing its model str
 
 ## The experience
 
-Add **Music Video** beside ordinary editing in Fluximiére, using the suite's light/dark surfaces, typography, rounded cards and restrained accent colors. Keep a persistent preview, song waveform and progress rail: Brief → Music → Direction → Storyboard → Takes → Edit. Show useful creative controls; hide provider plumbing in expandable details.
+Add **Music Video** beside ordinary editing in FluxVideo, using the suite's light/dark surfaces, typography, rounded cards and restrained accent colors. Keep a persistent preview, song waveform and progress rail: Brief → Music → Direction → Storyboard → Takes → Edit. Show useful creative controls; hide provider plumbing in expandable details.
 
 1. **Brief.** Enter concept, visual style, pacing, target aspect ratio and budget cap. Upload the song, one required character reference, optional additional views and scene images. Assign each image a role and an editable description. Uploading assets is not an instruction to start paid generation.
 2. **Music map.** Show waveform, candidate beats, energy changes, silence and section boundaries. Let the person correct tempo, tap beats, rename sections and move boundaries. Labels such as verse/chorus are interpretations with confidence, not measured facts. No lyrics are invented when none were supplied or transcribed.
@@ -77,7 +77,7 @@ Gemini is the only reasoning agent in this mode. Analysis, cutting, image/video 
 | `cut_audio` / `cut_audio_batch` | WAV excerpts with exact source/shot mapping | FFmpeg worker or equivalent bounded PCM slicer |
 | `generate_start_frames` | Opening-frame candidates | FluxLab reference-image adapter |
 | `generate_video_takes` | Pruna jobs within approved allowance | FluxLab durable media service |
-| `preview_edit` / `assemble_edit` | Animatic/preview or a validated editable timeline patch | Fluximiére assembly service |
+| `preview_edit` / `assemble_edit` | Animatic/preview or a validated editable timeline patch | FluxVideo assembly service |
 
 The director chooses what to cut and why, then receives tool results and can revise the edit. It calls audio tools directly without a second model conversation. Existing stage approvals authorize the bounded work; individual safe cut calls do not require repeated confirmation. Paginate structured shot plans into at most 20 shots per response with an 8,192-output-token cap; validate each page and reject truncated output. Set a maximum of 12 model/tool rounds and 128 tool invocations per direction pass; batch cutting accepts at most 120 validated ranges. Exceeding these bounds saves progress for explicit continuation instead of looping indefinitely. Generation remains bound by the approved cost/revision.
 
@@ -85,7 +85,7 @@ FFmpeg runs in the local Node media worker or a provisioned hosted media worker.
 
 Canonical decoding produces a retained PCM source with sample rate, sample count and hash. Both backends cut that same source, so switching browser/FFmpeg decoders cannot shift an MP3 boundary. FFmpeg's `atrim` sample options and `asetpts` support exact sample selection and rebased timestamps; use float PCM WAV and verify sample count. [FFmpeg filters](https://ffmpeg.org/ffmpeg-filters.html#atrim).
 
-FluxAgents exposes the director/tool workflow as a template. FluxLab owns requests and assets; Fluximiére owns the board and timeline. Human review remains available for continuity, identity and performance quality.
+FluxAgents exposes the director/tool workflow as a template. FluxLab owns requests and assets; FluxVideo owns the board and timeline. Human review remains available for continuity, identity and performance quality.
 
 ## Beat-aligned fast editing
 
@@ -116,14 +116,14 @@ Final A1 contains one continuous original-song clip at speed 1. Generated clip a
 Inspected local files: `Fluximiere/src/audio.mjs`, `model.mjs`, `main.jsx`, `video-export.mjs`; `FluxLab/server/video.mjs`, `service.mjs`, `video-media.mjs`; `FluxLab/src/video.mjs`; `FluxAgents/server/store.mjs`, `engine.mjs`, `hosted.mjs`; `FluxCreate/server/settings.mjs`.
 
 - AudioStore already decodes mono/stereo, measures sources and supports waveform work; its PCM budget is 96 MiB. A 180-second stereo 48 kHz float source alone needs about 66 MiB. Analysis and excerpt buffers must be bounded independently; do not copy the full stereo song into every worker or keep every excerpt decoded at once.
-- Fluximiére validates native v1/v2 media as embedded data URLs and has no music-video provenance or blob-reference schema. A multi-take song must not multiply large base64 strings through Undo. Add an asset-resolver/package migration before enabling full-song production.
+- FluxVideo validates native v1/v2 media as embedded data URLs and has no music-video provenance or blob-reference schema. A multi-take song must not multiply large base64 strings through Undo. Add an asset-resolver/package migration before enabling full-song production.
 - FluxLab already verifies downloaded videos with a 64 MiB limit, supports recovery tickets and has MCP entry points. Its current image editing takes one source image; multi-reference start-frame generation is new work.
 - FluxAgents has a local SQLite runner. Hosted service explicitly disables live runs because durable server storage is missing. That remains a real prerequisite, not something a new screen fixes.
 - Personal Gateway credentials currently arrive via an encrypted request cookie. Background jobs need durable owner identity and a revocable credential reference; a cookie/key fingerprint is not a user account.
 
 ## Architecture and reliability
 
-Recommended approach: a guided workflow embedded in Fluximiére, backed by shared FluxLab services and a FluxAgents template. A browser-only chain is a useful no-charge animatic prototype but cannot promise execution after closing the tab. A general-purpose agent swarm adds variability and expense before solving timing and persistence. The guided approach makes the creative stages editable while tools enforce timing and spending.
+Recommended approach: a guided workflow embedded in FluxVideo, backed by shared FluxLab services and a FluxAgents template. A browser-only chain is a useful no-charge animatic prototype but cannot promise execution after closing the tab. A general-purpose agent swarm adds variability and expense before solving timing and persistence. The guided approach makes the creative stages editable while tools enforce timing and spending.
 
 Use Vercel Workflow as the preferred hosted runner candidate, behind a small execution interface; prove integration with the existing build first. Its documented framework integration requires compilation support, so adding a dependency to the current esbuild output alone is insufficient. Keep the existing local runner path. For hosted records, propose transactional Postgres and private object storage; choose/configure actual provisioned resources in the implementation infrastructure task, not during this planning work. [Workflow integration](https://workflow-sdk.dev/docs/getting-started/express), [private Blob access](https://vercel.com/docs/vercel-blob/using-blob-sdk).
 
@@ -139,7 +139,7 @@ A scoped mutation invalidates only its dependents. When several editorial shots 
 
 Create a versioned music-video recipe with validated JSON as the canonical data. An exported `.fluxmusicvideo.md` contains a readable treatment and exactly one versioned JSON block for tools. It references assets by ID/hash; it does not embed credentials, expiring URLs or executable instructions. A packaged project contains manifest plus required bytes; Markdown alone is not an offline media archive.
 
-Fluxfoto can edit an opening frame as a new revision; Fluxiffects can receive an approved shot for compositing; FluxLab stores inputs, frames, takes and lineage. All return routes preserve owner/project/shot/revision identity. Expose plan/status/frame/shot/assembly operations through MCP using the same service authorization and budget checks as the UI. Only explicitly approved generation tools may spend.
+FluxFoto can edit an opening frame as a new revision; FluxMotion can receive an approved shot for compositing; FluxLab stores inputs, frames, takes and lineage. All return routes preserve owner/project/shot/revision identity. Expose plan/status/frame/shot/assembly operations through MCP using the same service authorization and budget checks as the UI. Only explicitly approved generation tools may spend.
 
 ## Budget and business rules
 

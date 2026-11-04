@@ -1,4 +1,4 @@
-# Fluximiére Autoedit
+# FluxVideo Autoedit
 
 Requested mode: upload existing videos and a soundtrack; an editor agent analyzes the footage and music, then creates an editable cut aligned with the song. This is separate from Music Video Studio's generated footage workflow. Status: initial release implemented and verified; core local editing, Gemini sampled-frame direction, browser checkpoints and editable timeline handoff are built. See [release details and limits](RELEASE-AUTOEDIT-2026-10-17.md).
 
@@ -14,7 +14,7 @@ The [large-video follow-up](RELEASE-LARGE-VIDEO-2026-10-17.md) adds 48 unique so
 4. Analyze footage using bounded low-resolution thumbnails and sampled motion information. The editor identifies useful segments, subjects, action, continuity and poor-quality moments. Describe footage as sampled, not exhaustively understood. Let the user exclude clips and mark preferred ranges.
 5. Propose a cut list with source video, source in/out, timeline start/end, beat anchor, scene description and editorial reason. Vary shot duration with the music; respect available footage length and user locks. Keep dialogue/original audio muted by default, with an explicit option to include it.
 6. Preview a draft, adjust timing, replace shots and lock selections. Replan only unlocked ranges. Show missing media and weak beat coverage before applying.
-7. Apply a validated sequence to Fluximiére in one Undo step. Use original media ranges, one continuous soundtrack, existing transforms and fades. Keep the normal editor and export path available afterward.
+7. Apply a validated sequence to FluxVideo in one Undo step. Use original media ranges, one continuous soundtrack, existing transforms and fades. Keep the normal editor and export path available afterward.
 
 ## Implementation order
 
@@ -35,4 +35,4 @@ The [large-video follow-up](RELEASE-LARGE-VIDEO-2026-10-17.md) adds 48 unique so
 
 ## Integration dependencies
 
-Reuse Fluximiére's project/import/export, music timing and persistent workspace infrastructure; FluxLab for the shared gateway/job abstraction; FluxAgents only where it adds durable orchestration. Do not add a separate audio agent. The editor owns editorial choices; validated deterministic tools own timing, trimming and timeline mutation.
+Reuse FluxVideo's project/import/export, music timing and persistent workspace infrastructure; FluxLab for the shared gateway/job abstraction; FluxAgents only where it adds durable orchestration. Do not add a separate audio agent. The editor owns editorial choices; validated deterministic tools own timing, trimming and timeline mutation.

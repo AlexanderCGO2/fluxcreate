@@ -61,10 +61,10 @@ Evidence: artifacts/group-transform/report.json, committed-before.png, preview-e
 | Lighting | Partial: fixed soft studio environment with real-time shadows | Editable lights/HDR environments, light linking, area lights and exposure controls | P1 |
 | Camera | Working subset: saved position/target/FOV, presets, frame selected | Multiple cameras/shots, physical lens/sensor, depth of field, composition guides and animated camera control | P1/P2 |
 | Animation in Flux3D editor | Missing | Timeline/keyframes, curves, actions/clips, constraints, drivers, shape keys and exportable animation | P1/P2 |
-| Animated 3D bridge | Working separate path: Fluxiffects scene layers use original GLB/glTF hierarchy, clips, skins, morphs and embedded textures | This is not animation editing in Flux3D; the editable-mesh importer still simplifies those features | P0 clarity |
+| Animated 3D bridge | Working separate path: FluxMotion scene layers use original GLB/glTF hierarchy, clips, skins, morphs and embedded textures | This is not animation editing in Flux3D; the editable-mesh importer still simplifies those features | P0 clarity |
 | Rigging/characters | Missing | Bones, skin weights, FK/IK, rig tools, pose libraries, retargeting and nonlinear animation | P3 |
-| Geometry Nodes | Missing | Typed geometry graph, attributes/fields, group assets, simulation zones and node-based tools | P2/P3; coordinate with Fluxini |
-| Physics | Missing | Rigid/soft bodies, cloth, liquids, smoke/fire, particles, hair dynamics and caches | P3; coordinate with Fluxini |
+| Geometry Nodes | Missing | Typed geometry graph, attributes/fields, group assets, simulation zones and node-based tools | P2/P3; coordinate with FluxEffects |
+| Physics | Missing | Rigid/soft bodies, cloth, liquids, smoke/fire, particles, hair dynamics and caches | P3; coordinate with FluxEffects |
 | Grease Pencil/story tools | Missing | 2D strokes in 3D, drawing animation, onion skins and storyboard workflows | P3 |
 | Rendering | Partial: real-time Three.js viewport and fixed-size PNG output | Path tracing, configurable render settings/resolution, motion blur/DOF, denoising, render passes, EXR and render queue | P1/P2 |
 | Color management | Missing explicit workflow | Working/display transforms, HDR, high-bit-depth assets, OCIO and reference color controls | P2 |
@@ -82,7 +82,7 @@ Evidence: artifacts/group-transform/report.json, committed-before.png, preview-e
 
 The **editable geometry path** currently limits files to 64 MB, scenes to 200 mesh objects, meshes to 500,000 vertices, total imported vertices to 1.5 million and total indices to 6 million. Instancing is expanded within those limits. OBJ/STL do not imply texture/material/units fidelity. Exporting GLB preserves the supported scene geometry/material values, not unsupported original rigging or shader graphs.
 
-The **scene-layer path for Fluxiffects** preserves raw packaged source and uses the standard loader/mixer. It has separate node/key/instance budgets and can retain features intentionally absent from the editable model. These two paths must not share an ambiguous “fully editable import” label. Native Flux3D currently stores a static scene and camera.
+The **scene-layer path for FluxMotion** preserves raw packaged source and uses the standard loader/mixer. It has separate node/key/instance budgets and can retain features intentionally absent from the editable model. These two paths must not share an ambiguous “fully editable import” label. Native Flux3D currently stores a static scene and camera.
 
 ## Detailed implementation sequence
 
@@ -94,7 +94,7 @@ The **scene-layer path for Fluxiffects** preserves raw packaged source and uses 
 | B3 — appearance fidelity | Add image/UV/material assets, slots and texture sampling before procedural shader graphs; source-object planes can reuse this asset system. | Packaged textured GLB imported/exported through independent tools matches UV orientation/material channels; relink updates all intended references; missing textures retain geometry and show notices. |
 | B4 — motion | Add timeline and transform keys first, then glTF clip import/export, constraints and morphs. Preserve hierarchy rather than baking animated transforms into static meshes. | Independent GLTFLoader evaluates exported animation at reference times; reverse seek and loop are deterministic; imported source clips stay recoverable; cameras retain roll/world orientation. |
 | B5 — finished output | Configurable render dimensions, explicit color pipeline, offline renderer evaluation, image sequences/queue and suite delivery. | Decoded images have expected size/color; known lighting scenes compare against references; long jobs cancel/recover; outputs never claim unsupported alpha/audio/color behavior. |
-| B6 — advanced disciplines | Sculpt/retopology, rig/skin/IK, Geometry Nodes and simulation in separate milestones using shared Fluxini infrastructure where appropriate. | Real sculpt/rig/simulation fixtures survive save/export, have measured performance and clear editing limitations; a visual preset alone cannot satisfy a solver acceptance test. |
+| B6 — advanced disciplines | Sculpt/retopology, rig/skin/IK, Geometry Nodes and simulation in separate milestones using shared FluxEffects infrastructure where appropriate. | Real sculpt/rig/simulation fixtures survive save/export, have measured performance and clear editing limitations; a visual preset alone cannot satisfy a solver acceptance test. |
 | B7 — ecosystem | Blender-host bridge, USD/Alembic/FBX evaluation, scripted tooling, asset publishing and collaboration after document/permission semantics are stable. | Real host fixtures document retained/lost properties; dependency packaging is validated; concurrency never overwrites another revision; untrusted assets cannot trigger arbitrary reads or code. |
 
 B0/B1 are the recommended first practical slice. B2 and B3 share geometry/asset foundations; B4 depends on hierarchy conventions. Advanced Blender-wide coverage is a long-term program, not a single release commitment. Reuse the suite’s timeline, media, AI and source-provenance contracts where they fit, while keeping the editor focused.

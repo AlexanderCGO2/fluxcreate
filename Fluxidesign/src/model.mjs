@@ -90,7 +90,7 @@ export function fromMotion(input) {
   const assets = m.assets.filter(a => a.type === 'image' && (!a.src || /^data:image\//i.test(a.src))).map(a => ({...a, width: a.width || 1, height: a.height || 1}));
   const assetIds = new Set(assets.map(a => a.id));
   const pages = m.compositions.map(c => createPage({id: c.id, name: c.name, width: Math.max(72, Math.min(4096, c.width)), height: Math.max(72, Math.min(4096, c.height)), background: c.background,
-    objects: [...c.layers].reverse().filter(l => {if (TYPES.has(l.type)) return true; notes.push(l.type === 'scene3d' ? `“${l.name}”: live 3D scenes stay editable in Fluxiffects. Export a PNG frame there for publication; keep the original project for geometry and animation.` : `Skipped ${l.type} layer “${l.name}”.`); return false;}).map(layer => {
+    objects: [...c.layers].reverse().filter(l => {if (TYPES.has(l.type)) return true; notes.push(l.type === 'scene3d' ? `“${l.name}”: live 3D scenes stay editable in FluxMotion. Export a PNG frame there for publication; keep the original project for geometry and animation.` : `Skipped ${l.type} layer “${l.name}”.`); return false;}).map(layer => {
       const l = evaluateLayer(layer, 0); if (l.effects?.length || l.gradient || l.parentId || l.scaleX < 0 || l.scaleY < 0) notes.push(`“${l.name}”: effects, gradients, parenting, or flipped transforms need a rendered image for matching appearance.`);
       if (l.assetId && !assetIds.has(l.assetId)) notes.push(`“${l.name}”: import its image into FluxDesign to relink missing media.`);
       const radians = l.rotation * Math.PI / 180, dx = (l.width / 2 - l.anchorX) * l.scaleX, dy = (l.height / 2 - l.anchorY) * l.scaleY;

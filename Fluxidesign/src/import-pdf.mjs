@@ -9,8 +9,9 @@ const aborted=signal=>{if(signal?.aborted)throw new DOMException('Import cancell
 /** PDF art is rendered locally into one image per page; no document scripts or links are run. */
 export async function importPDF(bytes,filename='Imported document.pdf',{signal,onProgress=()=>{}}={}) {
   checkPDFInput(bytes,filename);aborted(signal);
-  const pdfjs=await import('pdfjs-dist/build/pdf.mjs');pdfjs.GlobalWorkerOptions.workerSrc=new URL('/pdfjs/pdf.worker.js',location.origin).href;
-  const base=new URL('/pdfjs/',location.origin).href;
+  // PDF assets sit beside the built entry point in both standalone and hosted layouts.
+  const base=new URL('./pdfjs/',import.meta.url).href;
+  const pdfjs=await import('pdfjs-dist/build/pdf.mjs');pdfjs.GlobalWorkerOptions.workerSrc=new URL('pdf.worker.js',base).href;
   const task=pdfjs.getDocument({data:bytes.slice(),isEvalSupported:false,enableXfa:false,useWorkerFetch:false,useSystemFonts:true,stopAtErrors:true,disableAutoFetch:true,disableStream:true,cMapUrl:base+'cmaps/',cMapPacked:true,standardFontDataUrl:base+'standard_fonts/',wasmUrl:base+'wasm/',verbosity:0});
   const cancel=()=>{task.destroy().catch(()=>{});};signal?.addEventListener('abort',cancel,{once:true});let document;
   try{

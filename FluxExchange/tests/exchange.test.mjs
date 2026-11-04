@@ -37,7 +37,7 @@ test('native project handoffs preserve app data exactly and strip only exchange 
   assert.deepEqual(toFluxiffects(encoded('fluxiffects', project)).project, expected);
 });
 
-test('editable 2D handoff produces a valid Fluxini package with compatible animation', () => {
+test('editable 2D handoff produces a valid FluxEffects package with compatible animation', () => {
   const result = toFluxini(encoded('fluxiffects', ffx()));
   parseFi(result.package.project);
   const title = result.package.project.graph.nodes.find(node => node.type === 'text');
@@ -46,7 +46,7 @@ test('editable 2D handoff produces a valid Fluxini package with compatible anima
   assert.ok(result.warnings.some(message => message.includes('3D scene')));
 });
 
-test('simple procedural handoff produces a valid editable Fluxiffects project', () => {
+test('simple procedural handoff produces a valid editable FluxMotion project', () => {
   const result = toFluxiffects(encoded('fluxini', fi()));
   parseFfx(JSON.stringify(result.project));
   const title = getComp(result.project).layers.find(layer => layer.type === 'text');
@@ -58,9 +58,9 @@ test('simple procedural handoff produces a valid editable Fluxiffects project', 
 test('preserved originals require explicit restoration; latest destination edits drive conversion', () => {
   const initial = encoded('fluxiffects', ffx());
   const converted = toFluxini(initial);
-  converted.package.project.graph.nodes.find(node => node.type === 'text').params.text = 'Edited in Fluxini';
+  converted.package.project.graph.nodes.find(node => node.type === 'text').params.text = 'Edited in FluxEffects';
   const handoff = encoded('fluxini', converted.package, { previous: initial });
-  assert.equal(getComp(toFluxiffects(handoff).project).layers.find(layer => layer.type === 'text').text, 'Edited in Fluxini');
+  assert.equal(getComp(toFluxiffects(handoff).project).layers.find(layer => layer.type === 'text').text, 'Edited in FluxEffects');
   const restored = toFluxiffects(handoff, { restoreOriginal: true });
   assert.equal(getComp(restored.project).layers[0].text, 'Hello Flux');
   assert.ok(restored.warnings.some(message => message.includes('not included')));
@@ -80,7 +80,7 @@ test('repeated round-trips retain one snapshot per app without recursive metadat
   assert.ok(JSON.stringify(current).length < 30000);
 });
 
-test('fonts remain part of a native Fluxini snapshot', () => {
+test('fonts remain part of a native FluxEffects snapshot', () => {
   const fonts = [{ id: 'custom_font', name: 'Custom', data: { glyphs: {} } }];
   assert.deepEqual(toFluxini(encoded('fluxini', fi(), { fonts })).package.fonts, fonts);
 });
@@ -179,7 +179,7 @@ test('malformed exponentially shared graph branches hit a bounded work limit', (
   assert.throws(() => toFluxiffects(encoded('fluxini', source)), /too many connected branches/);
 });
 
-test('custom easing stays exact in native snapshots and warns when converted to Fluxini',()=>{
+test('custom easing stays exact in native snapshots and warns when converted to FluxEffects',()=>{
  const source=ffx(),controls=[.2,.1,.8,.9];getComp(source).layers[0]=setKeyframe(getComp(source).layers[0],'x',0,960,'cubic-bezier',controls);
  const envelope=encoded('fluxiffects',source),converted=toFluxini(envelope);parseFi(converted.package.project);
  assert.equal(converted.package.project.animations[0].keys[0].easing,'linear');

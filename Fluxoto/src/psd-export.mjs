@@ -18,13 +18,13 @@ export function inspectPSDExport(input){
  if(count>PSD_EXPORT_LIMITS.layers)throw Error('PSD export supports up to 200 layers, including the canvas background.');
  const plans=project.layers.map(layer=>({layer,...bounds(layer,project)}));
  const pixels=project.width*project.height*(1+(project.background!=='transparent'?1:0)+(fallback?1:0))+plans.reduce((n,p)=>n+p.width*p.height,0);
- if(pixels>PSD_EXPORT_LIMITS.pixels)throw Error('This layered PSD exceeds the 48 megapixel export budget. Reduce the canvas size or layer count, or save the full Fluxfoto project.');
+ if(pixels>PSD_EXPORT_LIMITS.pixels)throw Error('This layered PSD exceeds the 48 megapixel export budget. Reduce the canvas size or layer count, or save the full FluxFoto project.');
  return {project,plans,fallback};
 }
 const pixels=canvas=>canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height);
 const breathe=()=>new Promise(resolve=>setTimeout(resolve,0));
 export async function exportPhotoshop(input,{signal,onProgress}={}){
- const {project,plans,fallback}=inspectPSDExport(input),warnings=['Text, shapes, masks and adjustments are rendered into separate pixel layers. Keep a Fluxfoto project for their original editable controls.','Content outside the canvas is clipped in this PSD. RGB, 8 bits per channel; no embedded color profile.'];
+ const {project,plans,fallback}=inspectPSDExport(input),warnings=['Text, shapes, masks and adjustments are rendered into separate pixel layers. Keep a FluxFoto project for their original editable controls.','Content outside the canvas is clipped in this PSD. RGB, 8 bits per channel; no embedded color profile.'];
  const abort=()=>{if(signal?.aborted)throw Error('PSD export cancelled.');};abort();await readyImages(project);abort();
  const canvas=document.createElement('canvas'),children=[];
  try{
@@ -41,12 +41,12 @@ export async function exportPhotoshop(input,{signal,onProgress}={}){
   }
   let outputLayers=children;
   if(fallback){
-   outputLayers=[{name:'Fluxfoto appearance',left:0,top:0,imageData:composite},{name:'Original layers · hidden',hidden:true,opened:false,children}];
-   warnings.push('Canvas eraser strokes affect several layers. The visible result is a merged appearance layer; the separate originals are retained in a hidden group. Their recombined appearance will differ without the Fluxfoto eraser operation.');
+   outputLayers=[{name:'FluxFoto appearance',left:0,top:0,imageData:composite},{name:'Original layers · hidden',hidden:true,opened:false,children}];
+   warnings.push('Canvas eraser strokes affect several layers. The visible result is a merged appearance layer; the separate originals are retained in a hidden group. Their recombined appearance will differ without the FluxFoto eraser operation.');
   }
-  if(project.layers.some(l=>l.suiteSource))warnings.push('Objects from other studios are pixel layers in PSD. Their complete source stays in the Fluxfoto project.');
+  if(project.layers.some(l=>l.suiteSource))warnings.push('Objects from other studios are pixel layers in PSD. Their complete source stays in the FluxFoto project.');
   abort();await breathe();const bytes=writePsdUint8Array({width:project.width,height:project.height,channels:4,bitsPerChannel:8,colorMode:3,imageData:composite,children:outputLayers},{noBackground:true,trimImageData:false,generateThumbnail:false});
-  if(bytes.byteLength>PSD_EXPORT_LIMITS.bytes)throw Error('The PSD exceeds the 64 MB export limit. Reduce its size or save a Fluxfoto project.');
+  if(bytes.byteLength>PSD_EXPORT_LIMITS.bytes)throw Error('The PSD exceeds the 64 MB export limit. Reduce its size or save a FluxFoto project.');
   abort();onProgress?.(1);return {blob:new Blob([bytes],{type:'image/vnd.adobe.photoshop'}),warnings};
  }finally{canvas.width=canvas.height=1;}
 }

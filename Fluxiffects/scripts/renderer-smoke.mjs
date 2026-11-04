@@ -17,7 +17,7 @@ const server = http.createServer((request, response) => {
     response.writeHead(200, { 'Content-Type': 'text/javascript' }); response.end(sources.get(request.url)); return;
   }
   response.writeHead(200, { 'Content-Type': 'text/html' });
-  response.end('<!doctype html><html><body style="margin:32px;background:#eee;font:16px system-ui"><h1>Fluxiffects renderer verification</h1><canvas id="output" width="256" height="144" style="width:768px;image-rendering:pixelated"></canvas></body></html>');
+  response.end('<!doctype html><html><body style="margin:32px;background:#eee;font:16px system-ui"><h1>FluxMotion renderer verification</h1><canvas id="output" width="256" height="144" style="width:768px;image-rendering:pixelated"></canvas></body></html>');
 });
 server.listen(0, '127.0.0.1');
 await once(server, 'listening');

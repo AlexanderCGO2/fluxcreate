@@ -1,0 +1,39 @@
+name: Bug report
+description: Report a reproducible problem in a FluxCreate studio.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Never attach API keys, cookies, private footage or unredacted logs. For sensitive findings, follow .github/SECURITY.md."
+  - type: input
+    id: studio
+    attributes:
+      label: Studio and version
+      description: App name and commit/release, if known.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and operating system
+      description: Include local or hosted mode.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Use a small redistributable example or describe how to create one.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted evidence
+      description: Screenshots, relevant errors and checks you tried. Remove personal data first.
