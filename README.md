@@ -6,7 +6,7 @@ FluxCreate is an early creative suite for images, page layouts, video, motion, p
 
 The aim is simple: keep creative work editable, make handoffs between tools understandable, and let AI help without taking control away from the person making the work.
 
-> **Release status:** early software preparing for a public open-source release. Apps use **AGPL-3.0-only**; the standalone FluxExchange package uses **Apache-2.0**. The repository is currently private. See [licensing](docs/LICENSING.md), [release readiness](docs/OPEN-SOURCE-READINESS.md) and [Support](SUPPORT.md).
+> **Release status** — Early open-source software. The apps use **AGPL-3.0-only** and the standalone FluxExchange package uses **Apache-2.0**. See [Licensing](docs/LICENSING.md) and [Support](SUPPORT.md).
 
 [Get started](#get-started) · [The studios](#the-studios) · [File compatibility](#file-compatibility) · [AI and privacy](#ai-and-privacy) · [Architecture](#architecture) · [Support](SUPPORT.md) · [Contribute](CONTRIBUTING.md) · [Governance](GOVERNANCE.md) · [Roadmap](FluxCreate/docs/FEATURE-GAPS.md)
 
@@ -48,8 +48,6 @@ A cross-app source object is typically a rendered snapshot with recoverable sour
 - Enough disk space and browser storage for your media. GPU, decoder and available memory affect practical limits.
 
 ### Install and build
-
-If the repository is private or access-restricted, cloning requires permission. A 404 does not by itself establish whether a repository was removed or renamed. Contact [build@flux-ai.co](mailto:build@flux-ai.co) if access is unavailable.
 
 ```sh
 git clone https://github.com/AlexanderCGO2/fluxcreate.git
@@ -292,6 +290,4 @@ Do not include API keys, private project files, personal footage, account cookie
 
 Both licenses allow commercial use. AGPL has corresponding-source requirements for covered distributed versions and an additional source-offer requirement for modified versions used over a network. Apache permits broader reuse while retaining its requirements. Read [LICENSING.md](docs/LICENSING.md) for scope, contributions, user-created work and commercial-service boundaries.
 
-The license choice does not finish the dependency and asset review. Copyright ownership, dependency compatibility, sample-media rights and notices remain public-release gates. The repository remains private during preparation; no public launch is announced here.
-
-See [the release checklist](docs/OPEN-SOURCE-READINESS.md). Nothing in this README changes repository visibility or the hosted deployment's access controls.
+Third-party components retain their own licenses and notices. The six bundled typefaces match the Three.js r180 examples and carry the [upstream font license](Haidini/src/assets/FONT-LICENSE.txt). See [the release checklist](docs/OPEN-SOURCE-READINESS.md) for the scope of the dependency and asset review.

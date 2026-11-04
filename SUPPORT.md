@@ -1,6 +1,6 @@
 # Support
 
-FluxCreate is an early project preparing for an open-source release. Help is currently **best effort**. There is no guaranteed response time, production support SLA, managed-service entitlement or long-term maintenance branch.
+FluxCreate is an early open-source project. Help is currently **best effort**. There is no guaranteed response time, production support SLA, managed-service entitlement or long-term maintenance branch.
 
 ## Where to ask
 
@@ -14,7 +14,7 @@ FluxCreate is an early project preparing for an open-source release. Help is cur
 | Harassment or community conduct | [Code of Conduct reporting](CODE_OF_CONDUCT.md#private-reporting) | A private report using the designated address |
 | Provider charges, account credits or provider service failures | The provider's own account/support channel, plus a redacted FluxCreate report if relevant | Provider request ID and timing; never API keys or full payment details |
 
-Repository access and Discussions availability are not guaranteed. The repository was verified private on 3 November 2026. A 404 can mean missing permissions, a rename/transfer or an unavailable repository. Contact the project mailbox rather than assuming the source was deleted. Do not treat the GitHub issue links as a promise that public access is already enabled.
+Use the project mailbox if you cannot access the repository or need a private reply.
 
 The project mailbox was supplied by the owner. No email has been sent to test delivery as part of these documents. Do not rely on an immediate response.
 

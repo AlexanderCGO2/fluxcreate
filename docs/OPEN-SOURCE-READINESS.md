@@ -6,7 +6,7 @@ Prepared 26 October 2026. This is a release checklist, not a public-release anno
 
 - Prepare the repository and announcement material before publishing.
 - Owner approved AGPL-3.0-only for apps and Apache-2.0 for standalone FluxExchange on 3 November 2026; see [licensing](LICENSING.md).
-- Keep the repository private until the public-release gates are resolved.
+- Owner authorized public GitHub visibility on 4 November 2026. The checks below record the remaining work for a broader launch.
 - Preserve personal provider connections as a separate path from planned managed credits.
 
 ## Repository preparation
@@ -35,8 +35,8 @@ The credential check uses known-format patterns, high-entropy credential assignm
 
 - [ ] Confirm the copyright holder and contribution terms.
 - [x] Apply AGPL-3.0-only app license and Apache-2.0 FluxExchange license, with package metadata (3 November 2026).
-- [ ] Review direct/transitive dependency obligations and prepare notices.
-- [ ] Review fonts, artwork, templates and demo/media distribution rights.
+- [ ] Finish direct and transitive dependency obligations and distribution notices. Installed production dependencies were inventoried on 4 November 2026.
+- [ ] Finish artwork, template and demo/media rights review. The six bundled typefaces match the Three.js r180 examples byte for byte and include their upstream license.
 - [ ] Confirm any commercial or mixed-license boundary before announcing it.
 
 The license policy is adopted; the authoritative texts are [root LICENSE](../LICENSE) and [FluxExchange/LICENSE](../FluxExchange/LICENSE). Dependency compatibility, ownership, sample rights and notices remain under review.
