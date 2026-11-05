@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Open four editable FluxCreate sample projects in your browser.">
+  <title>FluxCreate Public Demo</title>
+  <style>
+    :root { color-scheme: light; background: #f7f6f2; color: #22262b; font: 16px/1.55 system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { max-width: 70rem; margin: auto; padding: 1.5rem clamp(1rem, 4vw, 4rem) 3rem; }
+    header, footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    header { padding-bottom: 1rem; border-bottom: 1px solid #dcdad4; }
+    header strong { font-size: 1.25rem; letter-spacing: -.045em; }
+    a { color: inherit; text-underline-offset: .2em; }
+    a:focus-visible { outline: 3px solid #5f42b5; outline-offset: 4px; }
+    .intro { padding: clamp(2rem, 7vw, 5rem) 0 2rem; max-width: 48rem; }
+    .eyebrow { color: #584280; font-size: .85rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { font: 400 clamp(2.6rem, 7vw, 5.1rem)/1.03 Georgia, serif; letter-spacing: -.05em; margin: .5rem 0 1rem; }
+    .intro p { max-width: 39rem; color: #4a4e54; }
+    .projects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .project { display: flex; flex-direction: column; min-height: 15rem; padding: 1.4rem; border: 1px solid #0002; border-radius: 1rem; }
+    .project:nth-child(1) { background: #e5eadb; }
+    .project:nth-child(2) { background: #f2e4d9; }
+    .project:nth-child(3) { background: #e9e1f5; }
+    .project:nth-child(4) { background: #dee9ed; }
+    .studio { font-weight: 700; font-size: .88rem; }
+    h2 { font: 400 clamp(1.6rem, 3vw, 2.25rem)/1.15 Georgia, serif; letter-spacing: -.035em; margin: .65rem 0 .15rem; }
+    .project p { margin: .5rem 0 1rem; }
+    .project a { align-self: flex-start; margin-top: auto; font-weight: 650; }
+    footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #dcdad4; font-size: .9rem; }
+    @media (max-width: 40rem) { .projects { grid-template-columns: 1fr; } .project { min-height: 0; } }
+  </style>
+</head>
+<body>
+  <header><strong>FluxCreate</strong><a href="https://github.com/AlexanderCGO2/fluxcreate/tree/codex/public-demo">Demo source on GitHub</a></header>
+  <main>
+    <section class="intro" aria-labelledby="title">
+      <span class="eyebrow">Public demo</span>
+      <h1 id="title">Pick a project and make it yours.</h1>
+      <p>Open an editable sample and try the studio in your browser. Work is saved in this browser. Export a project to take a copy with you.</p>
+      <p>AI generation is disabled in this demo.</p>
+    </section>
+    <section class="projects" aria-label="Sample projects">
+      <article class="project"><span class="studio">FluxFoto</span><h2>The art of slowing down</h2><p>Rework a layered poster. Try changing the headline, color or composition.</p><a href="/fluxoto/">Open poster in FluxFoto</a></article>
+      <article class="project"><span class="studio">FluxDesign</span><h2>Field Notes</h2><p>Edit an illustrated publication with page layouts, text and image frames.</p><a href="/fluxidesign/">Open publication in FluxDesign</a></article>
+      <article class="project"><span class="studio">FluxMotion</span><h2>First light</h2><p>Play a motion study, then adjust the layers or keyframes that give it its timing.</p><a href="/fluxiffects/">Open animation in FluxMotion</a></article>
+      <article class="project"><span class="studio">Flux3D</span><h2>Soft forms</h2><p>Orbit a 3D composition and experiment with its objects and materials.</p><a href="/flux3d/">Open scene in Flux3D</a></article>
+    </section>
+  </main>
+  <footer><span>FluxCreate public demo</span><a href="/LICENSE.txt">AGPL-3.0 license</a></footer>
+</body>
+</html>

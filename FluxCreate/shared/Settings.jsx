@@ -1,13 +1,14 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {Settings2, X, KeyRound, ShieldCheck, ArrowUpRight, Eye, EyeOff, Check, LoaderCircle, CircleAlert, Sparkles, Monitor} from 'lucide-react';
-import {apiURL} from './hosting.mjs';
+import {apiURL, isPublicDemo} from './hosting.mjs';
 import {notifyConnectionChanged, subscribeConnectionChanges} from './connection-events.mjs';
 import {CloudflareConnection} from './CloudflareConnection.jsx';
 import './settings.css';
 
 export function SettingsButton({appId, className = '', theme}) {
   const [open, setOpen] = useState(false);
+  if (isPublicDemo()) return null;
   return <><button type="button" className={`fc-settings-trigger ${className}`} aria-label="General settings" title="General settings" onClick={() => setOpen(true)}><Settings2 size={17}/></button>{open && <SettingsDialog appId={appId} theme={theme} onClose={() => setOpen(false)}/>}</>;
 }
 

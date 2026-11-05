@@ -2,7 +2,7 @@ import {RoutingProvenance} from './RoutingProvenance.jsx';
 import React,{useEffect,useRef,useState} from 'react';
 import {Sparkles,X,Square,ArrowUp,Check} from 'lucide-react';
 import {connectEditorMcp} from '../../FluxLab/src/mcp-client.mjs';
-import {apiURL} from './hosting.mjs';
+import {apiURL, isPublicDemo} from './hosting.mjs';
 import {subscribeConnectionChanges} from './connection-events.mjs';
 import {captureAIContext,sameAIContext,decodeMcpAsset} from './ai-context.mjs';
 import './floating-ai.css';
@@ -11,7 +11,11 @@ const labels={edit:'Propose editable changes',explain:'Explain selected properti
 async function decodeImage(asset,signal){if(asset.kind!=='image')return;const source=asset.images[0],image=new Image();image.src=source.src;await image.decode();signal.throwIfAborted();if(image.naturalWidth!==source.width||image.naturalHeight!==source.height)throw Error('The generated image does not match its dimensions.');}
 
 /** The editor adapter owns validation, preview and its single history commit. */
-export function FloatingAIHelper({appId,adapter,disabledReason=''}){
+export function FloatingAIHelper(props) {
+  return isPublicDemo() ? null : <ConnectedAIHelper {...props}/>;
+}
+
+function ConnectedAIHelper({appId,adapter,disabledReason=''}){
  const [open,setOpen]=useState(false),[catalog,setCatalog]=useState(null),[tools,setTools]=useState([]),[action,setAction]=useState('edit'),[scope,setScope]=useState('selection'),[prompt,setPrompt]=useState(''),[model,setModel]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[review,setReview]=useState(null),[text,setText]=useState(''),[notice,setNotice]=useState('');
  const live=useRef({adapter,disabledReason}),request=useRef(null),applying=useRef(false),trigger=useRef(null),input=useRef(null),epoch=useRef({signature:'',value:0}),refresh=useRef(0);live.current={adapter,disabledReason};
  let context=null,selectionPreview='';try{const raw=adapter.getContext();context=captureAIContext(raw);if(typeof raw.preview==='string'&&/^data:image\/(png|jpeg|webp);base64,/.test(raw.preview))selectionPreview=raw.preview;}catch{}
