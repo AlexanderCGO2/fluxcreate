@@ -1,55 +1,55 @@
-# FluxCreate
+# FluxCreate home
 
-A local creative suite with a shared Apple-inspired interface, portable documents, and the existing Flux / AI Gateway connection. Each editor lives in its own sibling folder.
+This folder holds the FluxCreate home app and the code the studios share. For installation, the current studio list, file compatibility, AI and privacy, and licensing, start with the [root README](../README.md).
 
-| Workspace | Address | Core workflow |
+The home app runs at [localhost:4325](http://localhost:4325/). It launches the studios and shares navigation, appearance, connection settings and recent-project metadata with them.
+
+## Studios and folders
+
+Some source folders still use earlier project names.
+
+| Studio | Folder | Local address |
 | --- | --- | --- |
-| FluxCreate | http://localhost:4325 | Suite home, app launcher, recent projects, workflow guide |
-| Fluxoto | http://localhost:4321 | Layered artwork, brush/eraser, crop, transforms and adjustments |
-| Fluxidesign | http://localhost:4322 | Multi-page layout, editable frames, typography, grids and PDF output |
-| Fluximiere | http://localhost:4323 | Video timeline, cuts, source trims, titles and audio playback |
-| Flux3D | http://localhost:4324 | 3D scene composition, objects, materials and mesh exchange |
-| FluxMotion | http://localhost:4320 | Motion design, live 3D scene compositing and After Effects script bridge |
-| FluxEffects | http://127.0.0.1:4318 | Procedural scenes and simulation |
+| FluxFoto | [`Fluxoto`](../Fluxoto/) | [localhost:4321](http://localhost:4321/) |
+| FluxDesign | [`Fluxidesign`](../Fluxidesign/) | [localhost:4322](http://localhost:4322/) |
+| FluxVideo | [`Fluximiere`](../Fluximiere/) | [localhost:4323](http://localhost:4323/) |
+| Flux3D | [`Flux3D`](../Flux3D/) | [localhost:4324](http://localhost:4324/) |
+| FluxMotion | [`Fluxiffects`](../Fluxiffects/) | [localhost:4320](http://localhost:4320/) |
+| FluxEffects | [`Haidini`](../Haidini/) | [127.0.0.1:4318](http://127.0.0.1:4318/) |
+| FluxLab | [`FluxLab`](../FluxLab/) | [localhost:4326](http://localhost:4326/) |
+| FluxAgents | [`FluxAgents`](../FluxAgents/) | [localhost:4327](http://localhost:4327/) |
 
-Open `Start-FluxCreate.cmd` to start the home. Its Open buttons launch an editor when needed. `node scripts/launch.mjs all` starts the whole suite. Node 24 is required by FluxEffects; the Windows shortcuts use the bundled Codex Node 24 runtime. Servers listen only on loopback. Existing apps are reused, never killed by the launcher.
+## What is in this folder
 
-## Development
-
-Each project has its own `package.json`, lockfile, `src`, `tests`, `dist`, and local launcher. `pnpm install`, `pnpm build`, `pnpm test` and `pnpm test:browser` work from the project folder. Browser checks use installed Microsoft Edge and isolated browser profiles. Shared UI, build, launcher and local service code live in FluxCreate. Build all four new editors again after changing the shared components.
-
-## Compatible documents
-
-`fluxcreate-project` version 1 JSON contains `{ format, version, app, project, motion }`. `project` is the full native editable source. The three 2D editors also include a validated FluxMotion `motion` scene for conversion in the other editors. Flux3D uses `motion: null`; FluxMotion opens its native document as a live 3D layer with the original scene and camera retained. PNG carries a rendered view into photo or page layouts, and GLB carries geometry into other 3D apps. Reopen the native file in its source app to recover its full editing model.
-
-The editors save `.fluxoto`, `.fluxidesign`, `.fluximiere`, and `.flux3d` files; the same envelope can also use a `.json` extension. Files stay local until you explicitly export or hand them off.
-
-`.flux.md` is the existing FluxExchange Markdown envelope: a human-readable brief/notes with a validated fenced scene. It is an interchange representation, not a claim of lossless roundtripping between different editing models. 2D text and shapes remain editable where supported. Publishing-specific layout, video source timing, strokes, masks, animation, effects or hierarchy may be approximated. Conversion notices and each editor's README describe these limits. Markdown handoffs currently use the FluxMotion scene representation and do not carry every new app's native model. Save the native document too.
-
-| Format | Support and limits |
+| Path | Purpose |
 | --- | --- |
-| PNG / JPEG / WebP | Local raster input; PNG/JPEG output in Fluxoto, PNG output in the visual editors |
-| SVG | Supported image input; vector page output in Fluxidesign, with embedded images where present |
-| PDF | Multi-page Fluxidesign export; RGB raster page artwork, not CMYK/prepress or editable PDF text |
-| MP4 / WebM / audio | Browser-decodable local media in Fluximiere; codec support depends on the browser |
-| WebM | Real-time visual video export; audio is not mixed into the exported file in this release |
-| CMX 3600 EDL | Fluximiere V1 cut timing; source media must be relinked, titles/audio/effects are not transported |
-| GLB / glTF / OBJ / STL | Flux3D geometry exchange; see its README for supported material/animation limits |
-| Flux3D / GLB / self-contained glTF → FluxMotion | Live 3D layers with retained source bytes. Embedded glTF animation clips follow the composition timeline; scene transforms and camera controls support keyframes. External glTF resources must be embedded first. |
-| Adobe / Blender native files | PSD, INDD, PRPROJ, AEP and BLEND binary decoding is not implemented. FluxMotion has an After Effects export script bridge. Use standard exports otherwise. |
+| `src/` | The home app interface |
+| `shared/` | UI, settings, AI helpers and handoff code used across the studios |
+| `server/` | Connection settings and AI routing |
+| `scripts/` | Build, launcher, local server and browser checks |
+| `deploy/` | Hosted build and the public demo |
+| `tests/` | Unit tests |
+| `docs/` | Plans, release records and integration reviews |
 
-## AI
+## Run it
 
-The suite reuses the user-authorized FluxEffects connection through `Haidini/server/connection.mjs`. No copied credentials or extra provider account is required. Status reads do not call the model. Only an explicit AI request invokes the gateway.
+Build from the repository root first, as described in the [root README](../README.md#get-started). Then start the home app, or the whole suite:
 
-New editors send the request, optional brief and supported editable scene properties. Local media bytes and paths are stripped. App-specific command engines enforce ranges, locks and selection scope; no AI code is executed. Proposals are validated on the server and again against the current browser project, shown for review, applied through the editor's history, and undoable. Changes to the document invalidate an older proposal. The provider uses a small structured-output schema and returns inert command JSON. Calls are bounded, cancellable and serialized per editor.
+```sh
+node FluxCreate/scripts/launch.mjs fluxcreate
+node FluxCreate/scripts/launch.mjs all
+```
 
-The current configured model is inherited from `FLUXINI_MODEL` (default `anthropic/claude-sonnet-5`). A configured connection does not prove available credits: gateway errors, including HTTP 402, are surfaced without pretending that edits were generated. Automated tests use clearly identified injected planners and do not consume credits.
+The launcher reuses studios that are already running. On Windows, `Start-FluxCreate.cmd` also works if the Codex-bundled Node runtime is installed.
 
-## Local storage
+From this folder, `pnpm build`, `pnpm test` and `pnpm test:browser` build and check the home app. After changing `shared/`, run `pnpm build` from the repository root so that every studio picks up the change.
 
-New editors autosave documents in IndexedDB on their individual local origins. Keep using the same hostname and port to recover them. Download native project files for durable, portable copies. The suite stores only recent document names and save times under `.data/recent-<app>.json`, not media or project bodies. App switchers and the launcher use the canonical addresses above.
+## Further reading
 
-This release supplies functional starting workflows across the suite. It is not feature parity with the full Adobe applications or Blender: advanced photo reconstruction, print production, video audio mixing/export, rigging, sculpting and mesh-level 3D animation authoring remain future work. FluxMotion plays imported 3D motion and can animate scene placement and camera; Flux3D's editable mesh importer does not reconstruct animation rigs.
-
-Current planning: [feature-gap index](docs/FEATURE-GAPS.md), [parallel delivery plan](docs/PARALLEL-GAP-PLAN.md), [LinkedIn draft](docs/LINKEDIN-ARTICLE.md) and [monetization proposal](docs/MONETIZATION-PLAN.md). Drafts are not public announcements; licensing and commercial plans remain decisions to finalize.
+- [File compatibility](../README.md#file-compatibility)
+- [Integration review](docs/INTEGRATION-REVIEW.md), for what crosses each handoff
+- [FluxExchange](../FluxExchange/README.md), for the `.flux.md` handoff format
+- [Feature gaps](docs/FEATURE-GAPS.md) and [implementation progress](docs/IMPLEMENTATION-PROGRESS.md), for what is unfinished
+- [Connection settings](docs/CONNECTION_SETTINGS.md) and [hosting](docs/HOSTING.md)
+- [Monetization proposal](docs/MONETIZATION-PLAN.md), which is a proposal and not a shipped service
+- [Licensing](../docs/LICENSING.md)

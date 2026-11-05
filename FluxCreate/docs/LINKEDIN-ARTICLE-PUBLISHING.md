@@ -1,47 +1,27 @@
 # LinkedIn article publishing notes
 
-Updated 3 November 2026. Prepared draft; nothing has been posted.
+Updated 5 November 2026. The GitHub repository and browser demo are public.
 
-## Article
-
-[The New Era of Creative Software: Building FluxCreate Around the Way Ideas Move](LINKEDIN-ARTICLE.md)
-
-Use exact display names: FluxFoto, FluxDesign, FluxVideo, FluxMotion, FluxEffects, Flux3D, FluxLab and FluxAgents. See [branding](../../docs/BRANDING.md).
+[The first draft is free. The second one is the work.](LINKEDIN-ARTICLE.md)
 
 ## Suggested feed introduction
 
-An idea rarely stays inside one application.
+The client asks for one change, and the export can’t make it.
 
-A photograph becomes a layout. A layout becomes motion. A video needs sound. Yet moving between those tools can mean rebuilding context and losing editability.
+That moment is why I started building FluxCreate, and I’ve now made it public on GitHub. It’s an early creative suite with eight browser-based studios. It’s also a test of the argument I’ve been making here about the imagination economy: when a first draft costs almost nothing, what has to stay editable?
 
-That is why I’m building FluxCreate: eight connected creative studios, with a shared interface and AI assistance that can become part of the work.
+The article covers what survives a handoff today, where it doesn’t, and how I could be wrong.
 
-We’re preparing for a public open-source release. The applications use AGPL-3.0-only; the standalone FluxExchange package uses Apache-2.0. Release qualification and dependency/media rights review continue.
+Try four sample projects in your browser: https://fluxcreate-public-demo.vercel.app/
 
-In the article, I share what works today, what is still unfinished, and why editable results and understandable handoffs matter.
+Source: https://github.com/AlexanderCGO2/fluxcreate
 
-Where does your creative workflow lose the most time between tools?
+If you try it with a file you know well, tell me where you lost the way back.
 
-[Attach the LinkedIn article after creating it.]
+#FluxCreate #OpenSource #BuildInPublic
 
-#FluxCreate #CreativeTools #OpenSource #AI #CreativeWorkflow
+## Cover and demonstration
 
-## Cover
+Use a current screenshot of FluxVideo’s timeline with a sample project cleared for publication. A short demonstration can show source clips and music, an Autoedit proposal, a manual timeline correction and an export.
 
-Suggested cover text: “One idea. Eight creative spaces.”
-
-Use real, current screenshots with cleared sample assets. Lead with FluxVideo's timeline and smaller FluxFoto, FluxMotion and FluxLab views. Check titles and UI use the new names.
-
-## Companion demonstration
-
-A 60–90 second demonstration can follow source clips and music -> reviewed Autoedit -> manual timeline correction -> export. Add a short photo/layout or scene/motion handoff only if the actual supported workflow is shown. Caption the video and label future stages explicitly.
-
-## Publication checks
-
-- Recheck capability and licensing statements on the release commit.
-- The repository is private during preparation. Do not tell readers they can clone it publicly yet.
-- After an approved public release, update the status paragraph and add the verified repository/release URL.
-- Keep managed billing, cloud collaboration and the full generated music-video pipeline described as future work until qualified.
-- Use assets cleared for publication; do not include private test songs/footage.
-- Scrub screenshots for keys, account details, private filenames and signed URLs.
-- Publishing the draft requires an explicit publication request.
+Use the current names from the [branding guide](../../docs/BRANDING.md). Review screenshots and clips for private filenames, account details and signed URLs before posting.

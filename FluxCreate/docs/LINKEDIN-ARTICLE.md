@@ -1,142 +1,55 @@
-# The New Era of Creative Software: Building FluxCreate Around the Way Ideas Move
+# The first draft is free. The second one is the work.
 
-A creative project rarely stays inside one application.
+The client asks for one change, and the export can’t make it. The file looks finished and plays well, and it has no way back to the decision inside it.
 
-A photograph becomes a layout. A layout becomes an animation. An animation becomes part of a video. The video needs sound, perhaps a 3D scene, and several versions for different audiences.
+That used to be a nuisance. I think it has become a central problem. Generative tools have pushed the cost of a competent draft close to zero, and what stays scarce is knowing what should be made. I’ve been testing that idea in public as [the imagination economy](https://imagination-economy.org/glossary/imagination-economy), a phrase that isn’t mine and [goes back at least to Geoffrey Colvin in Fortune in 2006](https://imagination-economy.org/glossary/history-of-the-term). But you often learn what should be made by trying to change a draft. A draft you can only accept or regenerate gives you a choice. A draft you can open gives you a direction to take.
 
-The idea remains connected throughout.
+FluxCreate is my attempt to build for the second kind of draft, and I’ve now made it [public on GitHub](https://github.com/AlexanderCGO2/fluxcreate). It’s an early suite of eight browser-based studios: FluxFoto for photo editing, FluxDesign for page layout, FluxVideo for video, FluxMotion for animation and compositing, FluxEffects for procedural scenes, Flux3D for 3D, FluxLab for AI generation and FluxAgents for workflows. You can clone it and run it locally, or [open the demo](https://fluxcreate-public-demo.vercel.app/) and edit a layered poster, an illustrated publication, a motion study or a 3D scene. AI generation is off in the demo.
 
-The work of moving it between tools can be surprisingly fragmented.
+I built FluxCreate with AI coding agents, and I answer for what’s in it. I also co-founded FLUX AI and CRAISEE, so I have a stake in this argument.
 
-We flatten layers, export another file, relink media, recreate context and explain the same intention again. AI adds another possibility: producing images, words or clips quickly. But a useful creative workflow still has to continue after generation.
+## The objection to my own argument
 
-That is the starting point for FluxCreate.
+If making is cheap, why build eight more editors?
 
-I’m building a connected creative suite with eight studios, a shared visual language and AI assistance that can become part of editable work.
+In October, Brandon Thomas’s ArtCraft project drew attention for open-source editors built with AI, including PhotoCraft for photo editing and EffectCraft for motion and compositing. Ars Technica’s headline quoted the pitch: “Software is over.” That supports the idea that the cost of making has collapsed. It’s also a problem for me, because it suggests editors themselves are getting cheaper.
 
-The project is early. Its foundations are working, its limitations are documented, and there is substantial engineering ahead. What interests me is the opportunity to design the connections between disciplines from the beginning.
+My answer is that the editor isn’t the scarce part. The way back is. That doesn’t mean FluxCreate is ahead on every file. PhotoCraft documents type layers that round-trip through PSD. FluxFoto exports PSD as pixel layers, and its text, shapes, masks and adjustment controls stay editable only in the FluxFoto project. The question I’m working on is narrower: what can stay editable as one project moves between studios?
 
-**One idea. Eight creative spaces.**
+## What the way back looks like
 
-The current names express the role of each studio:
+In FluxVideo, Autoedit takes source clips and a soundtrack and builds an automatic draft on your machine. An optional AI pass reviews a limited selection of frames and musical features, using credits from a connected account, and proposes changes with its reasons. Either way, I end up with an editable timeline. I can swap a shot, trim a clip or give a quiet moment more room before I export. I count that trim as direction. It’s where a vague preference becomes [a decision I can explain](https://imagination-economy.org/glossary/director-mode).
 
-- **FluxFoto** for photographs, layers, selections, masks and image adjustments.
-- **FluxDesign** for pages, text, image frames and publishing layouts.
-- **FluxVideo** for video and audio editing, including music-driven Autoedit.
-- **FluxMotion** for layers, keyframes, animation and compositing.
-- **FluxEffects** for procedural scenes, node graphs, particles and simulations.
-- **Flux3D** for scene composition and supported geometry editing.
-- **FluxLab** for AI-generated text, images, video, speech and music through configured providers.
-- **FluxAgents** for designing, simulating and running supported local workflows.
+Now take a scene from FluxEffects to FluxMotion. Simple text and shapes arrive as objects I can edit, with their position, color and opacity. Simulations, cameras and lights don’t convert. They stay in the handoff, a Markdown file with a readable brief and a complete snapshot of the FluxEffects project, up to 16 MB. When I bring that file back to FluxEffects, I can convert the latest FluxMotion scene or restore the saved original, and the dialog warns that restoring leaves out the later FluxMotion edits.
 
-Each studio has its own purpose. Shared navigation, appearance and connection settings help the whole suite feel familiar.
+A PDF opened in FluxDesign has no such way back. Each page arrives as an image of up to 144 dpi. Its text and paths can’t be edited, though I can add new frames above it. That’s fine when I need the page’s appearance and wrong when I plan to revise its typography, so the difference should be plain before anyone starts.
 
-The ambition is to reduce the effort of moving an idea from one medium to another while retaining a useful path back to its source.
+## Where AI fits
 
-**Generation is a beginning.**
+Core editing works without an AI key. If you want to generate text, images, video, speech or music, you can connect a provider in FluxLab, which may cost money, and bring the results into a studio. FluxLab also exposes MCP tools.
 
-An AI-generated image can be striking. A proposed edit can save time. Neither ends the creative process.
+Once a workflow runs repeatedly, different questions matter. What did it use as input? Which step needed approval? Where did it put the result? FluxAgents can save workflow versions, approvals and outputs for local runs. Hosted, unattended execution is still ahead.
 
-The title needs changing. A mask needs refinement. The pacing feels wrong. A client wants the same concept expressed more quietly. A different format needs a different composition.
+## Why open it now
 
-That is where editability matters.
+The first people to try a tool bring files and habits I didn’t design for. I want them to be able to reproduce an import issue, trace a handoff through the code or propose a better way to preserve part of a document.
 
-Where implemented, FluxCreate can turn supported AI suggestions into validated operations or native objects. A creator can review the result, apply it and continue editing. Generated media can move into a destination studio instead of remaining an isolated download.
+There’s a second reason. When execution gets cheap, it matters more who owns the tools and who can read the files. The apps use AGPL-3.0-only, so changes to them stay open under its terms. The FluxExchange handoff package uses Apache-2.0, so other tools can build on it. Both licenses allow commercial use, and FluxCreate may offer paid hosting, AI usage or support later. None of that is on offer today.
 
-This approach also changes what we should expect from an assistant.
+## How I could be wrong
 
-The useful assistant understands the selected object and the task. It makes a proposal that fits the document. It preserves the original and respects the work completed since the request began.
+If people take the first pass and never reopen it, or find regenerating faster than revising, then I’ve built the wrong thing.
 
-Some of that foundation already exists. Making the experience consistent across every studio remains ongoing work.
+So try it with a file you know well. Import it, change something, and take it into another studio or export it. Tell me which part you expected to stay editable and where you lost the way back. An example I can reproduce is the most useful feedback at this stage. [Open an issue on GitHub](https://github.com/AlexanderCGO2/fluxcreate/issues), or leave a comment here.
 
-**A practical example: finding the edit inside the music.**
+Making got cheap. Changing your mind still costs whatever the file allows.
 
-FluxVideo’s Autoedit workflow brings together source clips and a soundtrack.
+## Sources
 
-The system uses sampled frames and measured music features to propose an edit. The proposed sequence remains editable: replace a shot, change its source range, adjust a cut and make the timing feel right.
-
-The intention is to get to a meaningful first cut sooner.
-
-Creative judgment remains visible. A shot may technically fit the timing but repeat an earlier moment. An attractive clip may contain distracting motion. A pause may serve the song better than another cut.
-
-Those are decisions a creator should be able to make directly.
-
-A separate music-video planning workspace explores a broader process: concept, character and scene references, a song, visual direction and storyboard choices. Connecting that planning to a complete generated-frame and video-production pipeline is still future work.
-
-I want the distinction to be clear. A convincing demonstration should show the capabilities that exist today.
-
-**Good integration needs honest explanations.**
-
-File compatibility is a demanding part of creative software.
-
-Reading a file extension does not establish that every layer, font, effect, animation or color setting survives.
-
-FluxCreate supports selected standard formats and bounded imports from existing workflows. The supported subsets and conversion limits vary by studio. A rendered PDF page, for example, is useful artwork, but its original text and paths are not automatically native editable layout objects.
-
-The suite also includes **FluxExchange**, with a human-readable Markdown format carrying a validated exchange payload.
-
-This makes supported handoffs easier to inspect and extend. It does not make every project model interchangeable.
-
-Cross-app source objects can retain recoverable source alongside a rendered representation. They are not yet a universal live synchronization system.
-
-Those details are part of the product experience. People need to know what they are preserving before trusting a handoff.
-
-**AI should be a choice.**
-
-Core editing can be used without an AI key.
-
-For generation, creators can configure their own provider connection. FluxLab brings the supported capabilities together, with MCP tools that also support integrations with editors and assistants.
-
-Model availability, supported inputs and costs still matter. A saved connection is not proof that every advertised upstream model can perform every task.
-
-I want users to understand when content leaves their machine, which operation may cost money and what happens if a job is interrupted.
-
-FluxAgents extends this direction into repeatable workflows. Its current supported local execution, saved versions, approvals and outputs are a foundation. Durable, unattended cloud execution needs separate infrastructure and qualification.
-
-Automation becomes valuable when its behavior can be understood and recovered.
-
-**The browser opens possibilities—and sets constraints.**
-
-The editors run in the browser, with Node.js services providing supported backend capabilities.
-
-That makes the same creative interface usable in local and hosted setups. Large media, browser storage, memory, codecs and long-running operations still impose practical limits.
-
-Browser autosave is not a portable backup. Local recovery is not cloud synchronization. Closing a tab does not transform a render into a durable background job.
-
-Those are engineering responsibilities we need to address explicitly.
-
-The priority is dependable workflows: import, edit, review, save, reopen and export. A polished interface should make those tasks easier to understand.
-
-**Preparing for open source means preparing for other people.**
-
-FluxCreate is being prepared for a public open-source release. The repository remains private while the release work continues.
-
-We have chosen **AGPL-3.0-only for the applications** and **Apache-2.0 for the standalone FluxExchange package**. Third-party components retain their own licenses, and dependency and asset-distribution reviews remain part of release preparation.
-
-The intended balance is reciprocal application development and an exchange implementation that other tools can adopt broadly.
-
-We are also preparing the less visible foundations: installation instructions, contributor guidance, governance, maintainer responsibilities, private reporting routes, automated checks and documented limitations.
-
-Open development becomes useful when another person can install the software, understand a boundary, report a problem and make a focused improvement.
-
-**Sustainability belongs in the design.**
-
-There is an opportunity to fund development through optional hosting, storage, support, integrations, team workflows and managed AI usage for people who prefer not to configure provider accounts.
-
-These are service directions, not a launched billing offer.
-
-Personal connections and supported local editing should remain meaningful options. Managed services need real ownership checks, spending controls, recoverable jobs and understandable pricing before they are sold.
-
-The business should earn trust through useful operation and ongoing maintenance.
-
-**The next steps need real creative work.**
-
-The most valuable feedback will come from people trying to finish something.
-
-Can they turn photographs into a small campaign? Can they refine a music-driven edit? Can they move a scene into motion without losing track of its source? Can they reopen the project next week?
-
-Those questions will guide development more effectively than a long list of promised features.
-
-FluxCreate is my attempt to help build a new era of creative software: connected disciplines, editable results, understandable AI and a project people can eventually inspect and improve together.
-
-**Which part of your creative workflow loses the most time—or the most editability—between tools?**
+- [Ars Technica on ArtCraft](https://arstechnica.com/ai/2026/10/software-is-over-bold-ai-developer-takes-aim-at-adobe-with-open-source-clones/)
+- [PhotoCraft’s PSD documentation](https://github.com/storytold/photocraft#psd-without-compromise)
+- [EffectCraft](https://github.com/storytold/effectcraft)
+- [FluxCreate file compatibility](https://github.com/AlexanderCGO2/fluxcreate#file-compatibility)
+- [FluxDesign import limits](https://github.com/AlexanderCGO2/fluxcreate/blob/main/Fluxidesign/README.md#adobe-documents)
+- [What FluxExchange transfers](https://github.com/AlexanderCGO2/fluxcreate/blob/main/FluxExchange/README.md#what-transfers)
+- [FluxCreate licensing](https://github.com/AlexanderCGO2/fluxcreate/blob/main/docs/LICENSING.md)
